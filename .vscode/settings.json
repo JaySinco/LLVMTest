@@ -1,0 +1,27 @@
+{
+    "files.exclude": {
+        "bin": true,
+        "out": true,
+        "deps/*/bin": true,
+        "deps/*/include": true,
+        "deps/*/lib": true,
+        "deps/*/share": true,
+        "deps/*/src/out": true,
+        "deps/*/src/*[0-9]": true,
+    },
+    "files.watcherExclude": {
+        "bin": true,
+        "out": true,
+        "deps": true,
+    },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src/",
+        "${workspaceFolder}/deps/gflags/include/",
+        "${workspaceFolder}/deps/glog/include/",
+        "${workspaceFolder}/deps/fmt/include/",
+    ],
+    "C_Cpp.default.defines": [
+        "UNICODE",
+    ],
+    "C_Cpp.default.cppStandard": "c++17",
+}

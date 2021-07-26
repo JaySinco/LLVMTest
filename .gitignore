@@ -1,0 +1,8 @@
+/bin
+/out
+/deps/*/bin
+/deps/*/include
+/deps/*/lib
+/deps/*/share
+/deps/*/src/*
+!/deps/*/src/make.bat
