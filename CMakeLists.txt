@@ -13,6 +13,7 @@ include_directories(AFTER
     ${CMAKE_SOURCE_DIR}/deps/gflags/include/
     ${CMAKE_SOURCE_DIR}/deps/glog/include/
     ${CMAKE_SOURCE_DIR}/deps/fmt/include/
+    ${CMAKE_SOURCE_DIR}/deps/boost/include/boost-1_76/
 )
 
 set(dep_LIB
@@ -23,8 +24,9 @@ set(dep_LIB
 
 add_executable(demo
     ${CMAKE_SOURCE_DIR}/src/utils.cpp
-    ${CMAKE_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_SOURCE_DIR}/src/parser.cpp
+    ${CMAKE_SOURCE_DIR}/src/driver.cpp
 )
 set_target_properties(demo PROPERTIES LINK_FLAGS "/MANIFEST:NO")
 target_compile_definitions(demo PRIVATE UNICODE)
-target_link_libraries(demo shlwapi.lib opengl32.lib ${dep_LIB})
+target_link_libraries(demo shlwapi.lib ${dep_LIB})

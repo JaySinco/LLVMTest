@@ -19,6 +19,7 @@
         "${workspaceFolder}/deps/gflags/include/",
         "${workspaceFolder}/deps/glog/include/",
         "${workspaceFolder}/deps/fmt/include/",
+        "${workspaceFolder}/deps/boost/include/boost-1_76/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",

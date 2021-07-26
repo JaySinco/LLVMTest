@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "parser.h"
 
 int main(int argc, char **argv)
 {
@@ -7,5 +8,9 @@ int main(int argc, char **argv)
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
 
-    LOG(INFO) << "hello world!";
+    ast::expr_value ast;
+    auto err = parser::parse("ip > 10", ast);
+    if (err) {
+        LOG(ERROR) << err->message;
+    }
 }
