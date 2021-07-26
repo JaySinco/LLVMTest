@@ -1,51 +1,52 @@
 #include "parser.h"
 #include "utils.h"
+#include <boost/spirit/home/x3.hpp>
+#include <boost/spirit/home/x3/support/ast/variant.hpp>
+#include <boost/spirit/home/x3/support/ast/position_tagged.hpp>
+#include <boost/spirit/home/x3/support/utility/error_reporting.hpp>
+#include <boost/spirit/home/x3/support/utility/annotate_on_success.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
+#include <boost/fusion/include/std_pair.hpp>
+#include <boost/fusion/include/io.hpp>
+
+namespace x3 = boost::spirit::x3;
 
 namespace parser
 {
-struct compare_op_: x3::symbols<ast::op_t>
+struct doubleQuote_: x3::standard_wide::symbols<wchar_t>
 {
-    compare_op_()
-    {
-        // clang-format off
-        add
-            ("=" , ast::op_t::EQUAL)
-            ("!=", ast::op_t::NOT_EQUAL)
-            (">" , ast::op_t::GREATER)
-            (">=", ast::op_t::GREATER_EQUAL)
-            ("<" , ast::op_t::LESS)
-            ("<=", ast::op_t::LESS_EQUAL)
-        ;
-        // clang-format on
-    }
+    doubleQuote_() { add(L"\"\"", L'\"'); }
+} doubleQuote;
 
-} compare_op;
+x3::rule<struct quoted_class, ast::quoted> quoted{"quoted"};
+x3::rule<struct column_class, ast::column> column{"column"};
+x3::rule<struct line_class, ast::line> line{"line"};
 
-const x3::rule<class expr_class, ast::expr_value> expr = "expr";
-const x3::rule<class comp_class, ast::comp_value> comp = "comp";
+const std::wstring colSep = L",";
+const auto quoted_def = x3::no_skip[L'"' > *(doubleQuote | ~x3::char_(L'"')) > L'"'];
+const auto column_def = quoted | x3::no_skip[*(x3::char_ - colSep)];
+const auto line_def = column % x3::no_skip[colSep];
 
-const auto plain = x3::lexeme[+x3::char_(".0-9a-zA-Z")];
-const auto quoted = x3::lexeme['"' >> *(x3::char_ - '"') >> '"'];
-const auto selector = x3::lexeme[+x3::char_("-0-9a-zA-Z") % '.'];
-const auto target = plain | quoted;
-const auto comp_def = compare_op >> target;
-const auto match = selector >> -comp;
-const auto unit = match | '(' >> expr >> ')';
-const auto not_ = -x3::char_('!') >> unit;
-const auto and_ = not_ % x3::repeat(1, 2)[x3::lit('&')];
-const auto or_ = and_ % x3::repeat(1, 2)[x3::lit('|')];
-const auto expr_def = or_;
+BOOST_SPIRIT_DEFINE(line, quoted, column);
 
-BOOST_SPIRIT_DEFINE(expr, comp);
+}  // namespace parser
 
-boost::optional<ast::err_t> parse(const std::string &code, ast::expr_value &ast)
+std::optional<error> parse(const std::wstring &ws, ast::line &ast)
 {
-    auto it = code.begin();
-    bool ok = x3::phrase_parse(it, code.end(), expr, x3::space, ast);
-    if (!ok || it != code.end()) {
-        return {{"failed to parse filter: unexpected token near '{}'"_format(*it)}};
+    std::wstring::const_iterator iter = ws.begin();
+    std::wstring::const_iterator end = ws.end();
+    try {
+        bool ok = x3::phrase_parse(iter, end, parser::line, x3::standard_wide::space, ast);
+        if (!ok || iter != ws.end()) {
+            std::wstring pos;
+            pos.push_back(*iter);
+            return {{"unexpected '{}' after: {}"_format(
+                utils::ws2s(pos), utils::ws2s(ws.substr(0, iter - ws.begin())))}};
+        }
+    } catch (const x3::expectation_failure<std::wstring::const_iterator> &e) {
+        return {{"expect {} after: {}"_format(e.which(),
+                                              utils::ws2s(ws.substr(0, e.where() - ws.begin())))}};
     }
     return {};
 }
-
-}  // namespace parser

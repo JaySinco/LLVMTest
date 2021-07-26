@@ -1,7 +1,19 @@
-#include "ast.h"
+#pragma once
+#include <string>
+#include <vector>
+#include <optional>
 
-namespace parser
+namespace ast
 {
-boost::optional<ast::err_t> parse(const std::string &code, ast::expr_value &ast);
+using quoted = std::wstring;
+using column = std::wstring;
+using line = std::vector<column>;
 
-}  // namespace parser
+}  // namespace ast
+
+struct error
+{
+    std::string message;
+};
+
+std::optional<error> parse(const std::wstring &raw, ast::line &ast);

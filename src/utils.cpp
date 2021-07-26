@@ -27,7 +27,7 @@ std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi)
     return ws;
 }
 
-std::pair<bool, std::string> read_file(const std::wstring &path)
+std::pair<bool, std::string> readFile(const std::wstring &path)
 {
     std::ifstream in_file(path);
     if (!in_file) {

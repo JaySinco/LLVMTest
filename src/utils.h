@@ -16,6 +16,6 @@ namespace utils
 {
 std::string ws2s(const std::wstring &ws, bool u8_instead_of_ansi = false);
 std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi = false);
-std::pair<bool, std::string> read_file(const std::wstring &path);
+std::pair<bool, std::string> readFile(const std::wstring &path);
 
 }  // namespace utils
