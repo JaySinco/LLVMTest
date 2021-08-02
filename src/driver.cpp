@@ -18,16 +18,12 @@ class ErrorListener: public antlr4::BaseErrorListener
 class WalkListener: public grammar::TParserBaseListener
 {
 public:
-    void exitExpression(grammar::TParser::ExpressionContext *ctx)
+    void exitValue(grammar::TParser::ValueContext *ctx) override
     {
-        int left = std::stoi(ctx->left->getText());
-        int right = std::stoi(ctx->right->getText());
-        if (ctx->PLUS() != nullptr) {
-            LOG(INFO) << left + right;
-        } else {
-            LOG(INFO) << left - right;
+        if (ctx->Integer() != nullptr) {
+            LOG(INFO) << ctx->Integer()->getText();
         }
-    }
+    };
 };
 
 int main(int argc, char **argv)
@@ -36,6 +32,10 @@ int main(int argc, char **argv)
     FLAGS_minloglevel = 0;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
+    if (argc < 2) {
+        LOG(ERROR) << "no input, abort";
+        return 0;
+    }
     try {
         ErrorListener lerr;
         antlr4::ANTLRInputStream ais(argv[1]);
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
         parser.removeErrorListeners();
         parser.addErrorListener(&lerr);
         WalkListener lwalk;
-        antlr4::tree::ParseTreeWalker::DEFAULT.walk(&lwalk, parser.expression());
+        antlr4::tree::ParseTreeWalker::DEFAULT.walk(&lwalk, parser.init());
     } catch (const std::exception &err) {
         LOG(ERROR) << err.what();
     }

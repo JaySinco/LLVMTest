@@ -1,7 +1,11 @@
 lexer grammar TLexer;
 
-options { language=Cpp; }
+options {
+	language = Cpp;
+}
 
-PLUS:        '+';
-MINUS:       '-';
-DEC_DIGIT:   [0-9]+;
+Comma: ',';
+LeftParen: '(';
+RightParen: ')';
+Integer: [0-9]+;
+Whitespace: [ \t\r\n]+ -> skip;
