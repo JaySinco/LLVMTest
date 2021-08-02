@@ -6,3 +6,5 @@
 /deps/*/share
 /deps/*/src/*
 !/deps/*/src/make.bat
+/grammar/.antlr
+/src/gen-cpp
