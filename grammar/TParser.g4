@@ -1,9 +1,15 @@
 parser grammar TParser;
 
 options {
-	tokenVocab = TLexer;
-	language = Cpp;
+    tokenVocab = TLexer;
+    language = Cpp;
 }
 
-init: '(' value (',' value)* ')' EOF;
-value: init | Integer;
+prog: stat+;
+stat: expr NEWLINE | ID '=' expr NEWLINE | NEWLINE;
+expr:
+    expr ('*' | '/') expr
+    | expr ('+' | '-') expr
+    | INT
+    | ID
+    | '(' expr ')';

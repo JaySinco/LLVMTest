@@ -1,11 +1,17 @@
 lexer grammar TLexer;
 
 options {
-	language = Cpp;
+    language = Cpp;
 }
 
-Comma: ',';
-LeftParen: '(';
+ID:         [a-zA-Z]+;
+INT:        [0-9]+;
+NEWLINE:    '\r'? '\n';
+WS:         [ \t]+ -> skip;
+Plus:       '+';
+Minus:      '-';
+Star:       '*';
+Div:        '/';
+LeftParen:  '(';
 RightParen: ')';
-Integer: [0-9]+;
-Whitespace: [ \t\r\n]+ -> skip;
+Assign:     '=';
