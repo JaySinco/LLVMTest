@@ -10,8 +10,9 @@ PUSHD %OUTDIR%
 cmake -G Ninja ^
     -DWITH_GFLAGS=on ^
     -Dgflags_DIR=%~dp0..\..\gflags\src\out\ ^
+    -DBUILD_SHARED_LIBS=off ^
     -DCMAKE_INSTALL_PREFIX=%~dp0..\ ^
     -DCMAKE_BUILD_TYPE=Release ^
-    ..\glog-0.4.0
+    ..\glog-0.5.0
 IF %ERRORLEVEL% == 0 (ninja && ninja install)
 POPD

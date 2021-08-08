@@ -9,7 +9,9 @@ std::string ws2s(const std::wstring &ws, bool u8_instead_of_ansi)
 {
     UINT page = u8_instead_of_ansi ? CP_UTF8 : CP_ACP;
     int len = WideCharToMultiByte(page, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    if (len <= 0) return "";
     auto buf = new char[len]{0};
+    if (buf == nullptr) return "";
     WideCharToMultiByte(page, 0, ws.c_str(), -1, buf, len, nullptr, nullptr);
     std::string s = buf;
     delete[] buf;
@@ -20,7 +22,9 @@ std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi)
 {
     UINT page = u8_instead_of_ansi ? CP_UTF8 : CP_ACP;
     int len = MultiByteToWideChar(page, 0, s.c_str(), -1, nullptr, 0);
+    if (len <= 0) return L"";
     auto buf = new wchar_t[len]{0};
+    if (buf == nullptr) return L"";
     MultiByteToWideChar(page, 0, s.c_str(), -1, buf, len);
     std::wstring ws = buf;
     delete[] buf;
@@ -31,7 +35,6 @@ std::pair<bool, std::string> readFile(const std::wstring &path)
 {
     std::ifstream in_file(path);
     if (!in_file) {
-        LOG(ERROR) << "failed to read file: {}"_format(ws2s(path));
         return {false, ""};
     }
     std::stringstream ss;
