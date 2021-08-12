@@ -17,78 +17,6 @@ class ErrorListener: public antlr4::BaseErrorListener
     }
 };
 
-class WalkListener: public grammar::TParserBaseListener
-{
-public:
-};
-
-class EvalVisitor: public grammar::TParserBaseVisitor
-{
-public:
-    virtual antlrcpp::Any visitPrintExpr(grammar::TParser::PrintExprContext *ctx) override
-    {
-        LOG(INFO) << ctx->expr()->getText() << " = " << visit(ctx->expr()).as<double>();
-        return 0.0;
-    }
-
-    virtual antlrcpp::Any visitClear(grammar::TParser::ClearContext *ctx) override
-    {
-        this->vmap.clear();
-        return 0.0;
-    }
-
-    virtual antlrcpp::Any visitAssign(grammar::TParser::AssignContext *ctx) override
-    {
-        std::string id = ctx->ID()->getText();
-        double value = visit(ctx->expr());
-        LOG(INFO) << id << " = " << value;
-        this->vmap[id] = value;
-        return value;
-    }
-
-    virtual antlrcpp::Any visitParens(grammar::TParser::ParensContext *ctx) override
-    {
-        return visit(ctx->expr());
-    }
-
-    virtual antlrcpp::Any visitMulDiv(grammar::TParser::MulDivContext *ctx) override
-    {
-        double left = visit(ctx->expr(0));
-        double right = visit(ctx->expr(1));
-        if (ctx->op->getType() == grammar::TParser::Mul) {
-            return left * right;
-        }
-        return left / right;
-    }
-
-    virtual antlrcpp::Any visitAddSub(grammar::TParser::AddSubContext *ctx) override
-    {
-        double left = visit(ctx->expr(0));
-        double right = visit(ctx->expr(1));
-        if (ctx->op->getType() == grammar::TParser::Plus) {
-            return left + right;
-        }
-        return left - right;
-    }
-
-    virtual antlrcpp::Any visitId(grammar::TParser::IdContext *ctx) override
-    {
-        std::string id = ctx->ID()->getText();
-        if (vmap.count(id) <= 0) {
-            throw std::runtime_error("variable not exist: {}"_format(id));
-        };
-        return this->vmap[id];
-    }
-
-    virtual antlrcpp::Any visitInt(grammar::TParser::IntContext *ctx) override
-    {
-        return std::stod(ctx->INT()->getText());
-    }
-
-private:
-    std::map<std::string, double> vmap;
-};
-
 int main(int argc, char **argv)
 {
     FLAGS_logtostderr = 1;
@@ -106,14 +34,10 @@ int main(int argc, char **argv)
         grammar::TParser parser(&tokens);
         parser.removeErrorListeners();
         parser.addErrorListener(&lerr);
-        // auto tree = parser.prog();
-        // WalkListener lwalk;
-        // antlr4::tree::ParseTreeWalker::DEFAULT.walk(&lwalk, tree);
-        // LOG(INFO) << std::endl << tree->toStringTree(&parser, true);
-        // EvalVisitor ev;
-        // ev.visit(tree);
+        auto tree = parser.prog();
+        LOG(INFO) << std::endl << tree->toStringTree(&parser, true);
         CodeCompletion cmpl(parser, "TParser");
-        cmpl.collectCandidates(3);
+        cmpl.collectCandidates(11);
     } catch (const std::exception &err) {
         LOG(ERROR) << err.what();
     }

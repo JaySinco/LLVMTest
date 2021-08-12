@@ -20,10 +20,11 @@ CandidatesCollection CodeCompletion::collectCandidates(size_t caretTokenIndex,
 
     this->tokenStartIndex = context != nullptr ? context->start->getTokenIndex() : 0;
     antlr4::TokenStream *tokenStream = this->parser.getTokenStream();
-    // tokenStream->seek(0);
-    size_t offset = this->tokenStartIndex;
+    size_t index = this->tokenStartIndex;
+    LOG(INFO) << "caret=" << caretTokenIndex;
     while (true) {
-        antlr4::Token *token = tokenStream->get(offset++);
+        antlr4::Token *token = tokenStream->get(index);
+        LOG(INFO) << "token[{}]='{}'"_format(index, token->getText());
         if (token->getChannel() == antlr4::Token::DEFAULT_CHANNEL) {
             this->tokens.push_back(token);
             if (token->getTokenIndex() >= caretTokenIndex) {
@@ -33,6 +34,7 @@ CandidatesCollection CodeCompletion::collectCandidates(size_t caretTokenIndex,
         if (token->getType() == antlr4::Token::EOF) {
             break;
         }
+        ++index;
     }
 
     RuleWithStartTokenList callStack;
@@ -139,9 +141,9 @@ RuleEndStatus CodeCompletion::processRule(antlr4::atn::RuleStartState *startStat
         }
     }
     RuleEndStatus result;
-    auto &setsPerState = CodeCompletion::followSetsByATN.at(this->clsName);
+    auto &setsPerState = CodeCompletion::followSetsByATN[this->clsName];
     if (setsPerState.find(startState->stateNumber) == setsPerState.end()) {
-        auto &followSets = setsPerState.at(startState->stateNumber);
+        auto &followSets = setsPerState[startState->stateNumber];
         auto stop = this->parser.getATN().ruleToStopState[startState->ruleIndex];
         followSets.sets = this->determineFollowSets(startState, stop);
         antlr4::misc::IntervalSet combined;
@@ -324,7 +326,7 @@ RuleEndStatus CodeCompletion::processRule(antlr4::atn::RuleStartState *startStat
     // if (startState.isPrecedenceRule) {
     //     this.precedenceStack.pop();
     // }
-    this->shortcutMap.at(startState->ruleIndex)[tokenListIndex] = result;
+    this->shortcutMap[startState->ruleIndex][tokenListIndex] = result;
     return result;
 }
 

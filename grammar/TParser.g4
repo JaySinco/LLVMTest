@@ -5,19 +5,16 @@ options {
     language=Cpp;
 }
 
-prog: stat+;
+prog: assignment | simpleExpression;
 
-stat:
-    expr NEWLINE          # printExpr
-    | ID '=' expr NEWLINE # assign
-    | CLEAR NEWLINE       # clear
-    | NEWLINE             # blank
+assignment: (VAR | LET) ID EQUAL simpleExpression;
+
+simpleExpression:
+    simpleExpression (MULTIPLY | DIVIDE) simpleExpression
+    | simpleExpression (PLUS | MINUS) simpleExpression
+    | variableRef
+    | functionRef
     ;
 
-expr:
-    expr op=('*' | '/') expr   # MulDiv
-    | expr op=('+' | '-') expr # AddSub
-    | INT                      # int
-    | ID                       # id
-    | '(' expr ')'             # parens
-    ;
+variableRef: ID;
+functionRef: ID OPEN_PAR CLOSE_PAR;
