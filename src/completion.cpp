@@ -244,15 +244,16 @@ RuleEndStatus CodeCompletion::processRule(antlr4::atn::RuleStartState *startStat
                     }
                     break;
                 }
-                case antlr4::atn::Transition::SerializationType::PRECEDENCE: {
-                    auto predTransition =
-                        dynamic_cast<antlr4::atn::PrecedencePredicateTransition *>(transition);
-                    if (predTransition->precedence >=
-                        this->precedenceStack[this->precedenceStack.size() - 1])
-                        statePipeline.push_back({transition->target, currentEntry.tokenListIndex});
-
-                    break;
-                }
+                // case antlr4::atn::Transition::SerializationType::PRECEDENCE: {
+                //     auto predTransition =
+                //         dynamic_cast<antlr4::atn::PrecedencePredicateTransition *>(transition);
+                //     if (predTransition->precedence >=
+                //         this->precedenceStack[this->precedenceStack.size() - 1]) {
+                //         statePipeline.push_back({transition->target,
+                //         currentEntry.tokenListIndex});
+                //     }
+                //     break;
+                // }
                 case antlr4::atn::Transition::SerializationType::WILDCARD: {
                     if (atCaret) {
                         if (!this->translateStackToRuleIndex(callStack)) {
@@ -271,7 +272,6 @@ RuleEndStatus CodeCompletion::processRule(antlr4::atn::RuleStartState *startStat
                     }
                     break;
                 }
-
                 default: {
                     if (transition->isEpsilon()) {
                         statePipeline.push_back({transition->target, currentEntry.tokenListIndex});
