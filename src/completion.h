@@ -52,37 +52,47 @@ struct PipelineEntry
 class CodeCompletion
 {
 public:
-    CodeCompletion(antlr4::Parser &parser);
+    CodeCompletion(antlr4::Parser &parser, const std::string &clsName);
+
     CandidatesCollection collectCandidates(size_t caretTokenIndex,
                                            antlr4::ParserRuleContext *context = nullptr);
 
-    bool showResult = false;
-    bool showDebugOutput = false;
-    bool debugOutputWithTransitions = false;
-    bool showRuleStack = false;
+    bool showResult = true;
+    bool showDebugOutput = true;
+    bool debugOutputWithTransitions = true;
+    bool showRuleStack = true;
     bool translateRulesTopDown = false;
     std::set<size_t> ignoredTokens;
     std::set<size_t> preferredRules;
 
 private:
-    // bool checkPredicate(const antlr4::atn::PredicateTransition &transition);
-    // bool translateToRuleIndex(const std::vector<size_t> ruleStack);
-    // std::vector<size_t> getFollowingTokens(const antlr4::atn::Transition &initialTransition);
-    // std::vector<FollowSetWithPath> determineFollowSets(antlr4::atn::ATNState &start,
-    //                                                    antlr4::atn::ATNState &stop);
-    // void collectFollowSets(antlr4::atn::ATNState &s, antlr4::atn::ATNState &stopState,
-    //                        std::vector<FollowSetWithPath> &followSets,
-    //                        std::set<antlr4::atn::ATNState> &seen, std::vector<size_t>
-    //                        &ruleStack);
-    RuleEndStatus processRule(const antlr4::atn::RuleStartState *startState, size_t tokenListIndex,
-                              const RuleWithStartTokenList &callStack, size_t precedence,
+    bool checkPredicate(antlr4::atn::PredicateTransition *transition);
+
+    bool translateStackToRuleIndex(RuleWithStartTokenList &ruleWithStartTokenList);
+
+    bool translateToRuleIndex(size_t i, RuleWithStartTokenList &ruleWithStartTokenList);
+
+    std::vector<size_t> getFollowingTokens(antlr4::atn::Transition *initialTransition);
+
+    std::vector<FollowSetWithPath> determineFollowSets(antlr4::atn::ATNState *start,
+                                                       antlr4::atn::ATNState *stop);
+
+    void collectFollowSets(antlr4::atn::ATNState *s, antlr4::atn::ATNState *stopState,
+                           std::vector<FollowSetWithPath> &followSets,
+                           std::vector<antlr4::atn::ATNState *> &stateStack,
+                           std::vector<size_t> &ruleStack);
+
+    RuleEndStatus processRule(antlr4::atn::RuleStartState *startState, size_t tokenListIndex,
+                              RuleWithStartTokenList &callStack, size_t precedence,
                               size_t indentation);
+
     // std::string generateBaseDescription(antlr4::atn::ATNState &state);
     // void printDescription(const std::string &currentIndent, antlr4::atn::ATNState state,
     //                       const std::string &baseDescription, size_t tokenIndex);
-    // void printRuleState(const std::vector<size_t> &stack);
+    // void printRuleState( std::vector<size_t> &stack);
 
     antlr4::Parser &parser;
+    std::string clsName;
     std::vector<antlr4::Token *> tokens;
     std::vector<size_t> precedenceStack;
     size_t tokenStartIndex = 0;

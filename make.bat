@@ -1,5 +1,6 @@
 @ECHO OFF
 
+SET BUILDTYPE=Debug
 SET OUTDIR=out
 SET BINDIR=bin
 SET TOOLDIR=%~dp0deps\.tools\bin
@@ -11,6 +12,9 @@ IF "%1" == "clean" (
     IF EXIST %BINDIR% (RMDIR /S/Q %BINDIR%)
     GOTO end
 )
+
+IF "%1" == "release" (SET BUILDTYPE=Release)
+ECHO -- Build configuration: "%BUILDTYPE%"
 
 IF EXIST %GENCPP% (RMDIR /S/Q %GENCPP%)
 %ANTLR4% -encoding utf8 -Dlanguage=Cpp %~dp0grammar\*.g4 -o %GENCPP% -listener -visitor -Werror -package grammar
@@ -26,8 +30,8 @@ POPD
 IF NOT EXIST %OUTDIR% (MKDIR %OUTDIR%)
 PUSHD %OUTDIR%
 cmake -G Ninja ^
-    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=%~dp0%BINDIR%\ ^
-    -DCMAKE_BUILD_TYPE=Release ^
+    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%~dp0%BINDIR%\ ^
+    -DCMAKE_BUILD_TYPE=%BUILDTYPE% ^
     ..
 IF %ERRORLEVEL% == 0 (ninja)
 POPD

@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "completion.h"
 #include "antlr4-runtime.h"
 #include "gen-cpp/TLexer.h"
 #include "gen-cpp/TParser.h"
@@ -105,12 +106,14 @@ int main(int argc, char **argv)
         grammar::TParser parser(&tokens);
         parser.removeErrorListeners();
         parser.addErrorListener(&lerr);
-        auto tree = parser.prog();
-        WalkListener lwalk;
-        antlr4::tree::ParseTreeWalker::DEFAULT.walk(&lwalk, tree);
-        LOG(INFO) << std::endl << tree->toStringTree(&parser, true);
-        EvalVisitor ev;
-        ev.visit(tree);
+        // auto tree = parser.prog();
+        // WalkListener lwalk;
+        // antlr4::tree::ParseTreeWalker::DEFAULT.walk(&lwalk, tree);
+        // LOG(INFO) << std::endl << tree->toStringTree(&parser, true);
+        // EvalVisitor ev;
+        // ev.visit(tree);
+        CodeCompletion cmpl(parser, "TParser");
+        cmpl.collectCandidates(3);
     } catch (const std::exception &err) {
         LOG(ERROR) << err.what();
     }
