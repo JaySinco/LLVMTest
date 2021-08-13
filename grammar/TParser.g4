@@ -7,15 +7,24 @@ options {
 
 prog: stat*;
 
-stat: ';' | expr ';' | Identifier '=' expr;
+stat:
+    expr ';'               # ExprStat
+    | Extern prototype ';' # FuncDecl
+    | Def prototype block  # FuncDef
+    ;
 
 expr:
-    Constant
-    | Identifier
-    | ('!' | '+' | '-') expr
-    | expr ('*' | '/' | '%') expr
-    | expr ('+' | '-') expr
-    | expr ('<' | '>' | '<=' | '>=' | '!=' | '==') expr
-    | expr '&&' expr
-    | expr '||' expr
+    Number                                              # Num
+    | Identifier                                        # ID
+    | expr ('*' | '/') expr                             # MulDiv
+    | expr ('+' | '-') expr                             # AddSub
+    | expr ('<' | '>' | '<=' | '>=' | '!=' | '==') expr # Compare
+    | Identifier '(' params? ')'                        # Call
+    | If '(' expr ')' block Else block                  # Condition
+    | Identifier '=' expr                               # Assign
     ;
+
+block:     '{' stat* '}';
+prototype: Identifier '(' args? ')';
+args:      Identifier (',' Identifier)*;
+params:    expr (',' expr)*;
