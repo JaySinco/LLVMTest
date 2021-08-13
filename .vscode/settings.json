@@ -21,6 +21,7 @@
         "${workspaceFolder}/deps/fmt/include/",
         "${workspaceFolder}/deps/boost/include/boost-1_76/",
         "${workspaceFolder}/deps/antlr4/src/antlr4-4.9.2/runtime/Cpp/runtime/src/",
+        "${workspaceFolder}/deps/llvm/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",
