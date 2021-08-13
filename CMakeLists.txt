@@ -22,7 +22,6 @@ file(GLOB_RECURSE GEN_CPP_SRC ${CMAKE_SOURCE_DIR}/src/gen-cpp/*.cpp)
 add_executable(demo
     ${GEN_CPP_SRC}
     ${CMAKE_SOURCE_DIR}/src/utils.cpp
-    ${CMAKE_SOURCE_DIR}/src/completion.cpp
     ${CMAKE_SOURCE_DIR}/src/driver.cpp
 )
 target_include_directories(demo PRIVATE

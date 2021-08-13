@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "completion.h"
 #include "antlr4-runtime.h"
 #include "gen-cpp/TLexer.h"
 #include "gen-cpp/TParser.h"
@@ -34,11 +33,8 @@ int main(int argc, char **argv)
         grammar::TParser parser(&tokens);
         parser.removeErrorListeners();
         parser.addErrorListener(&lerr);
-        // auto tree = parser.prog();
-        // LOG(INFO) << std::endl << tree->toStringTree(&parser, true);
-        tokens.fill();
-        CodeCompletion cmpl(parser, "TParser");
-        cmpl.collectCandidates(11);
+        auto tree = parser.prog();
+        LOG(INFO) << std::endl << tree->toStringTree(&parser, true);
     } catch (const std::exception &err) {
         LOG(ERROR) << err.what();
     }
