@@ -22,7 +22,7 @@
             "request": "launch",
             "input": "sample/input.txt",
             "grammar": "grammar/TParser.g4",
-            "startRule": "prog",
+            "startRule": "program",
             "printParseTree": true,
             "visualParseTree": true
         }

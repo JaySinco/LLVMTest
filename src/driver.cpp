@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         grammar::TParser parser(&tokens);
         parser.removeErrorListeners();
         parser.addErrorListener(&lerr);
-        auto tree = parser.prog();
+        auto tree = parser.program();
         LOG(INFO) << std::endl << tree->toStringTree(&parser, true);
     } catch (const std::exception &err) {
         LOG(ERROR) << err.what();

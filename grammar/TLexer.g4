@@ -6,19 +6,18 @@ options {
 
 Def:          'def';
 Extern:       'extern';
-If:           'if';
-Else:         'else';
 Plus:         '+';
 Minus:        '-';
 Star:         '*';
-Semi:         ';';
 Div:          '/';
+Semi:         ';';
 LeftParen:    '(';
 RightParen:   ')';
 Comma:        ',';
+Question:     '?';
+Colon:        ':';
 Less:         '<';
 Greater:      '>';
-Assign:       '=';
 Equal:        '==';
 NotEqual:     '!=';
 LessEqual:    '<=';

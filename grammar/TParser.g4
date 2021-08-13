@@ -5,26 +5,28 @@ options {
     language=Cpp;
 }
 
-prog: stat*;
+program: statement* EOF;
 
-stat:
-    expr ';'               # ExprStat
-    | Extern prototype ';' # FuncDecl
-    | Def prototype block  # FuncDef
+statement:
+    expression Semi                         # expressionStatement
+    | Extern functionSignature Semi         # externalFunction
+    | Def functionSignature expression Semi # functionDefinition
     ;
 
-expr:
-    Number                                              # Num
-    | Identifier                                        # ID
-    | expr ('*' | '/') expr                             # MulDiv
-    | expr ('+' | '-') expr                             # AddSub
-    | expr ('<' | '>' | '<=' | '>=' | '!=' | '==') expr # Compare
-    | Identifier '(' params? ')'                        # Call
-    | If '(' expr ')' block Else block                  # Condition
-    | Identifier '=' expr                               # Assign
+expression:
+    Number                                                              # literalExpression
+    | Identifier                                                        # idExpression
+    | Identifier LeftParen expressionList? RightParen                   # callExpression
+    | LeftParen expression RightParen                                   # parenthesesExpression
+    | expression (Star | Div) expression                                # multiplicativeExpression
+    | expression (Plus | Minus) expression                              # additiveExpression
+    | expression (Less | Greater | LessEqual | GreaterEqual) expression # relationalExpression
+    | expression (Equal | NotEqual) expression                          # equalityExpression
+    | <assoc=right> expression Question expression Colon expression     # conditionalExpression
     ;
 
-block:     '{' stat* '}';
-prototype: Identifier '(' args? ')';
-args:      Identifier (',' Identifier)*;
-params:    expr (',' expr)*;
+expressionList: expression (Comma expression)*;
+
+argumentList: Identifier (Comma Identifier)*;
+
+functionSignature: Identifier LeftParen argumentList? RightParen;
