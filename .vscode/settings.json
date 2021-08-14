@@ -14,21 +14,6 @@
         "out": true,
         "deps": true,
     },
-    "C_Cpp.default.includePath": [
-        "${workspaceFolder}/src/",
-        "${workspaceFolder}/deps/gflags/include/",
-        "${workspaceFolder}/deps/glog/include/",
-        "${workspaceFolder}/deps/fmt/include/",
-        "${workspaceFolder}/deps/boost/include/boost-1_76/",
-        "${workspaceFolder}/deps/antlr4/src/antlr4-4.9.2/runtime/Cpp/runtime/src/",
-        "${workspaceFolder}/deps/llvm/include/",
-    ],
-    "C_Cpp.default.defines": [
-        "UNICODE",
-        "ANTLR4CPP_STATIC"
-    ],
-    "C_Cpp.default.cppStandard": "c++17",
-    "editor.formatOnSave": true,
     "antlr4.format": {
         "alignTrailingComments": false,
         "allowShortBlocksOnASingleLine": true,
@@ -56,4 +41,19 @@
         "alignLabels": true,
         "alignTrailers": false
     },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src/",
+        "${workspaceFolder}/deps/gflags/include/",
+        "${workspaceFolder}/deps/glog/include/",
+        "${workspaceFolder}/deps/fmt/include/",
+        "${workspaceFolder}/deps/boost/include/boost-1_76/",
+        "${workspaceFolder}/deps/antlr4/src/antlr4-4.9.2/runtime/Cpp/runtime/src/",
+        "${workspaceFolder}/deps/llvm/include/",
+    ],
+    "C_Cpp.default.defines": [
+        "UNICODE",
+        "ANTLR4CPP_STATIC"
+    ],
+    "C_Cpp.default.cppStandard": "c++17",
+    "editor.formatOnSave": true,
 }

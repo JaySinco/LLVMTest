@@ -8,25 +8,24 @@ options {
 program: statement* EOF;
 
 statement:
-    expression Semi                         # expressionStatement
-    | Extern functionSignature Semi         # externalFunction
-    | Def functionSignature expression Semi # functionDefinition
+    'extern' functionSignature ';'           # externalFunction
+    | 'def' functionSignature expression ';' # functionDefinition
     ;
 
 expression:
-    Number                                                              # literalExpression
-    | Identifier                                                        # idExpression
-    | Identifier LeftParen expressionList? RightParen                   # callExpression
-    | LeftParen expression RightParen                                   # parenthesesExpression
-    | expression (Star | Div) expression                                # multiplicativeExpression
-    | expression (Plus | Minus) expression                              # additiveExpression
-    | expression (Less | Greater | LessEqual | GreaterEqual) expression # relationalExpression
-    | expression (Equal | NotEqual) expression                          # equalityExpression
-    | <assoc=right> expression Question expression Colon expression     # conditionalExpression
+    Number                                                   # literalExpression
+    | Identifier                                             # idExpression
+    | Identifier '(' expressionList? ')'                     # callExpression
+    | '(' expression ')'                                     # parenthesesExpression
+    | expression op=('*' | '/') expression                   # multiplicativeExpression
+    | expression op=('+' | '-') expression                   # additiveExpression
+    | expression op=('<' | '>' | '<=' | '>=') expression     # relationalExpression
+    | expression op=('==' | '!=') expression                 # equalityExpression
+    | <assoc=right> expression '?' expression ':' expression # conditionalExpression
     ;
 
-expressionList: expression (Comma expression)*;
+expressionList: expression (',' expression)*;
 
-argumentList: Identifier (Comma Identifier)*;
+argumentList: Identifier (',' Identifier)*;
 
-functionSignature: Identifier LeftParen argumentList? RightParen;
+functionSignature: Identifier '(' argumentList? ')';

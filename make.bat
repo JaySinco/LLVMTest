@@ -17,7 +17,7 @@ IF "%1" == "release" (SET BUILDTYPE=Release)
 ECHO -- Build configuration: "%BUILDTYPE%"
 
 IF EXIST %GENCPP% (RMDIR /S/Q %GENCPP%)
-%ANTLR4% -encoding utf8 -Dlanguage=Cpp %~dp0grammar\T*.g4 -o %GENCPP% -listener -visitor -Werror -package grammar
+%ANTLR4% -encoding utf8 -Dlanguage=Cpp %~dp0grammar\T*.g4 -o %GENCPP% -listener -visitor -Werror
 IF NOT %ERRORLEVEL% == 0 GOTO end
 
 %TOOLDIR%\cloc.exe --quiet src
