@@ -2,30 +2,31 @@
 #include "utils.h"
 #include "gen-cpp/TLexer.h"
 
-CodeGen::CodeGen()
-    : llctx(std::make_unique<llvm::LLVMContext>()),
-      module(std::make_unique<llvm::Module>("demo", *llctx)),
-      builder(std::make_unique<llvm::IRBuilder<>>(*llctx)),
-      passManager(std::make_unique<llvm::legacy::FunctionPassManager>(module.get()))
+CodeGen::CodeGen() { this->initModuleAndPass(); }
+
+void CodeGen::initModuleAndPass()
 {
+    this->module_ = std::make_unique<llvm::Module>("demo", this->llctx);
+    this->module_->setDataLayout(this->jit.getTargetMachine().createDataLayout());
+    this->passManager = std::make_unique<llvm::legacy::FunctionPassManager>(module_.get());
     // this->passManager->add(llvm::createInstructionCombiningPass());
     // this->passManager->add(llvm::createReassociatePass());
     // this->passManager->add(llvm::createGVNPass());
     // this->passManager->add(llvm::createCFGSimplificationPass());
-    // this->passManager->doInitialization();
+    this->passManager->doInitialization();
 }
 
 antlrcpp::Any CodeGen::visitLiteralExpression(TParser::LiteralExpressionContext *ctx)
 {
     double num = std::stod(ctx->Number()->getText());
-    return static_cast<llvm::Value *>(llvm::ConstantFP::get(*this->llctx, llvm::APFloat(num)));
+    return static_cast<llvm::Value *>(llvm::ConstantFP::get(this->llctx, llvm::APFloat(num)));
 }
 
 antlrcpp::Any CodeGen::visitIdExpression(TParser::IdExpressionContext *ctx)
 {
     std::string id = ctx->Identifier()->getText();
     if (this->namedValues.find(id) == this->namedValues.end()) {
-        throw std::runtime_error("unknown variable: {}"_format(id));
+        THROW_ERROR("unknown variable: {}"_format(id));
     }
     return this->namedValues.at(id);
 }
@@ -37,21 +38,21 @@ antlrcpp::Any CodeGen::visitRelationalExpression(TParser::RelationalExpressionCo
     llvm::Value *o = nullptr;
     switch (ctx->op->getType()) {
         case TLexer::Less:
-            o = this->builder->CreateFCmpULT(l, r);
+            o = this->builder.CreateFCmpULT(l, r);
             break;
         case TLexer::Greater:
-            o = this->builder->CreateFCmpUGT(l, r);
+            o = this->builder.CreateFCmpUGT(l, r);
             break;
         case TLexer::LessEqual:
-            o = this->builder->CreateFCmpULE(l, r);
+            o = this->builder.CreateFCmpULE(l, r);
             break;
         case TLexer::GreaterEqual:
-            o = this->builder->CreateFCmpUGE(l, r);
+            o = this->builder.CreateFCmpUGE(l, r);
             break;
         default:
-            throw std::runtime_error("unknown op: {}"_format(ctx->op->getText()));
+            THROW_ERROR("unknown op: {}"_format(ctx->op->getText()));
     }
-    return this->builder->CreateUIToFP(o, llvm::Type::getDoubleTy(*this->llctx), "bool");
+    return this->builder.CreateUIToFP(o, llvm::Type::getDoubleTy(this->llctx), "bool");
 }
 
 antlrcpp::Any CodeGen::visitEqualityExpression(TParser::EqualityExpressionContext *ctx)
@@ -61,15 +62,15 @@ antlrcpp::Any CodeGen::visitEqualityExpression(TParser::EqualityExpressionContex
     llvm::Value *o = nullptr;
     switch (ctx->op->getType()) {
         case TLexer::Equal:
-            o = this->builder->CreateFCmpUEQ(l, r);
+            o = this->builder.CreateFCmpUEQ(l, r);
             break;
         case TLexer::NotEqual:
-            o = this->builder->CreateFCmpUNE(l, r);
+            o = this->builder.CreateFCmpUNE(l, r);
             break;
         default:
-            throw std::runtime_error("unknown op: {}"_format(ctx->op->getText()));
+            THROW_ERROR("unknown op: {}"_format(ctx->op->getText()));
     }
-    return this->builder->CreateUIToFP(o, llvm::Type::getDoubleTy(*this->llctx), "bool");
+    return this->builder.CreateUIToFP(o, llvm::Type::getDoubleTy(this->llctx), "bool");
 }
 
 antlrcpp::Any CodeGen::visitMultiplicativeExpression(TParser::MultiplicativeExpressionContext *ctx)
@@ -78,11 +79,11 @@ antlrcpp::Any CodeGen::visitMultiplicativeExpression(TParser::MultiplicativeExpr
     llvm::Value *r = this->visit(ctx->expression(1));
     switch (ctx->op->getType()) {
         case TLexer::Star:
-            return this->builder->CreateFMul(l, r);
+            return this->builder.CreateFMul(l, r);
         case TLexer::Div:
-            return this->builder->CreateFDiv(l, r);
+            return this->builder.CreateFDiv(l, r);
         default:
-            throw std::runtime_error("unknown op: {}"_format(ctx->op->getText()));
+            THROW_ERROR("unknown op: {}"_format(ctx->op->getText()));
     }
 }
 
@@ -92,11 +93,11 @@ antlrcpp::Any CodeGen::visitAdditiveExpression(TParser::AdditiveExpressionContex
     llvm::Value *r = this->visit(ctx->expression(1));
     switch (ctx->op->getType()) {
         case TLexer::Plus:
-            return this->builder->CreateFAdd(l, r);
+            return this->builder.CreateFAdd(l, r);
         case TLexer::Minus:
-            return this->builder->CreateFSub(l, r);
+            return this->builder.CreateFSub(l, r);
         default:
-            throw std::runtime_error("unknown op: {}"_format(ctx->op->getText()));
+            THROW_ERROR("unknown op: {}"_format(ctx->op->getText()));
     }
 }
 
@@ -110,26 +111,43 @@ antlrcpp::Any CodeGen::visitConditionalExpression(TParser::ConditionalExpression
     return nullptr;
 }
 
+llvm::Function *CodeGen::getFunction(const std::string &name)
+{
+    if (auto *func = this->module_->getFunction(name)) {
+        return func;
+    }
+    auto &args = this->signatures.at(name);
+    std::vector<llvm::Type *> paramType(args.size(), llvm::Type::getDoubleTy(this->llctx));
+    llvm::FunctionType *funcType =
+        llvm::FunctionType::get(llvm::Type::getDoubleTy(this->llctx), paramType, false);
+
+    llvm::Function *func = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, name,
+                                                  this->module_.get());
+    for (int i = 0; i < args.size(); ++i) {
+        func->getArg(i)->setName(args.at(i));
+    }
+    return func;
+}
+
 antlrcpp::Any CodeGen::visitCallExpression(TParser::CallExpressionContext *ctx)
 {
     std::string name = ctx->Identifier()->getText();
-    llvm::Function *callee = this->module->getFunction(name);
-    if (!callee) {
-        throw std::runtime_error("unknown function: {}"_format(name));
+    if (this->signatures.find(name) == this->signatures.end()) {
+        THROW_ERROR("unknown function: {}"_format(name));
     }
+    auto &args = this->signatures[name];
     std::vector<TParser::ExpressionContext *> exprList;
     if (ctx->expressionList() != nullptr) {
         exprList = ctx->expressionList()->expression();
     }
-    if (callee->arg_size() != exprList.size()) {
-        throw std::runtime_error(
-            "{} expected {} args, got {}"_format(name, callee->arg_size(), exprList.size()));
+    if (args.size() != exprList.size()) {
+        THROW_ERROR("{} expected {} args, got {}"_format(name, args.size(), exprList.size()));
     }
     std::vector<llvm::Value *> argv;
     std::transform(
         exprList.begin(), exprList.end(), std::back_inserter(argv),
         [&](TParser::ExpressionContext *c) { return static_cast<llvm::Value *>(this->visit(c)); });
-    return static_cast<llvm::Value *>(this->builder->CreateCall(callee, argv));
+    return static_cast<llvm::Value *>(this->builder.CreateCall(this->getFunction(name), argv));
 }
 
 antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext *ctx)
@@ -138,15 +156,12 @@ antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext 
     if (ctx->argumentList() != nullptr) {
         idList = ctx->argumentList()->Identifier();
     }
-    std::vector<llvm::Type *> paramType(idList.size(), llvm::Type::getDoubleTy(*this->llctx));
-    llvm::FunctionType *funcType =
-        llvm::FunctionType::get(llvm::Type::getDoubleTy(*this->llctx), paramType, false);
-    llvm::Function *func = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage,
-                                                  ctx->Identifier()->getText(), this->module.get());
+    std::string funcName = ctx->Identifier()->getText();
+    auto &args = this->signatures[funcName];
     for (int i = 0; i < idList.size(); ++i) {
-        func->getArg(i)->setName(idList.at(i)->getText());
+        args.push_back(idList.at(i)->getText());
     }
-    return func;
+    return getFunction(funcName);
 }
 
 antlrcpp::Any CodeGen::visitExternalFunction(TParser::ExternalFunctionContext *ctx)
@@ -158,24 +173,57 @@ antlrcpp::Any CodeGen::visitExternalFunction(TParser::ExternalFunctionContext *c
 antlrcpp::Any CodeGen::visitFunctionDefinition(TParser::FunctionDefinitionContext *ctx)
 {
     std::string funcName = ctx->functionSignature()->Identifier()->getText();
-    if (this->module->getFunction(funcName) != nullptr) {
-        throw std::runtime_error("function already exist: {}"_format(funcName));
+    if (this->signatures.find(funcName) != this->signatures.end()) {
+        THROW_ERROR("function already exist: {}"_format(funcName));
     }
     llvm::Function *func = this->visit(ctx->functionSignature());
-    llvm::BasicBlock *block = llvm::BasicBlock::Create(*this->llctx, "entry", func);
-    this->builder->SetInsertPoint(block);
+    llvm::BasicBlock *block = llvm::BasicBlock::Create(this->llctx, "entry", func);
+    this->builder.SetInsertPoint(block);
     this->namedValues.clear();
     for (auto &arg: func->args()) {
         this->namedValues[arg.getName().str()] = &arg;
     }
     llvm::Value *ret = this->visit(ctx->expression());
-    this->builder->CreateRet(ret);
+    this->builder.CreateRet(ret);
     std::string errmsg;
     llvm::raw_string_ostream ss(errmsg);
     if (llvm::verifyFunction(*func, &ss)) {
-        throw std::runtime_error(errmsg);
+        THROW_ERROR(errmsg);
     }
     this->passManager->run(*func);
+    this->module_->print(llvm::errs(), nullptr);
+    this->jit.addModule(std::move(this->module_));
+    this->initModuleAndPass();
+    return nullptr;
+}
+
+antlrcpp::Any CodeGen::visitExpressionStatement(TParser::ExpressionStatementContext *ctx)
+{
+    std::vector<llvm::Type *> paramType;
+    llvm::FunctionType *funcType =
+        llvm::FunctionType::get(llvm::Type::getDoubleTy(this->llctx), paramType, false);
+    llvm::Function *func = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage,
+                                                  "__anonymous", this->module_.get());
+    llvm::BasicBlock *block = llvm::BasicBlock::Create(this->llctx, "entry", func);
+    this->builder.SetInsertPoint(block);
+    llvm::Value *ret = this->visit(ctx->expression());
+    this->builder.CreateRet(ret);
+    std::string errmsg;
+    llvm::raw_string_ostream ss(errmsg);
+    if (llvm::verifyFunction(*func, &ss)) {
+        THROW_ERROR(errmsg);
+    }
+    this->passManager->run(*func);
+    this->module_->print(llvm::errs(), nullptr);
+    auto key = this->jit.addModule(std::move(this->module_));
+    this->initModuleAndPass();
+    auto sym = this->jit.findSymbol("__anonymous");
+    if (!sym) {
+        LOG(ERROR) << "failed to find symbol: __anonymous";
+    }
+    auto *fp = (double (*)())(intptr_t)llvm::cantFail(sym.getAddress());
+    std::cout << fp() << std::endl;
+    this->jit.removeModule(key);
     return nullptr;
 }
 

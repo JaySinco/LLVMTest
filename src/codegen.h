@@ -1,11 +1,15 @@
 #pragma once
 #include "prec.h"
+#include "jit-compiler.h"
 #include "gen-cpp/TParserBaseVisitor.h"
 
 class CodeGen: public TParserBaseVisitor
 {
 public:
     CodeGen();
+    void initModuleAndPass();
+    llvm::Function *getFunction(const std::string &name);
+
     antlrcpp::Any visitCallExpression(TParser::CallExpressionContext *ctx) override;
     antlrcpp::Any visitParenthesesExpression(TParser::ParenthesesExpressionContext *ctx) override;
     antlrcpp::Any visitAdditiveExpression(TParser::AdditiveExpressionContext *ctx) override;
@@ -19,11 +23,14 @@ public:
     antlrcpp::Any visitFunctionSignature(TParser::FunctionSignatureContext *ctx) override;
     antlrcpp::Any visitExternalFunction(TParser::ExternalFunctionContext *ctx) override;
     antlrcpp::Any visitFunctionDefinition(TParser::FunctionDefinitionContext *ctx) override;
+    antlrcpp::Any visitExpressionStatement(TParser::ExpressionStatementContext *ctx) override;
     antlrcpp::Any visitProgram(TParser::ProgramContext *ctx) override;
 
-    std::unique_ptr<llvm::LLVMContext> llctx;
-    std::unique_ptr<llvm::Module> module;
-    std::unique_ptr<llvm::IRBuilder<>> builder;
+    llvm::LLVMContext llctx;
+    llvm::IRBuilder<> builder{llctx};
+    JITCompiler jit;
+    std::unique_ptr<llvm::Module> module_;
     std::unique_ptr<llvm::legacy::FunctionPassManager> passManager;
     std::map<std::string, llvm::Value *> namedValues;
+    std::map<std::string, std::vector<std::string>> signatures;
 };

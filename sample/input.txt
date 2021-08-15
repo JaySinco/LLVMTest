@@ -1,15 +1,5 @@
-extern sin(arg);
-extern cos(arg);
-extern atan2(arg1, arg2);
-
-def fib(x)
-    fib(x-1) + fib(x-2);
-
 def foo(a, b)
     a*a + 2*a*b + b*b + 1 + 2;
 
 def main()
-    atan2(sin(0.4), cos(42));
-
-def test(x)
-    (1+2+x)*(1+2+x);
+    foo(3, 4);

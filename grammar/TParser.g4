@@ -8,7 +8,8 @@ options {
 program: statement* EOF;
 
 statement:
-    'extern' functionSignature ';'           # externalFunction
+    expression ';'                           # expressionStatement
+    | 'extern' functionSignature ';'         # externalFunction
     | 'def' functionSignature expression ';' # functionDefinition
     ;
 
