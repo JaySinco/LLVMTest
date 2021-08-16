@@ -12,7 +12,7 @@ class ErrorListener: public antlr4::BaseErrorListener
                              size_t line, size_t charPositionInLine, const std::string &msg,
                              std::exception_ptr e) override
     {
-        THROW_ERROR("line {}:{} {}"_format(line, charPositionInLine, msg));
+        Throw_Error("line {}:{} {}"_format(line, charPositionInLine, msg));
     }
 };
 

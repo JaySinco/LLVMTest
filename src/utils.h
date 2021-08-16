@@ -13,7 +13,7 @@ using namespace std::chrono_literals;
 using namespace std::string_literals;
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#define THROW_ERROR(s) throw utils::error("[{}:{}] {}"_format(__FILENAME__, __LINE__, (s)));
+#define Throw_Error(s) throw utils::error("[{}:{}] {}"_format(__FILENAME__, __LINE__, (s)));
 
 namespace utils
 {
