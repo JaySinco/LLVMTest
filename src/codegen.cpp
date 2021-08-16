@@ -226,7 +226,7 @@ antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext 
     for (int i = 0; i < idList.size(); ++i) {
         args.push_back(idList.at(i)->getText());
     }
-    return getFunction(funcName);
+    return this->getFunction(funcName);
 }
 
 antlrcpp::Any CodeGen::visitExternalFunction(TParser::ExternalFunctionContext *ctx)
