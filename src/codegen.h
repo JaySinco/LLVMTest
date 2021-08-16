@@ -8,7 +8,9 @@ class CodeGen: public TParserBaseVisitor
 public:
     CodeGen();
     void initModuleAndPass();
+    void printModule();
     llvm::Function *getFunction(const std::string &name);
+    bool writeFunctionBody(llvm::Function *func, TParser::ExpressionContext *expr);
 
     antlrcpp::Any visitCallExpression(TParser::CallExpressionContext *ctx) override;
     antlrcpp::Any visitParenthesesExpression(TParser::ParenthesesExpressionContext *ctx) override;

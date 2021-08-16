@@ -1,5 +1,6 @@
 #pragma once
 #include "prec.h"
+#include <optional>
 
 class JITCompiler
 {
@@ -9,8 +10,8 @@ public:
 
     JITCompiler();
     llvm::TargetMachine &getTargetMachine();
-    llvm::orc::VModuleKey addModule(std::unique_ptr<llvm::Module> module_);
-    void removeModule(llvm::orc::VModuleKey key);
+    std::optional<llvm::orc::VModuleKey> addModule(std::unique_ptr<llvm::Module> module_);
+    bool removeModule(llvm::orc::VModuleKey key);
     llvm::JITSymbol findSymbol(const std::string &name);
 
 private:

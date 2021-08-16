@@ -3,6 +3,7 @@
 #include "antlr4-runtime.h"
 #include "gen-cpp/TLexer.h"
 #include "gen-cpp/TParser.h"
+#include <boost/algorithm/string/trim.hpp>
 #include <fstream>
 
 class ErrorListener: public antlr4::BaseErrorListener
@@ -33,6 +34,10 @@ int main(int argc, char **argv)
             std::cout << ">> ";
             std::string line;
             std::getline(std::cin, line);
+            boost::trim_right(line);
+            if (line.back() != ';') {
+                line.push_back(';');
+            }
             antlr4::ANTLRInputStream ais(line);
             TLexer lexer(&ais);
             lexer.removeErrorListeners();
@@ -43,10 +48,10 @@ int main(int argc, char **argv)
             parser.removeErrorListeners();
             parser.addErrorListener(&lerr);
             auto tree = parser.program();
-            // std::cout << tree->toStringTree(&parser, true) << std::endl;
+            VLOG(1) << "ast-tree =>\n" << tree->toStringTree(&parser, true);
             cg->visit(tree);
-        } catch (utils::error &e) {
-            std::cerr << e.what() << std::endl;
+        } catch (std::exception &e) {
+            LOG(ERROR) << e.what();
         }
     }
 }

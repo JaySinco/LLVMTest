@@ -4,7 +4,9 @@
 JITCompiler::JITCompiler()
     : resolver(llvm::orc::createLegacyLookupResolver(
           es, [this](llvm::StringRef name) { return this->findMangledSymbol(std::string(name)); },
-          [](llvm::Error err) { llvm::cantFail(std::move(err), "failed to lookup"); })),
+          [](llvm::Error err) {
+              LOG(ERROR) << "failed to lookup symbol: " << llvm::toString(std::move(err));
+          })),
       tm(llvm::EngineBuilder{}.selectTarget()),
       dl(tm->createDataLayout()),
       objl(
@@ -19,18 +21,29 @@ JITCompiler::JITCompiler()
 
 llvm::TargetMachine &JITCompiler::getTargetMachine() { return *tm; }
 
-llvm::orc::VModuleKey JITCompiler::addModule(std::unique_ptr<llvm::Module> module_)
+std::optional<llvm::orc::VModuleKey> JITCompiler::addModule(std::unique_ptr<llvm::Module> module_)
 {
     auto key = this->es.allocateVModule();
-    llvm::cantFail(cmpl.addModule(key, std::move(module_)));
+    if (auto err = cmpl.addModule(key, std::move(module_))) {
+        LOG(ERROR) << "failed to add module: " << llvm::toString(std::move(err));
+        return {};
+    }
     this->mkeys.push_back(key);
     return key;
 }
 
-void JITCompiler::removeModule(llvm::orc::VModuleKey key)
+bool JITCompiler::removeModule(llvm::orc::VModuleKey key)
 {
-    this->mkeys.erase(llvm::find(this->mkeys, key));
-    llvm::cantFail(cmpl.removeModule(key));
+    auto it = llvm::find(this->mkeys, key);
+    if (it == this->mkeys.end()) {
+        return false;
+    }
+    this->mkeys.erase(it);
+    if (auto err = cmpl.removeModule(key)) {
+        LOG(ERROR) << "failed to remove module: " << llvm::toString(std::move(err));
+        return false;
+    }
+    return true;
 }
 
 llvm::JITSymbol JITCompiler::findSymbol(const std::string &name)
