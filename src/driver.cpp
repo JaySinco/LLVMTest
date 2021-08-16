@@ -16,6 +16,26 @@ class ErrorListener: public antlr4::BaseErrorListener
     }
 };
 
+void eval(const std::string &code, CodeGen *codegen)
+{
+    try {
+        antlr4::ANTLRInputStream ais(code);
+        TLexer lexer(&ais);
+        lexer.removeErrorListeners();
+        ErrorListener lerr;
+        lexer.addErrorListener(&lerr);
+        antlr4::CommonTokenStream tokens(&lexer);
+        TParser parser(&tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(&lerr);
+        auto tree = parser.program();
+        VLOG(1) << "ast-tree =>\n" << tree->toStringTree(&parser, true);
+        codegen->visit(tree);
+    } catch (std::exception &e) {
+        LOG(ERROR) << e.what();
+    }
+}
+
 int main(int argc, char **argv)
 {
     FLAGS_logtostderr = 1;
@@ -26,32 +46,19 @@ int main(int argc, char **argv)
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
-    llvm::ExitOnError exitOnErr;
 
-    auto cg = std::make_unique<CodeGen>();
+    auto codegen = std::make_unique<CodeGen>();
+    eval(utils::readFile(L"sample/input.txt").second, codegen.get());
     while (true) {
-        try {
-            std::cout << ">> ";
-            std::string line;
-            std::getline(std::cin, line);
-            boost::trim_right(line);
-            if (line.back() != ';') {
-                line.push_back(';');
-            }
-            antlr4::ANTLRInputStream ais(line);
-            TLexer lexer(&ais);
-            lexer.removeErrorListeners();
-            ErrorListener lerr;
-            lexer.addErrorListener(&lerr);
-            antlr4::CommonTokenStream tokens(&lexer);
-            TParser parser(&tokens);
-            parser.removeErrorListeners();
-            parser.addErrorListener(&lerr);
-            auto tree = parser.program();
-            VLOG(1) << "ast-tree =>\n" << tree->toStringTree(&parser, true);
-            cg->visit(tree);
-        } catch (std::exception &e) {
-            LOG(ERROR) << e.what();
+        std::cout << ">> ";
+        std::string line;
+        if (!std::getline(std::cin, line)) {
+            break;
         }
+        boost::trim_right(line);
+        if (line.back() != ';') {
+            line.push_back(';');
+        }
+        eval(line, codegen.get());
     }
 }

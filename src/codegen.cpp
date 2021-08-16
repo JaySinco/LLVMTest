@@ -7,7 +7,8 @@ CodeGen::CodeGen() { this->initModuleAndPass(); }
 
 void CodeGen::initModuleAndPass()
 {
-    this->module_ = std::make_unique<llvm::Module>("demo", this->llctx);
+    static int id = 0;
+    this->module_ = std::make_unique<llvm::Module>("__module_{}"_format(id++), this->llctx);
     this->module_->setDataLayout(this->jit.getTargetMachine().createDataLayout());
     this->passManager = std::make_unique<llvm::legacy::FunctionPassManager>(module_.get());
     // this->passManager->add(llvm::createInstructionCombiningPass());
@@ -212,11 +213,15 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
 
 antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext *ctx)
 {
+    std::string funcName = ctx->Identifier()->getText();
+    if (this->signatures.find(funcName) != this->signatures.end()) {
+        LOG(ERROR) << "function already exist: " << funcName;
+        return static_cast<llvm::Function *>(nullptr);
+    }
     std::vector<antlr4::tree::TerminalNode *> idList;
     if (ctx->argumentList() != nullptr) {
         idList = ctx->argumentList()->Identifier();
     }
-    std::string funcName = ctx->Identifier()->getText();
     auto &args = this->signatures[funcName];
     for (int i = 0; i < idList.size(); ++i) {
         args.push_back(idList.at(i)->getText());
@@ -226,18 +231,16 @@ antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext 
 
 antlrcpp::Any CodeGen::visitExternalFunction(TParser::ExternalFunctionContext *ctx)
 {
-    this->visit(ctx->functionSignature());
-    this->printModule();
+    llvm::Function *func = this->visit(ctx->functionSignature());
+    if (func != nullptr) {
+        this->printModule();
+    }
     return nullptr;
 }
 
 antlrcpp::Any CodeGen::visitFunctionDefinition(TParser::FunctionDefinitionContext *ctx)
 {
     std::string funcName = ctx->functionSignature()->Identifier()->getText();
-    if (this->signatures.find(funcName) != this->signatures.end()) {
-        LOG(ERROR) << "function already exist: " << funcName;
-        return nullptr;
-    }
     llvm::Function *func = this->visit(ctx->functionSignature());
     if (func == nullptr) {
         return nullptr;
