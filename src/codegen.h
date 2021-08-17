@@ -3,6 +3,9 @@
 #include "jit-compiler.h"
 #include "gen-cpp/TParserBaseVisitor.h"
 
+#define DELIMITER \
+    "-------------------------------------------------------------------------------\n"
+
 class CodeGen: public TParserBaseVisitor
 {
 public:

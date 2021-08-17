@@ -1,11 +1,13 @@
 #include "jit-compiler.h"
 #include "utils.h"
+#include <iostream>
 
 JITCompiler::JITCompiler()
     : resolver(llvm::orc::createLegacyLookupResolver(
           es, [this](llvm::StringRef name) { return this->findMangledSymbol(std::string(name)); },
           [](llvm::Error err) {
-              LOG(ERROR) << "failed to lookup symbol: " << llvm::toString(std::move(err));
+              std::cerr << "failed to lookup symbol: " << llvm::toString(std::move(err))
+                        << std::endl;
           })),
       tm(llvm::EngineBuilder{}.selectTarget()),
       dl(tm->createDataLayout()),
@@ -25,7 +27,7 @@ std::optional<llvm::orc::VModuleKey> JITCompiler::addModule(std::unique_ptr<llvm
 {
     auto key = this->es.allocateVModule();
     if (auto err = cmpl.addModule(key, std::move(module_))) {
-        LOG(ERROR) << "failed to add module: " << llvm::toString(std::move(err));
+        std::cerr << "failed to add module: " << llvm::toString(std::move(err)) << std::endl;
         return {};
     }
     this->mkeys.push_back(key);
@@ -40,7 +42,7 @@ bool JITCompiler::removeModule(llvm::orc::VModuleKey key)
     }
     this->mkeys.erase(it);
     if (auto err = cmpl.removeModule(key)) {
-        LOG(ERROR) << "failed to remove module: " << llvm::toString(std::move(err));
+        std::cerr << "failed to remove module: " << llvm::toString(std::move(err)) << std::endl;
         return false;
     }
     return true;

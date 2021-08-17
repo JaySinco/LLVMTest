@@ -12,7 +12,7 @@ class ErrorListener: public antlr4::BaseErrorListener
                              size_t line, size_t charPositionInLine, const std::string &msg,
                              std::exception_ptr e) override
     {
-        Throw_Error("line {}:{} {}"_format(line, charPositionInLine, msg));
+        throw std::runtime_error("line {}:{} {}"_format(line, charPositionInLine, msg));
     }
 };
 
@@ -29,10 +29,10 @@ void eval(const std::string &code, CodeGen *codegen)
         parser.removeErrorListeners();
         parser.addErrorListener(&lerr);
         auto tree = parser.program();
-        VLOG(1) << "ast-tree =>\n" << tree->toStringTree(&parser, true);
+        std::cout << tree->toStringTree(&parser, true) << std::endl << DELIMITER;
         codegen->visit(tree);
     } catch (std::exception &e) {
-        LOG(ERROR) << e.what();
+        std::cerr << e.what() << std::endl;
     }
 }
 

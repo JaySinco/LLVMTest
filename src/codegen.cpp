@@ -28,7 +28,7 @@ antlrcpp::Any CodeGen::visitIdExpression(TParser::IdExpressionContext *ctx)
 {
     std::string id = ctx->Identifier()->getText();
     if (this->namedValues.find(id) == this->namedValues.end()) {
-        LOG(ERROR) << "unknown variable: " << id;
+        std::cerr << "unknown variable: " << id << std::endl;
         return NullVal;
     }
     return this->namedValues.at(id);
@@ -55,7 +55,7 @@ antlrcpp::Any CodeGen::visitRelationalExpression(TParser::RelationalExpressionCo
             o = this->builder.CreateFCmpUGE(l, r);
             break;
         default:
-            LOG(ERROR) << "unknow op: " << ctx->op->getText();
+            std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
             return NullVal;
     }
     return this->builder.CreateUIToFP(o, llvm::Type::getDoubleTy(this->llctx), "bool");
@@ -76,7 +76,7 @@ antlrcpp::Any CodeGen::visitEqualityExpression(TParser::EqualityExpressionContex
             o = this->builder.CreateFCmpUNE(l, r);
             break;
         default:
-            LOG(ERROR) << "unknow op: " << ctx->op->getText();
+            std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
             return NullVal;
     }
     return this->builder.CreateUIToFP(o, llvm::Type::getDoubleTy(this->llctx), "bool");
@@ -94,7 +94,7 @@ antlrcpp::Any CodeGen::visitMultiplicativeExpression(TParser::MultiplicativeExpr
         case TLexer::Div:
             return this->builder.CreateFDiv(l, r);
         default:
-            LOG(ERROR) << "unknow op: " << ctx->op->getText();
+            std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
             return NullVal;
     }
 }
@@ -111,7 +111,7 @@ antlrcpp::Any CodeGen::visitAdditiveExpression(TParser::AdditiveExpressionContex
         case TLexer::Minus:
             return this->builder.CreateFSub(l, r);
         default:
-            LOG(ERROR) << "unknow op: " << ctx->op->getText();
+            std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
             return NullVal;
     }
 }
@@ -132,7 +132,7 @@ llvm::Function *CodeGen::getFunction(const std::string &name)
         return func;
     }
     if (this->signatures.find(name) == this->signatures.end()) {
-        LOG(ERROR) << "unknow function signature: " << name;
+        std::cerr << "unknow function signature: " << name << std::endl;
         return nullptr;
     }
     auto &args = this->signatures.at(name);
@@ -151,7 +151,7 @@ antlrcpp::Any CodeGen::visitCallExpression(TParser::CallExpressionContext *ctx)
 {
     std::string name = ctx->Identifier()->getText();
     if (this->signatures.find(name) == this->signatures.end()) {
-        LOG(ERROR) << "unknown function: " << name;
+        std::cerr << "unknown function: " << name << std::endl;
         return NullVal;
     }
     auto &args = this->signatures[name];
@@ -160,7 +160,8 @@ antlrcpp::Any CodeGen::visitCallExpression(TParser::CallExpressionContext *ctx)
         exprList = ctx->expressionList()->expression();
     }
     if (args.size() != exprList.size()) {
-        LOG(ERROR) << "{} expected {} args, got {}"_format(name, args.size(), exprList.size());
+        std::cerr << "{} expected {} args, got {}"_format(name, args.size(), exprList.size())
+                  << std::endl;
         return NullVal;
     }
     std::vector<llvm::Value *> argv;
@@ -183,7 +184,7 @@ void CodeGen::printModule()
     std::string str;
     llvm::raw_string_ostream ss(str);
     this->module_->print(ss, nullptr);
-    VLOG(1) << "module =>\n" << str;
+    std::cout << str << DELIMITER;
 }
 
 bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext *expr)
@@ -194,10 +195,10 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
     for (auto &arg: func->args()) {
         this->namedValues[arg.getName().str()] = &arg;
     }
+    std::string funcName = func->getName().str();
     llvm::Value *retval = this->visit(expr);
     if (retval == nullptr) {
-        std::string funcName = func->getName().str();
-        VLOG(1) << "failed to generate function {}, erase it"_format(funcName);
+        std::cerr << "failed to generate function {}, erase it"_format(funcName) << std::endl;
         func->eraseFromParent();
         this->signatures.erase(funcName);
         return false;
@@ -206,10 +207,15 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
     std::string errmsg;
     llvm::raw_string_ostream ss(errmsg);
     if (llvm::verifyFunction(*func, &ss)) {
-        LOG(ERROR) << "failed to verify function " << func->getName().str() << ": " << errmsg;
+        this->printModule();
+        std::cerr << "failed to verify function " << func->getName().str()
+                  << ", erase it: " << errmsg << std::endl;
+        func->eraseFromParent();
+        this->signatures.erase(funcName);
         return false;
     }
     this->passManager->run(*func);
+    this->printModule();
     return true;
 }
 
@@ -217,7 +223,7 @@ antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext 
 {
     std::string funcName = ctx->Identifier()->getText();
     if (this->signatures.find(funcName) != this->signatures.end()) {
-        LOG(ERROR) << "function already exist: " << funcName;
+        std::cerr << "function already exist: " << funcName << std::endl;
         return static_cast<llvm::Function *>(nullptr);
     }
     std::vector<antlr4::tree::TerminalNode *> idList;
@@ -250,7 +256,6 @@ antlrcpp::Any CodeGen::visitFunctionDefinition(TParser::FunctionDefinitionContex
     if (!this->writeFunctionBody(func, ctx->expression())) {
         return nullptr;
     }
-    this->printModule();
     this->jit.addModule(std::move(this->module_));
     this->initModuleAndPass();
     return nullptr;
@@ -268,7 +273,6 @@ antlrcpp::Any CodeGen::visitExpressionStatement(TParser::ExpressionStatementCont
     if (!this->writeFunctionBody(func, ctx->expression())) {
         return nullptr;
     }
-    this->printModule();
     auto key = this->jit.addModule(std::move(this->module_));
     this->initModuleAndPass();
     if (!key) {
@@ -278,12 +282,12 @@ antlrcpp::Any CodeGen::visitExpressionStatement(TParser::ExpressionStatementCont
     auto symbol = this->jit.findSymbol(funcName);
     auto addr = symbol.getAddress();
     if (!addr) {
-        LOG(ERROR) << "failed to get address: " << llvm::toString(addr.takeError());
+        std::cerr << "failed to get address: " << llvm::toString(addr.takeError()) << std::endl;
         return nullptr;
     }
     auto *fp = (double (*)())(intptr_t)*addr;
     if (fp == nullptr) {
-        LOG(ERROR) << "symbol address is NULL";
+        std::cerr << "symbol address is NULL" << std::endl;
         return nullptr;
     }
     std::cout << fp() << std::endl;
