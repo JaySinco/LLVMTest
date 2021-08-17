@@ -1,7 +1,11 @@
 #include "codegen.h"
 #include "utils.h"
+#include "antlr4-runtime.h"
 #include "gen-cpp/TLexer.h"
-#define NullVal static_cast<llvm::Value *>(nullptr);
+#include "gen-cpp/TParser.h"
+
+#define DELIMITER \
+    "-------------------------------------------------------------------------------\n"
 
 CodeGen::CodeGen() { this->initModuleAndPass(); }
 
@@ -18,28 +22,54 @@ void CodeGen::initModuleAndPass()
     this->passManager->doInitialization();
 }
 
-antlrcpp::Any CodeGen::visitLiteralExpression(TParser::LiteralExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::LiteralExpressionContext *ctx)
 {
     double num = std::stod(ctx->Number()->getText());
-    return static_cast<llvm::Value *>(llvm::ConstantFP::get(this->llctx, llvm::APFloat(num)));
+    return llvm::ConstantFP::get(this->llctx, llvm::APFloat(num));
 }
 
-antlrcpp::Any CodeGen::visitIdExpression(TParser::IdExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::IdExpressionContext *ctx)
 {
     std::string id = ctx->Identifier()->getText();
     if (this->namedValues.find(id) == this->namedValues.end()) {
         std::cerr << "unknown variable: " << id << std::endl;
-        return NullVal;
+        return nullptr;
     }
     return this->namedValues.at(id);
 }
 
-antlrcpp::Any CodeGen::visitRelationalExpression(TParser::RelationalExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::ExpressionContext *ctx)
 {
-    llvm::Value *l = this->visit(ctx->expression(0));
-    if (l == nullptr) return NullVal;
-    llvm::Value *r = this->visit(ctx->expression(1));
-    if (r == nullptr) return NullVal;
+    if (auto ptr = dynamic_cast<TParser::CallExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::ParenthesesExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::AdditiveExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::LiteralExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::IdExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::RelationalExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::ConditionalExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::EqualityExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::MultiplicativeExpressionContext *>(ctx)) {
+        return this->generate(ptr);
+    } else {
+        std::cerr << "failed to dynamic cast expression: " << ctx->getText() << std::endl;
+        return nullptr;
+    }
+}
+
+llvm::Value *CodeGen::generate(TParser::RelationalExpressionContext *ctx)
+{
+    llvm::Value *l = this->generate(ctx->expression(0));
+    if (l == nullptr) return nullptr;
+    llvm::Value *r = this->generate(ctx->expression(1));
+    if (r == nullptr) return nullptr;
     llvm::Value *o = nullptr;
     switch (ctx->op->getType()) {
         case TLexer::Less:
@@ -56,17 +86,17 @@ antlrcpp::Any CodeGen::visitRelationalExpression(TParser::RelationalExpressionCo
             break;
         default:
             std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
-            return NullVal;
+            return nullptr;
     }
     return this->builder.CreateUIToFP(o, llvm::Type::getDoubleTy(this->llctx), "bool");
 }
 
-antlrcpp::Any CodeGen::visitEqualityExpression(TParser::EqualityExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::EqualityExpressionContext *ctx)
 {
-    llvm::Value *l = this->visit(ctx->expression(0));
-    if (l == nullptr) return NullVal;
-    llvm::Value *r = this->visit(ctx->expression(1));
-    if (r == nullptr) return NullVal;
+    llvm::Value *l = this->generate(ctx->expression(0));
+    if (l == nullptr) return nullptr;
+    llvm::Value *r = this->generate(ctx->expression(1));
+    if (r == nullptr) return nullptr;
     llvm::Value *o = nullptr;
     switch (ctx->op->getType()) {
         case TLexer::Equal:
@@ -77,17 +107,17 @@ antlrcpp::Any CodeGen::visitEqualityExpression(TParser::EqualityExpressionContex
             break;
         default:
             std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
-            return NullVal;
+            return nullptr;
     }
     return this->builder.CreateUIToFP(o, llvm::Type::getDoubleTy(this->llctx), "bool");
 }
 
-antlrcpp::Any CodeGen::visitMultiplicativeExpression(TParser::MultiplicativeExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::MultiplicativeExpressionContext *ctx)
 {
-    llvm::Value *l = this->visit(ctx->expression(0));
-    if (l == nullptr) return NullVal;
-    llvm::Value *r = this->visit(ctx->expression(1));
-    if (r == nullptr) return NullVal;
+    llvm::Value *l = this->generate(ctx->expression(0));
+    if (l == nullptr) return nullptr;
+    llvm::Value *r = this->generate(ctx->expression(1));
+    if (r == nullptr) return nullptr;
     switch (ctx->op->getType()) {
         case TLexer::Star:
             return this->builder.CreateFMul(l, r);
@@ -95,16 +125,16 @@ antlrcpp::Any CodeGen::visitMultiplicativeExpression(TParser::MultiplicativeExpr
             return this->builder.CreateFDiv(l, r);
         default:
             std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
-            return NullVal;
+            return nullptr;
     }
 }
 
-antlrcpp::Any CodeGen::visitAdditiveExpression(TParser::AdditiveExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::AdditiveExpressionContext *ctx)
 {
-    llvm::Value *l = this->visit(ctx->expression(0));
-    if (l == nullptr) return NullVal;
-    llvm::Value *r = this->visit(ctx->expression(1));
-    if (r == nullptr) return NullVal;
+    llvm::Value *l = this->generate(ctx->expression(0));
+    if (l == nullptr) return nullptr;
+    llvm::Value *r = this->generate(ctx->expression(1));
+    if (r == nullptr) return nullptr;
     switch (ctx->op->getType()) {
         case TLexer::Plus:
             return this->builder.CreateFAdd(l, r);
@@ -112,19 +142,16 @@ antlrcpp::Any CodeGen::visitAdditiveExpression(TParser::AdditiveExpressionContex
             return this->builder.CreateFSub(l, r);
         default:
             std::cerr << "unknow op: " << ctx->op->getText() << std::endl;
-            return NullVal;
+            return nullptr;
     }
 }
 
-antlrcpp::Any CodeGen::visitParenthesesExpression(TParser::ParenthesesExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::ParenthesesExpressionContext *ctx)
 {
-    return this->visit(ctx->expression());
+    return this->generate(ctx->expression());
 }
 
-antlrcpp::Any CodeGen::visitConditionalExpression(TParser::ConditionalExpressionContext *ctx)
-{
-    return nullptr;
-}
+llvm::Value *CodeGen::generate(TParser::ConditionalExpressionContext *ctx) { return nullptr; }
 
 llvm::Function *CodeGen::getFunction(const std::string &name)
 {
@@ -147,12 +174,12 @@ llvm::Function *CodeGen::getFunction(const std::string &name)
     return func;
 }
 
-antlrcpp::Any CodeGen::visitCallExpression(TParser::CallExpressionContext *ctx)
+llvm::Value *CodeGen::generate(TParser::CallExpressionContext *ctx)
 {
     std::string name = ctx->Identifier()->getText();
     if (this->signatures.find(name) == this->signatures.end()) {
         std::cerr << "unknown function: " << name << std::endl;
-        return NullVal;
+        return nullptr;
     }
     auto &args = this->signatures[name];
     std::vector<TParser::ExpressionContext *> exprList;
@@ -162,21 +189,21 @@ antlrcpp::Any CodeGen::visitCallExpression(TParser::CallExpressionContext *ctx)
     if (args.size() != exprList.size()) {
         std::cerr << "{} expected {} args, got {}"_format(name, args.size(), exprList.size())
                   << std::endl;
-        return NullVal;
+        return nullptr;
     }
     std::vector<llvm::Value *> argv;
     for (auto expr: exprList) {
-        llvm::Value *v = this->visit(expr);
+        llvm::Value *v = this->generate(expr);
         if (v == nullptr) {
-            return NullVal;
+            return nullptr;
         }
         argv.push_back(v);
     }
     llvm::Function *func = this->getFunction(name);
     if (func == nullptr) {
-        return NullVal;
+        return nullptr;
     }
-    return static_cast<llvm::Value *>(this->builder.CreateCall(func, argv));
+    return this->builder.CreateCall(func, argv);
 }
 
 void CodeGen::printModule()
@@ -196,7 +223,7 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
         this->namedValues[arg.getName().str()] = &arg;
     }
     std::string funcName = func->getName().str();
-    llvm::Value *retval = this->visit(expr);
+    llvm::Value *retval = this->generate(expr);
     if (retval == nullptr) {
         std::cerr << "failed to generate function {}, erase it"_format(funcName) << std::endl;
         func->eraseFromParent();
@@ -219,12 +246,12 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
     return true;
 }
 
-antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext *ctx)
+llvm::Function *CodeGen::generate(TParser::FunctionSignatureContext *ctx)
 {
     std::string funcName = ctx->Identifier()->getText();
     if (this->signatures.find(funcName) != this->signatures.end()) {
         std::cerr << "function already exist: " << funcName << std::endl;
-        return static_cast<llvm::Function *>(nullptr);
+        return nullptr;
     }
     std::vector<antlr4::tree::TerminalNode *> idList;
     if (ctx->argumentList() != nullptr) {
@@ -237,31 +264,28 @@ antlrcpp::Any CodeGen::visitFunctionSignature(TParser::FunctionSignatureContext 
     return this->getFunction(funcName);
 }
 
-antlrcpp::Any CodeGen::visitExternalFunction(TParser::ExternalFunctionContext *ctx)
+void CodeGen::generate(TParser::ExternalFunctionContext *ctx)
 {
-    llvm::Function *func = this->visit(ctx->functionSignature());
-    if (func != nullptr) {
-        this->printModule();
-    }
-    return nullptr;
+    this->generate(ctx->functionSignature());
+    return;
 }
 
-antlrcpp::Any CodeGen::visitFunctionDefinition(TParser::FunctionDefinitionContext *ctx)
+void CodeGen::generate(TParser::FunctionDefinitionContext *ctx)
 {
     std::string funcName = ctx->functionSignature()->Identifier()->getText();
-    llvm::Function *func = this->visit(ctx->functionSignature());
+    llvm::Function *func = this->generate(ctx->functionSignature());
     if (func == nullptr) {
-        return nullptr;
+        return;
     }
     if (!this->writeFunctionBody(func, ctx->expression())) {
-        return nullptr;
+        return;
     }
     this->jit.addModule(std::move(this->module_));
     this->initModuleAndPass();
-    return nullptr;
+    return;
 }
 
-antlrcpp::Any CodeGen::visitExpressionStatement(TParser::ExpressionStatementContext *ctx)
+void CodeGen::generate(TParser::ExpressionStatementContext *ctx)
 {
     std::vector<llvm::Type *> paramType;
     llvm::FunctionType *funcType =
@@ -271,34 +295,77 @@ antlrcpp::Any CodeGen::visitExpressionStatement(TParser::ExpressionStatementCont
                                                   funcName, this->module_.get());
 
     if (!this->writeFunctionBody(func, ctx->expression())) {
-        return nullptr;
+        return;
     }
     auto key = this->jit.addModule(std::move(this->module_));
     this->initModuleAndPass();
     if (!key) {
-        return nullptr;
+        return;
     }
     std::shared_ptr<void> moduleGuard(nullptr, [&](void *) { this->jit.removeModule(*key); });
     auto symbol = this->jit.findSymbol(funcName);
     auto addr = symbol.getAddress();
     if (!addr) {
         std::cerr << "failed to get address: " << llvm::toString(addr.takeError()) << std::endl;
-        return nullptr;
+        return;
     }
     auto *fp = (double (*)())(intptr_t)*addr;
     if (fp == nullptr) {
         std::cerr << "symbol address is NULL" << std::endl;
-        return nullptr;
+        return;
     }
     std::cout << fp() << std::endl;
-    return nullptr;
+    return;
 }
 
-antlrcpp::Any CodeGen::visitProgram(TParser::ProgramContext *ctx)
+void CodeGen::generate(TParser::StatementContext *ctx)
+{
+    if (auto ptr = dynamic_cast<TParser::ExternalFunctionContext *>(ctx)) {
+        this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::FunctionDefinitionContext *>(ctx)) {
+        this->generate(ptr);
+    } else if (auto ptr = dynamic_cast<TParser::ExpressionStatementContext *>(ctx)) {
+        this->generate(ptr);
+    } else {
+        std::cerr << "failed to dynamic cast statement: " << ctx->getText() << std::endl;
+    }
+}
+
+void CodeGen::generate(TParser::ProgramContext *ctx)
 {
     std::vector<TParser::StatementContext *> statList = ctx->statement();
     for (auto &stat: statList) {
-        this->visit(stat);
+        this->generate(stat);
     }
-    return nullptr;
+    return;
+}
+
+class ErrorListener: public antlr4::BaseErrorListener
+{
+    virtual void syntaxError(antlr4::Recognizer *recognizer, antlr4::Token *offendingSymbol,
+                             size_t line, size_t charPositionInLine, const std::string &msg,
+                             std::exception_ptr e) override
+    {
+        throw std::runtime_error("line {}:{} {}"_format(line, charPositionInLine, msg));
+    }
+};
+
+void CodeGen::eval(const std::string &code)
+{
+    try {
+        antlr4::ANTLRInputStream ais(code);
+        TLexer lexer(&ais);
+        lexer.removeErrorListeners();
+        ErrorListener lerr;
+        lexer.addErrorListener(&lerr);
+        antlr4::CommonTokenStream tokens(&lexer);
+        TParser parser(&tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(&lerr);
+        auto tree = parser.program();
+        std::cout << tree->toStringTree(&parser, true) << std::endl << DELIMITER;
+        this->generate(tree);
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+    }
 }

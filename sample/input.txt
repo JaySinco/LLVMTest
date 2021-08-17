@@ -1,4 +1,6 @@
+extern sin(x);
+
 def foo(a, b)
-    a*a + 2*a*b + b*b + 1 + 2;
+    a*a + (2*a*b + b*b) * (1/2 - a/b);
 
 foo(3, 4);
