@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     auto codegen = std::make_unique<CodeGen>();
     eval(utils::readFile(L"sample/input.txt").second, codegen.get());
     while (true) {
-        std::cout << ">> ";
+        std::cout << ">>> ";
         std::string line;
         if (!std::getline(std::cin, line)) {
             break;

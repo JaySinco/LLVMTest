@@ -196,8 +196,10 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
     }
     llvm::Value *retval = this->visit(expr);
     if (retval == nullptr) {
-        VLOG(1) << "failed to generate function, erase it";
+        std::string funcName = func->getName().str();
+        VLOG(1) << "failed to generate function {}, erase it"_format(funcName);
         func->eraseFromParent();
+        this->signatures.erase(funcName);
         return false;
     }
     this->builder.CreateRet(retval);

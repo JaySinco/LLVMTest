@@ -23,7 +23,7 @@ NotEqual:     '!=';
 LessEqual:    '<=';
 GreaterEqual: '>=';
 Identifier:   NONDIGIT (NONDIGIT | DIGIT)*;
-Number:       DIGIT+ ('.' DIGIT+)?;
+Number:       DIGIT+ ('.' DIGIT*)? | '.' DIGIT+;
 Whitespace:   [ \t]+               -> skip;
 Newline:      ( '\r' '\n'? | '\n') -> skip;
 
