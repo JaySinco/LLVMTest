@@ -151,7 +151,38 @@ llvm::Value *CodeGen::generate(TParser::ParenthesesExpressionContext *ctx)
     return this->generate(ctx->expression());
 }
 
-llvm::Value *CodeGen::generate(TParser::ConditionalExpressionContext *ctx) { return nullptr; }
+llvm::Value *CodeGen::generate(TParser::ConditionalExpressionContext *ctx)
+{
+    llvm::Value *condVal = this->generate(ctx->expression(0));
+    if (condVal == nullptr) return nullptr;
+    condVal = this->builder.CreateFCmpONE(condVal,
+                                          llvm::ConstantFP::get(this->llctx, llvm::APFloat(0.0)));
+    llvm::Function *func = this->builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *thenBlock = llvm::BasicBlock::Create(this->llctx, "then", func);
+    llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(this->llctx, "else");
+    llvm::BasicBlock *ifcontBlock = llvm::BasicBlock::Create(this->llctx, "ifcont");
+    this->builder.CreateCondBr(condVal, thenBlock, elseBlock);
+    // then
+    this->builder.SetInsertPoint(thenBlock);
+    llvm::Value *thenVal = this->generate(ctx->expression(1));
+    if (thenVal == nullptr) return nullptr;
+    this->builder.CreateBr(ifcontBlock);
+    thenBlock = this->builder.GetInsertBlock();
+    // else
+    func->getBasicBlockList().push_back(elseBlock);
+    this->builder.SetInsertPoint(elseBlock);
+    llvm::Value *elseVal = this->generate(ctx->expression(2));
+    if (elseVal == nullptr) return nullptr;
+    this->builder.CreateBr(ifcontBlock);
+    elseBlock = this->builder.GetInsertBlock();
+    // ifcont
+    func->getBasicBlockList().push_back(ifcontBlock);
+    this->builder.SetInsertPoint(ifcontBlock);
+    llvm::PHINode *phi = this->builder.CreatePHI(llvm::Type::getDoubleTy(this->llctx), 2);
+    phi->addIncoming(thenVal, thenBlock);
+    phi->addIncoming(elseVal, elseBlock);
+    return phi;
+}
 
 llvm::Function *CodeGen::getFunction(const std::string &name)
 {
@@ -348,7 +379,10 @@ class ErrorListener: public antlr4::BaseErrorListener
                              size_t line, size_t charPositionInLine, const std::string &msg,
                              std::exception_ptr e) override
     {
-        throw std::runtime_error("line {}:{} {}"_format(line, charPositionInLine, msg));
+        std::string location(4 + charPositionInLine, ' ');
+        location += "^";
+        throw std::runtime_error(
+            "{}\nline {}:{} {}"_format(location, line, charPositionInLine, msg));
     }
 };
 
