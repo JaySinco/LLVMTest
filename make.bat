@@ -30,6 +30,9 @@ POPD
 IF NOT EXIST %OUTDIR% (MKDIR %OUTDIR%)
 PUSHD %OUTDIR%
 cmake -G Ninja ^
+    -DCMAKE_C_COMPILER="clang-cl" ^
+    -DCMAKE_CXX_COMPILER="clang-cl" ^
+    -DCMAKE_LINKER="lld-link" ^
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%~dp0%BINDIR%\ ^
     -DCMAKE_BUILD_TYPE=%BUILDTYPE% ^
     ..

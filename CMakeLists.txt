@@ -16,7 +16,11 @@ add_library(antlr4_runtime ${ANTLR4_RUNTIME_SRC})
 target_include_directories(antlr4_runtime PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/antlr4/src/antlr4-4.9.2/runtime/Cpp/runtime/src
 )
-target_compile_definitions(antlr4_runtime PUBLIC ANTLR4CPP_STATIC)
+target_compile_definitions(antlr4_runtime PUBLIC
+    ANTLR4CPP_STATIC
+    _CRT_SECURE_NO_WARNINGS
+    _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+)
 
 file(GLOB_RECURSE GEN_CPP_SRC ${CMAKE_SOURCE_DIR}/src/gen-cpp/*.cpp)
 add_executable(demo
@@ -42,7 +46,7 @@ execute_process (
     OUTPUT_VARIABLE LLVM_LIBRARIES
 )
 separate_arguments(LLVM_LIBRARIES)
-# message(STATUS "LLVM_LIBRARIES => ${LLVM_LIBRARIES}")
+# message(STATUS "llvm libraries => ${LLVM_LIBRARIES}")
 target_link_libraries(demo antlr4_runtime shlwapi.lib
     ${CMAKE_SOURCE_DIR}/deps/gflags/lib/gflags_static.lib
     ${CMAKE_SOURCE_DIR}/deps/glog/lib/glog.lib

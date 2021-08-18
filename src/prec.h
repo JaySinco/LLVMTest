@@ -1,11 +1,4 @@
 #pragma once
-#pragma warning(push)
-#pragma warning(disable : 4626)
-#pragma warning(disable : 4624)
-#pragma warning(disable : 4996)
-#pragma warning(disable : 4141)
-#pragma warning(disable : 4244)
-
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/STLExtras.h"
@@ -45,5 +38,3 @@
 #include "llvm/Support/DynamicLibrary.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
-
-#pragma warning(pop)

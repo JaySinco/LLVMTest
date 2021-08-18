@@ -52,7 +52,6 @@
     ],
     "C_Cpp.default.defines": [
         "UNICODE",
-        "ANTLR4CPP_STATIC"
     ],
     "C_Cpp.default.cppStandard": "c++17",
     "editor.formatOnSave": true,
