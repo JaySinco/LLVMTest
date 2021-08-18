@@ -24,6 +24,7 @@ add_executable(demo
     ${CMAKE_SOURCE_DIR}/src/utils.cpp
     ${CMAKE_SOURCE_DIR}/src/jit-compiler.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/exported.cpp
     ${CMAKE_SOURCE_DIR}/src/driver.cpp
 )
 target_precompile_headers(demo PUBLIC ${CMAKE_SOURCE_DIR}/src/prec.h)

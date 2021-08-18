@@ -206,11 +206,11 @@ llvm::Value *CodeGen::generate(TParser::CallExpressionContext *ctx)
     return this->builder.CreateCall(func, argv);
 }
 
-void CodeGen::printModule()
+void CodeGen::printFunction(llvm::Function *func)
 {
     std::string str;
     llvm::raw_string_ostream ss(str);
-    this->module_->print(ss, nullptr);
+    func->print(ss, nullptr);
     std::cout << str << DELIMITER;
 }
 
@@ -234,7 +234,7 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
     std::string errmsg;
     llvm::raw_string_ostream ss(errmsg);
     if (llvm::verifyFunction(*func, &ss)) {
-        this->printModule();
+        this->printFunction(func);
         std::cerr << "failed to verify function " << func->getName().str()
                   << ", erase it: " << errmsg << std::endl;
         func->eraseFromParent();
@@ -242,7 +242,7 @@ bool CodeGen::writeFunctionBody(llvm::Function *func, TParser::ExpressionContext
         return false;
     }
     this->passManager->run(*func);
-    this->printModule();
+    this->printFunction(func);
     return true;
 }
 
@@ -250,8 +250,8 @@ llvm::Function *CodeGen::generate(TParser::FunctionSignatureContext *ctx)
 {
     std::string funcName = ctx->Identifier()->getText();
     if (this->signatures.find(funcName) != this->signatures.end()) {
-        std::cerr << "function already exist: " << funcName << std::endl;
-        return nullptr;
+        std::cerr << "replace function that already exist: " << funcName << std::endl;
+        this->signatures[funcName].clear();
     }
     std::vector<antlr4::tree::TerminalNode *> idList;
     if (ctx->argumentList() != nullptr) {
@@ -266,7 +266,9 @@ llvm::Function *CodeGen::generate(TParser::FunctionSignatureContext *ctx)
 
 void CodeGen::generate(TParser::ExternalFunctionContext *ctx)
 {
-    this->generate(ctx->functionSignature());
+    if (llvm::Function *func = this->generate(ctx->functionSignature())) {
+        this->printFunction(func);
+    }
     return;
 }
 

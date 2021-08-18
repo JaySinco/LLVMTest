@@ -28,7 +28,7 @@ private:
     llvm::Function *generate(TParser::FunctionSignatureContext *ctx);
 
     void initModuleAndPass();
-    void printModule();
+    void printFunction(llvm::Function *func);
     llvm::Function *getFunction(const std::string &name);
     bool writeFunctionBody(llvm::Function *func, TParser::ExpressionContext *expr);
 
