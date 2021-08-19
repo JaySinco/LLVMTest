@@ -7,7 +7,8 @@ class CodeGen
 {
 public:
     CodeGen();
-    void eval(const std::string &code);
+    bool eval(const std::string &code);
+    bool evalModule(const std::string &ir);
 
 private:
     void generate(TParser::ProgramContext *ctx);

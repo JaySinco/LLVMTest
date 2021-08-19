@@ -386,7 +386,52 @@ class ErrorListener: public antlr4::BaseErrorListener
     }
 };
 
-void CodeGen::eval(const std::string &code)
+bool CodeGen::evalModule(const std::string &ir)
+{
+    llvm::SMDiagnostic err;
+    auto buf = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
+    auto m = llvm::parseIR(*buf, err, this->llctx);
+    if (!m) {
+        std::string what;
+        llvm::raw_string_ostream os(what);
+        err.print("", os);
+        std::cerr << what << std::endl;
+        return false;
+    }
+    for (auto &func: m->getFunctionList()) {
+        std::string funcName = func.getName().str();
+        if (!func.getReturnType()->isDoubleTy()) {
+            continue;
+        }
+        bool argsAllDouble = true;
+        std::vector<std::string> args;
+        for (int i = 0; i < func.arg_size(); ++i) {
+            auto arg = func.getArg(i);
+            std::string argName = arg->getName().str();
+            if (!arg->getType()->isDoubleTy()) {
+                argsAllDouble = false;
+                break;
+            }
+            args.push_back(argName);
+        }
+        if (!argsAllDouble) {
+            continue;
+        }
+        if (this->signatures.find(funcName) != this->signatures.end()) {
+            std::cerr << "replace function that already exist: " << funcName << std::endl;
+            this->signatures[funcName].clear();
+        }
+        this->signatures[funcName] = args;
+        this->printFunction(&func);
+    }
+    auto key = this->jit.addModule(std::move(m));
+    if (!key) {
+        return false;
+    }
+    return true;
+}
+
+bool CodeGen::eval(const std::string &code)
 {
     try {
         antlr4::ANTLRInputStream ais(code);
@@ -401,7 +446,9 @@ void CodeGen::eval(const std::string &code)
         auto tree = parser.program();
         std::cout << tree->toStringTree(&parser, true) << std::endl << DELIMITER;
         this->generate(tree);
+        return true;
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
+        return false;
     }
 }
