@@ -42,7 +42,6 @@
         "alignTrailers": false
     },
     "C_Cpp.default.includePath": [
-        "${workspaceFolder}/src/",
         "${workspaceFolder}/deps/gflags/include/",
         "${workspaceFolder}/deps/glog/include/",
         "${workspaceFolder}/deps/fmt/include/",

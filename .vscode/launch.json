@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug demo.exe",
+            "name": "Debug exe",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/demo.exe",
+            "program": "${workspaceFolder}/bin/calc.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
@@ -20,8 +20,8 @@
             "name": "Debug ANTLR4 grammar",
             "type": "antlr-debug",
             "request": "launch",
-            "input": "sample/input.txt",
-            "grammar": "grammar/TParser.g4",
+            "input": "samples/calc.txt",
+            "grammar": "src/calc/TParser.g4",
             "startRule": "program",
             "printParseTree": true,
             "visualParseTree": true
