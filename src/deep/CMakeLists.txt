@@ -14,8 +14,8 @@ target_link_libraries(deep PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/libtorch/lib/torch_cpu.lib
 )
 
-file(GLOB TORCH_DLLS ${CMAKE_SOURCE_DIR}/deps/libtorch/lib/*.dll)
-add_custom_command(TARGET deep POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TORCH_DLLS}
-    $<TARGET_FILE_DIR:deep>
-)
+# file(GLOB TORCH_DLLS ${CMAKE_SOURCE_DIR}/deps/libtorch/lib/*.dll)
+# add_custom_command(TARGET deep POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TORCH_DLLS}
+#     $<TARGET_FILE_DIR:deep>
+# )
