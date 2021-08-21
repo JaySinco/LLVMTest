@@ -14,7 +14,7 @@ target_compile_definitions(antlr4_runtime PUBLIC
 )
 
 execute_process (
-    COMMAND cmake -E remove_directory gen-cpp
+    COMMAND ${CMAKE_COMMAND} -E remove_directory gen-cpp
     COMMAND java -jar ${CMAKE_SOURCE_DIR}/deps/antlr4/bin/antlr-4.9.2-complete.jar
         -encoding utf8 -Dlanguage=Cpp -Werror -no-listener -no-visitor -o gen-cpp T*.g4
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -27,7 +27,7 @@ add_executable(calc
     jit-compiler.cpp
     codegen.cpp
     exported.cpp
-    driver.cpp
+    main.cpp
 )
 
 target_precompile_headers(calc PUBLIC prec.h)
@@ -44,4 +44,3 @@ execute_process (
 separate_arguments(LLVM_LIBRARIES)
 
 target_link_libraries(calc utils antlr4_runtime ${LLVM_LIBRARIES})
-set_target_properties(calc PROPERTIES LINK_FLAGS "/manifest:no")
