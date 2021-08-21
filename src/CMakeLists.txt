@@ -14,5 +14,5 @@ target_link_libraries(utils PUBLIC
     shlwapi.lib
 )
 
-# add_subdirectory(calc)
-add_subdirectory(deep)
+add_subdirectory(calc)
+add_subdirectory(testing)

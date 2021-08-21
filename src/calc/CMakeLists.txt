@@ -13,13 +13,20 @@ target_compile_definitions(antlr4_runtime PUBLIC
     _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 )
 
-execute_process (
-    COMMAND ${CMAKE_COMMAND} -E remove_directory gen-cpp
-    COMMAND java -jar ${CMAKE_SOURCE_DIR}/deps/antlr4/bin/antlr-4.9.2-complete.jar
-        -encoding utf8 -Dlanguage=Cpp -Werror -no-listener -no-visitor -o gen-cpp T*.g4
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMAND_ERROR_IS_FATAL ANY
-)
+if(NOT(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp AND
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/TLexer.h IS_NEWER_THAN ${CMAKE_CURRENT_SOURCE_DIR}/TLexer.g4 AND
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/TParser.h IS_NEWER_THAN ${CMAKE_CURRENT_SOURCE_DIR}/TParser.g4))
+    message(STATUS "Regenerating antlr4 cpp files")
+    execute_process (COMMAND ${CMAKE_COMMAND} -E remove_directory 
+        ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp
+    )
+    execute_process (
+        COMMAND java -jar ${CMAKE_SOURCE_DIR}/deps/antlr4/bin/antlr-4.9.2-complete.jar
+            -encoding utf8 -Dlanguage=Cpp -Werror -no-listener -no-visitor -o gen-cpp T*.g4
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endif()
 
 file(GLOB_RECURSE CALC_GENCPP_SRC gen-cpp/*.cpp)
 add_executable(calc
