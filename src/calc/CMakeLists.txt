@@ -19,6 +19,7 @@ if(NOT(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp AND
     message(STATUS "Regenerating antlr4 cpp files")
     execute_process (COMMAND ${CMAKE_COMMAND} -E remove_directory 
         ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp
+        COMMAND_ERROR_IS_FATAL ANY
     )
     execute_process (
         COMMAND java -jar ${CMAKE_SOURCE_DIR}/deps/antlr4/bin/antlr-4.9.2-complete.jar
@@ -47,6 +48,7 @@ execute_process (
     COMMAND ${CMAKE_SOURCE_DIR}/deps/llvm/bin/llvm-config.exe --libs core orcjit native
     OUTPUT_STRIP_TRAILING_WHITESPACE
     OUTPUT_VARIABLE LLVM_LIBRARIES
+    COMMAND_ERROR_IS_FATAL ANY
 )
 separate_arguments(LLVM_LIBRARIES)
 
