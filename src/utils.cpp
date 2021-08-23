@@ -2,6 +2,7 @@
 #include <windows.h>
 #include "utils.h"
 #include <fstream>
+#include <sstream>
 
 namespace utils
 {

@@ -23,6 +23,7 @@ cmake -G Ninja ^
     -DCMAKE_C_COMPILER="clang-cl" ^
     -DCMAKE_CXX_COMPILER="clang-cl" ^
     -DCMAKE_LINKER="lld-link" ^
+    -DCMAKE_PREFIX_PATH=%~dp0deps\libtorch\share\cmake\ ^
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%~dp0%BINDIR%\ ^
     -DCMAKE_BUILD_TYPE=Debug ^
     ..

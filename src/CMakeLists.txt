@@ -15,4 +15,5 @@ target_link_libraries(utils PUBLIC
 )
 
 add_subdirectory(calc)
+add_subdirectory(deep)
 add_subdirectory(testing)
