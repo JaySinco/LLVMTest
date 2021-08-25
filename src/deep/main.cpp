@@ -99,10 +99,8 @@ void test(Net &model, torch::Device device, DataLoader &data_loader, size_t data
         test_loss, static_cast<double>(correct) / dataset_size);
 }
 
-auto main() -> int
+void train()
 {
-    torch::manual_seed(1);
-
     torch::DeviceType device_type;
     if (torch::cuda::is_available()) {
         std::cout << "CUDA available! Training on GPU." << std::endl;
@@ -136,4 +134,19 @@ auto main() -> int
         train(epoch, model, device, *train_loader, optimizer, train_dataset_size);
         test(model, device, *test_loader, test_dataset_size);
     }
+}
+
+int main(int argc, char **argv)
+{
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+
+    torch::manual_seed(1);
+
+    torch::Tensor x = torch::arange(9, torch::kFloat32).reshape({3, 3});
+    std::cout << x << std::endl;
+    std::cout << x.sum() / x.numel() << " " << x.mean() << std::endl;
+    return 0;
 }
