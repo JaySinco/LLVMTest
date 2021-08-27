@@ -7,6 +7,7 @@ class SimpleHandler: public CefClient,
                      public CefDisplayHandler,
                      public CefLifeSpanHandler,
                      public CefKeyboardHandler,
+                     public CefRequestHandler,
                      public CefLoadHandler
 {
 public:
@@ -17,41 +18,50 @@ public:
     static SimpleHandler *GetInstance();
 
     // CefClient methods:
-    virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE { return this; }
-    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE { return this; }
-    virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE { return this; }
+    CefRefPtr<CefDisplayHandler> GetDisplayHandler() override { return this; }
+    CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
+    CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
+    CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override { return this; }
+    CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
 
     // CefDisplayHandler methods:
-    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString &title) OVERRIDE;
+    void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString &title) override;
 
     // CefLifeSpanHandler methods:
-    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
-    virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
-    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+    void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
+    bool DoClose(CefRefPtr<CefBrowser> browser) override;
+    void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
+    bool OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                       const CefString &target_url, const CefString &target_frame_name,
+                       CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                       bool user_gesture, const CefPopupFeatures &popupFeatures,
+                       CefWindowInfo &windowInfo, CefRefPtr<CefClient> &client,
+                       CefBrowserSettings &settings, CefRefPtr<CefDictionaryValue> &extra_info,
+                       bool *no_javascript_access) override;
+    void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser) override;
 
     // CefLoadHandler methods:
-    virtual void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
-                             ErrorCode errorCode, const CefString &errorText,
-                             const CefString &failedUrl) OVERRIDE;
+    void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode,
+                     const CefString &errorText, const CefString &failedUrl) override;
 
     // CefKeyboardHandler methods:
     bool OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent &event,
-                    CefEventHandle os_event) OVERRIDE;
+                    CefEventHandle os_event) override;
+
+    // CefRequestHandler methods:
+    bool OnOpenURLFromTab(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                          const CefString &target_url,
+                          CefRequestHandler::WindowOpenDisposition target_disposition,
+                          bool user_gesture) override;
 
     // Request that all existing browser windows close.
     void CloseAllBrowsers(bool force_close);
 
     bool IsClosing() const { return is_closing_; }
 
-    // Returns true if the Chrome runtime is enabled.
-    static bool IsChromeRuntimeEnabled();
-
 private:
     // Platform-specific implementation.
     void PlatformTitleChange(CefRefPtr<CefBrowser> browser, const CefString &title);
-
-    // True if the application is using the Views framework.
-    const bool use_views_;
 
     // List of existing browser windows. Only accessed on the CEF UI thread.
     typedef std::list<CefRefPtr<CefBrowser>> BrowserList;

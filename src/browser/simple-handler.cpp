@@ -1,4 +1,5 @@
 #include "simple-handler.h"
+#include "../utils.h"
 
 #include <sstream>
 #include <string>
@@ -26,7 +27,7 @@ std::string GetDataURI(const std::string &data, const std::string &mime_type)
 
 }  // namespace
 
-SimpleHandler::SimpleHandler(bool use_views): use_views_(use_views), is_closing_(false)
+SimpleHandler::SimpleHandler(bool use_views): is_closing_(false)
 {
     DCHECK(!g_instance);
     g_instance = this;
@@ -41,17 +42,7 @@ void SimpleHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString
 {
     CEF_REQUIRE_UI_THREAD();
 
-    if (use_views_) {
-        // Set the title of the window using the Views framework.
-        CefRefPtr<CefBrowserView> browser_view = CefBrowserView::GetForBrowser(browser);
-        if (browser_view) {
-            CefRefPtr<CefWindow> window = browser_view->GetWindow();
-            if (window) window->SetTitle(title);
-        }
-    } else if (!IsChromeRuntimeEnabled()) {
-        // Set the title of the window using platform APIs.
-        PlatformTitleChange(browser, title);
-    }
+    PlatformTitleChange(browser, title);
 }
 
 void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
@@ -104,9 +95,6 @@ void SimpleHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFram
 {
     CEF_REQUIRE_UI_THREAD();
 
-    // Allow Chrome to show the error page.
-    if (IsChromeRuntimeEnabled()) return;
-
     // Don't display an error for downloaded files.
     if (errorCode == ERR_ABORTED) return;
 
@@ -134,17 +122,6 @@ void SimpleHandler::CloseAllBrowsers(bool force_close)
     for (; it != browser_list_.end(); ++it) (*it)->GetHost()->CloseBrowser(force_close);
 }
 
-// static
-bool SimpleHandler::IsChromeRuntimeEnabled()
-{
-    static int value = -1;
-    if (value == -1) {
-        CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
-        value = command_line->HasSwitch("enable-chrome-runtime") ? 1 : 0;
-    }
-    return value == 1;
-}
-
 void SimpleHandler::PlatformTitleChange(CefRefPtr<CefBrowser> browser, const CefString &title)
 {
     CefWindowHandle hwnd = browser->GetHost()->GetWindowHandle();
@@ -160,25 +137,6 @@ bool SimpleHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent 
             browser->Reload();
             return true;
         }
-        if (event.windows_key_code == VK_F12) {
-            if (browser->GetHost()->HasDevTools()) {
-                browser->GetHost()->CloseDevTools();
-            } else {
-                CefBrowserSettings browser_settings;
-                CefWindowInfo window_info;
-                HWND parent = browser->GetHost()->GetWindowHandle();
-                window_info.SetAsPopup(parent, "DevTools");
-                RECT rect;
-                GetWindowRect(parent, &rect);
-                window_info.x = rect.right;
-                window_info.y = rect.top;
-                window_info.height = rect.bottom - rect.top;
-                window_info.width = static_cast<int>(window_info.height * 1.8);
-                CefPoint pt(0, 0);
-                browser->GetHost()->ShowDevTools(window_info, nullptr, browser_settings, pt);
-            }
-            return true;
-        }
         if (event.windows_key_code == VK_LEFT && (event.modifiers & EVENTFLAG_ALT_DOWN)) {
             browser->GoBack();
             return true;
@@ -189,4 +147,47 @@ bool SimpleHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent 
         }
     }
     return false;
+}
+
+bool SimpleHandler::OnOpenURLFromTab(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                                     const CefString &target_url,
+                                     CefRequestHandler::WindowOpenDisposition target_disposition,
+                                     bool user_gesture)
+{
+    CEF_REQUIRE_UI_THREAD();
+    return false;
+}
+
+bool SimpleHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                                  const CefString &target_url, const CefString &target_frame_name,
+                                  CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                                  bool user_gesture, const CefPopupFeatures &popupFeatures,
+                                  CefWindowInfo &windowInfo, CefRefPtr<CefClient> &client,
+                                  CefBrowserSettings &settings,
+                                  CefRefPtr<CefDictionaryValue> &extra_info,
+                                  bool *no_javascript_access)
+{
+    CEF_REQUIRE_UI_THREAD();
+    browser->GetMainFrame()->LoadURL(target_url);
+    return true;
+}
+
+void SimpleHandler::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
+{
+    CEF_REQUIRE_UI_THREAD();
+    if (!browser->GetHost()->HasDevTools()) {
+        CefBrowserSettings browser_settings;
+        CefWindowInfo window_info;
+        HWND parent = browser->GetHost()->GetWindowHandle();
+        window_info.SetAsPopup(parent, "DevTools");
+        RECT rect;
+        GetWindowRect(parent, &rect);
+        window_info.height = (rect.bottom - rect.top) / 2;
+        window_info.width = (rect.right - rect.left) / 2;
+        CefPoint pt(0, 0);
+        browser->GetHost()->ShowDevTools(window_info, nullptr, browser_settings, pt);
+    }
+    CefRefPtr<CefFrame> frame = browser->GetMainFrame();
+    frame->ExecuteJavaScript(utils::readFile(L"resources/browser/loader.js").second,
+                             frame->GetURL(), 0);
 }
