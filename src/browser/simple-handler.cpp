@@ -12,6 +12,9 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include <windows.h>
 
 namespace
@@ -37,13 +40,6 @@ SimpleHandler::~SimpleHandler() { g_instance = nullptr; }
 
 // static
 SimpleHandler *SimpleHandler::GetInstance() { return g_instance; }
-
-void SimpleHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString &title)
-{
-    CEF_REQUIRE_UI_THREAD();
-
-    PlatformTitleChange(browser, title);
-}
 
 void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
@@ -122,33 +118,6 @@ void SimpleHandler::CloseAllBrowsers(bool force_close)
     for (; it != browser_list_.end(); ++it) (*it)->GetHost()->CloseBrowser(force_close);
 }
 
-void SimpleHandler::PlatformTitleChange(CefRefPtr<CefBrowser> browser, const CefString &title)
-{
-    CefWindowHandle hwnd = browser->GetHost()->GetWindowHandle();
-    if (hwnd) SetWindowText(hwnd, std::wstring(title).c_str());
-}
-
-bool SimpleHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent &event,
-                               CefEventHandle os_event)
-{
-    CEF_REQUIRE_UI_THREAD();
-    if (event.type == KEYEVENT_RAWKEYDOWN) {
-        if (event.windows_key_code == VK_F5) {
-            browser->Reload();
-            return true;
-        }
-        if (event.windows_key_code == VK_LEFT && (event.modifiers & EVENTFLAG_ALT_DOWN)) {
-            browser->GoBack();
-            return true;
-        }
-        if (event.windows_key_code == VK_RIGHT && (event.modifiers & EVENTFLAG_ALT_DOWN)) {
-            browser->GoForward();
-            return true;
-        }
-    }
-    return false;
-}
-
 bool SimpleHandler::OnOpenURLFromTab(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
                                      const CefString &target_url,
                                      CefRequestHandler::WindowOpenDisposition target_disposition,
@@ -175,19 +144,35 @@ bool SimpleHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFr
 void SimpleHandler::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
     CEF_REQUIRE_UI_THREAD();
-    if (!browser->GetHost()->HasDevTools()) {
-        CefBrowserSettings browser_settings;
-        CefWindowInfo window_info;
-        HWND parent = browser->GetHost()->GetWindowHandle();
-        window_info.SetAsPopup(parent, "DevTools");
-        RECT rect;
-        GetWindowRect(parent, &rect);
-        window_info.height = (rect.bottom - rect.top) / 2;
-        window_info.width = (rect.right - rect.left) / 2;
-        CefPoint pt(0, 0);
-        browser->GetHost()->ShowDevTools(window_info, nullptr, browser_settings, pt);
-    }
+    LOG(INFO) << "loading js!!";
     CefRefPtr<CefFrame> frame = browser->GetMainFrame();
     frame->ExecuteJavaScript(utils::readFile(L"resources/browser/loader.js").second,
                              frame->GetURL(), 0);
+}
+
+void SimpleHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect)
+{
+    CEF_REQUIRE_UI_THREAD();
+    rect.x = 0;
+    rect.y = 0;
+    rect.width = 1440;
+    rect.height = 900;
+}
+
+void SimpleHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
+                            const RectList &dirtyRects, const void *buffer, int width, int height)
+{
+    static int i = 0;
+    CEF_REQUIRE_UI_THREAD();
+    LOG(INFO) << "OnPaint: width=" << width << ", height=" << height;
+    stbi_write_jpg("out_{}.jpg"_format(i++).c_str(), width, height, 4, buffer, 80);
+    browser->GetMainFrame()->LoadURL("www.bing.com");
+}
+
+bool SimpleHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
+                                     const CefString &message, const CefString &source, int line)
+{
+    CEF_REQUIRE_UI_THREAD();
+    LOG(INFO) << "[Console] " << message;
+    return true;
 }

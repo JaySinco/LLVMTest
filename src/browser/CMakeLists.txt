@@ -1,6 +1,6 @@
 find_package(Torch REQUIRED PATHS ${CMAKE_SOURCE_DIR}/deps/libtorch/share/cmake/)
 
-add_executable(browser WIN32
+add_executable(browser 
     simple-handler.cpp
     simple-app.cpp
     main.cpp
@@ -8,6 +8,7 @@ add_executable(browser WIN32
 
 target_include_directories(browser PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/libcef/
+    ${CMAKE_SOURCE_DIR}/deps/stb/include/
 )
 
 target_link_libraries(browser PUBLIC utils

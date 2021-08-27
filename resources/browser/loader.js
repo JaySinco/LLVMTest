@@ -1,3 +1,3 @@
 document.addEventListener("DOMContentLoaded", function (event) {
-    console.log('Hello from CEFs是的');
+    console.log('Hello from CEF!');
 });

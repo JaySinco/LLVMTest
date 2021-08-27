@@ -3,10 +3,10 @@
 #include "../utils.h"
 #include "simple-app.h"
 
-int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+int main()
 {
     CefEnableHighDPISupport();
-    CefMainArgs main_args(hInstance);
+    CefMainArgs main_args;
     CefRefPtr<SimpleApp> app(new SimpleApp);
     int exit_code = CefExecuteProcess(main_args, app, nullptr);
     if (exit_code >= 0) {
@@ -14,11 +14,13 @@ int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int
     }
     CefSettings settings;
     settings.no_sandbox = true;
-    settings.remote_debugging_port = 8081;
+    settings.windowless_rendering_enabled = true;
+    settings.log_severity = LOGSEVERITY_INFO;
     std::wstring cachePath = utils::getExePath() + L"\\cache";
     CefString(&settings.root_cache_path).FromWString(cachePath);
     CefString(&settings.cache_path).FromWString(cachePath);
     CefInitialize(main_args, settings, app, nullptr);
+    LOG(INFO) << "cachePath=" << utils::ws2s(cachePath);
     CefRunMessageLoop();
     CefShutdown();
     return 0;

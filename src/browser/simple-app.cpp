@@ -19,7 +19,8 @@ void SimpleApp::OnContextInitialized()
     }
     CefRefPtr<SimpleHandler> handler(new SimpleHandler(false));
     CefBrowserSettings browser_settings;
+    browser_settings.windowless_frame_rate = 1;
     CefWindowInfo window_info;
-    window_info.SetAsPopup(NULL, "browser");
+    window_info.SetAsWindowless(nullptr);
     CefBrowserHost::CreateBrowser(window_info, handler, url, browser_settings, nullptr, nullptr);
 }

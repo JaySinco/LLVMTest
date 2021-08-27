@@ -51,6 +51,7 @@
         "${workspaceFolder}/deps/libtorch/include/",
         "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
         "${workspaceFolder}/deps/libcef/",
+        "${workspaceFolder}/deps/stb/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",
