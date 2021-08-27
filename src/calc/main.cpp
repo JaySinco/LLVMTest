@@ -9,8 +9,8 @@ int main(int argc, char **argv)
     llvm::InitializeNativeTargetAsmParser();
 
     auto codegen = std::make_unique<CodeGen>();
-    if (!codegen->eval(utils::readFile(L"samples/calc.txt").second)) return -1;
-    if (!codegen->evalModule(utils::readFile(L"samples/handwriting.ll").second)) return -1;
+    if (!codegen->eval(utils::readFile(L"resources/calc/input.txt").second)) return -1;
+    if (!codegen->evalModule(utils::readFile(L"resources/calc/handwriting.ll").second)) return -1;
     while (true) {
         std::cout << ">>> ";
         std::string line;

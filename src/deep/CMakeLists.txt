@@ -14,7 +14,11 @@ target_include_directories(deep PUBLIC
 
 target_link_libraries(deep PUBLIC utils ${TORCH_LIBRARIES})
 
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin/torch.dll)
+set_target_properties(deep PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep"
+)
+
+if(NOT EXISTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/torch.dll)
     file(GLOB TORCH_DLLS ${CMAKE_SOURCE_DIR}/deps/libtorch/lib/*.dll)
     add_custom_command(TARGET deep POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TORCH_DLLS}
