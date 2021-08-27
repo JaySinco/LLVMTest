@@ -43,4 +43,12 @@ std::pair<bool, std::string> readFile(const std::wstring &path)
     return {true, ss.str()};
 }
 
+std::wstring getExePath()
+{
+    wchar_t buf[MAX_PATH + 1] = {0};
+    GetModuleFileNameW(NULL, buf, MAX_PATH);
+    (wcsrchr(buf, L'\\'))[0] = 0;
+    return buf;
+}
+
 }  // namespace utils

@@ -2,7 +2,7 @@ find_package(Torch REQUIRED PATHS ${CMAKE_SOURCE_DIR}/deps/libtorch/share/cmake/
 
 add_executable(deep
     mnist.cpp
-    linear_regression.cpp
+    linear-regression.cpp
     main.cpp
 )
 target_precompile_headers(deep PUBLIC prec.h)
