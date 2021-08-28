@@ -8,17 +8,8 @@ int main(int argc, char **argv)
     google::InitGoogleLogging(argv[0]);
 
     browser br;
-    if (!br.open(L"browser")) return -1;
-    std::string loaderJs = utils::readFile(L"resources/browser/loader.js").second;
-
-    if (!br.navigate(L"https://www.baidu.com")) return -1;
-    br.run_script(utils::s2ws(loaderJs, true));
-
-    std::this_thread::sleep_for(3s);
-
-    if (!br.navigate(L"https://www.bing.com")) return -1;
-    br.run_script(utils::s2ws(loaderJs, true));
-
+    if (!br.open()) return -1;
+    if (!br.navigate(L"https://www.baidu.com/")) return -1;
     br.wait_utill_closed();
     return 0;
 }

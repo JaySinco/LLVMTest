@@ -5,7 +5,8 @@ add_executable(browser
 
 target_include_directories(browser PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/webview2/include/
-    ${CMAKE_SOURCE_DIR}/deps/wil/include
+    ${CMAKE_SOURCE_DIR}/deps/wil/include/
+    ${CMAKE_SOURCE_DIR}/deps/json/include/
 )
 
 target_link_libraries(browser PUBLIC utils version.lib

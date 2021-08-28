@@ -1,6 +1,10 @@
 #include "browser.h"
+#include <shlwapi.h>
 #include <wrl.h>
 #include <thread>
+#include <optional>
+#include <nlohmann/json.hpp>
+#include <fstream>
 #define WM_ASYNC_CALL WM_USER + 1
 
 using namespace Microsoft::WRL;
@@ -9,7 +13,7 @@ browser::browser() {}
 
 browser::~browser() { this->close(); }
 
-bool browser::open(const std::wstring &title, const std::pair<int, int> &size, bool show)
+bool browser::open(const std::pair<int, int> &size, bool show)
 {
     std::thread([=] {
         std::lock_guard<std::mutex> lock(lock_running);
@@ -18,8 +22,8 @@ bool browser::open(const std::wstring &title, const std::pair<int, int> &size, b
         wc.lpfnWndProc = wnd_proc;
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         RegisterClass(&wc);
-        h_browser = CreateWindow(wc.lpszClassName, title.c_str(), WS_OVERLAPPEDWINDOW,
-                                 CW_USEDEFAULT, CW_USEDEFAULT, size.first, size.second, NULL, NULL,
+        h_browser = CreateWindow(wc.lpszClassName, L"browser", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+                                 CW_USEDEFAULT, size.first, size.second, NULL, NULL,
                                  GetModuleHandle(NULL), this);
         if (!h_browser) {
             LOG(ERROR) << "failed to create window";
@@ -74,18 +78,17 @@ bool browser::is_closed() const { return status_ == status::CLOSED; }
 bool browser::navigate(const std::wstring &url)
 {
     this->navigate_completed = false;
-    task_t task([=]() -> data_t {
+    task_t task([&] {
         HRESULT hr = wv_window->Navigate(url.c_str());
         if (FAILED(hr)) {
-            return {{"err", "failed to navigate to {}, hr={}"_format(utils::ws2s(url), hr)}};
+            LOG(ERROR) << "failed to navigate to {}, hr={}"_format(utils::ws2s(url), hr);
+            return false;
         }
-        return {};
+        return true;
     });
     auto future = task.get_future();
     this->post_task(std::move(task));
-    auto data = future.get();
-    if (data.find("err") != data.end()) {
-        LOG(ERROR) << data["err"];
+    if (!future.get()) {
         return false;
     }
     while (!this->navigate_completed) {
@@ -94,48 +97,70 @@ bool browser::navigate(const std::wstring &url)
     return true;
 }
 
-std::pair<bool, std::string> browser::run_script(const std::wstring &source)
+bool browser::screenshot(const std::wstring &path, int width, int height)
 {
-    std::promise<data_t> promise1;
-    auto future1 = promise1.get_future();
-    task_t task([=, &promise1]() -> data_t {
-        HRESULT hr = wv_window->ExecuteScript(
-            source.c_str(),
-            Callback<ICoreWebView2ExecuteScriptCompletedHandler>([&](HRESULT err_code,
-                                                                     LPCWSTR res_json) -> HRESULT {
-                data_t data1;
-                if (FAILED(err_code)) {
-                    data1["err"] = "failed to execute script, hr={}"_format(err_code);
-                } else {
-                    data1["obj"] = utils::ws2s(res_json, true);
-                }
-                promise1.set_value(data1);
-                return S_OK;
-            }).Get());
+    nlohmann::json request;
+    request["format"] = "png";
+    request["fromSurface"] = true;
+    request["captureBeyondViewport"] = true;
+    request["clip"] = {
+        {"x", 0}, {"y", 0}, {"width", width}, {"height", height}, {"scale", 1},
+    };
+    std::wstring respJson;
+    if (!this->call_devtools_protocol(L"Page.captureScreenshot", utils::s2ws(request.dump(), true),
+                                      respJson)) {
+        return false;
+    }
+    auto response = nlohmann::json::parse(utils::ws2s(respJson, true));
+    auto data = utils::base64_decode(response["data"].get<std::string>());
+    std::ofstream fileSaved(path, std::ios::out | std::ios::binary);
+    fileSaved.write(reinterpret_cast<const char *>(data.data()), data.size());
+    fileSaved.close();
+    return true;
+}
+
+bool browser::call_devtools_protocol(const std::wstring &method, const std::wstring &paramsJson,
+                                     std::wstring &respJson)
+{
+    std::promise<std::optional<std::wstring>> resp;
+    auto resp_fut = resp.get_future();
+    task_t task([&] {
+        HRESULT hr = wv_window->CallDevToolsProtocolMethod(
+            method.c_str(), paramsJson.c_str(),
+            Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
+                [&](HRESULT error, LPCWSTR resultJson) -> HRESULT {
+                    if (FAILED(error)) {
+                        LOG(ERROR) << "error occurred when calling protocol {}, hr={}"_format(
+                            utils::ws2s(method), error);
+                        resp.set_value({});
+                    } else {
+                        resp.set_value(resultJson);
+                    }
+                    return S_OK;
+                })
+                .Get());
         if (FAILED(hr)) {
-            return {{"err", "failed to execute script, hr={}"_format(hr)}};
+            LOG(ERROR) << "failed to call protocol {}, hr={}"_format(utils::ws2s(method), hr);
+            return false;
         }
-        return {};
+        return true;
     });
-    auto future2 = task.get_future();
+    auto future = task.get_future();
     this->post_task(std::move(task));
-    auto data2 = future2.get();
-    if (data2.find("err") != data2.end()) {
-        LOG(ERROR) << data2["err"];
-        return {false, ""};
+    if (!future.get()) {
+        return false;
     }
-    auto data1 = future1.get();
-    if (data1.find("err") != data1.end()) {
-        LOG(ERROR) << data1["err"];
-        return {false, ""};
+    if (auto j = resp_fut.get()) {
+        respJson = *j;
+        return true;
     }
-    return {true, data1["obj"]};
+    return false;
 }
 
 bool browser::post_task(task_t &&task) const
 {
     if (is_closed()) {
-        LOG(ERROR) << "failed to post task: browser is closed";
+        LOG(ERROR) << "failed to post task, browser is closed";
         return false;
     }
     task_t *p_task = new task_t(std::move(task));
@@ -170,7 +195,7 @@ HRESULT browser::controller_created(HRESULT result, ICoreWebView2Controller *con
     RECT rect;
     GetClientRect(h_browser, &rect);
     wv_controller->put_Bounds(rect);
-    wv_window->OpenDevToolsWindow();
+    // wv_window->OpenDevToolsWindow();
 
     wv_window->add_NewWindowRequested(
         Callback<ICoreWebView2NewWindowRequestedEventHandler>(this, &browser::new_window_requested)
@@ -206,6 +231,24 @@ HRESULT browser::navigation_completed(ICoreWebView2 *sender,
                                       ICoreWebView2NavigationCompletedEventArgs *args)
 {
     this->navigate_completed = true;
+    auto stat = utils::readFile(L"resources/browser/background.js");
+    if (!stat.first) {
+        LOG(ERROR) << "failed to load background.js";
+        return S_OK;
+    }
+    std::wstring source = utils::s2ws(stat.second, true);
+    HRESULT hr = wv_window->ExecuteScript(
+        source.c_str(),
+        Callback<ICoreWebView2ExecuteScriptCompletedHandler>([&](HRESULT error,
+                                                                 LPCWSTR resultJson) -> HRESULT {
+            if (FAILED(error)) {
+                LOG(ERROR) << "error occurred when executing background.js, hr=" << error;
+            }
+            return S_OK;
+        }).Get());
+    if (FAILED(hr)) {
+        LOG(ERROR) << "failed to execute background.js, hr=" << hr;
+    }
     return S_OK;
 }
 
@@ -214,7 +257,12 @@ HRESULT browser::web_message_received(ICoreWebView2 *sender,
 {
     wchar_t *msg;
     args->TryGetWebMessageAsString(&msg);
-    LOG(INFO) << "[MESSAGE] " << utils::ws2s(msg);
+    std::string msgJson = utils::ws2s(msg, true);
+    LOG(INFO) << "[MESSAGE] " << msgJson;
+    auto message = nlohmann::json::parse(msgJson);
+    int width = message["scrollWidth"].get<int>();
+    int height = message["scrollHeight"].get<int>();
+    std::thread([=]() { this->screenshot(L"out.png", width, height); }).detach();
     CoTaskMemFree(msg);
     return S_OK;
 }

@@ -23,9 +23,14 @@ struct error: public std::exception
     error(const std::string &s): std::exception(s.c_str()){};
 };
 
+std::wstring getExePath();
+
+std::pair<bool, std::string> readFile(const std::wstring &path);
+
 std::string ws2s(const std::wstring &ws, bool u8_instead_of_ansi = false);
 std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi = false);
-std::pair<bool, std::string> readFile(const std::wstring &path);
-std::wstring getExePath();
+
+std::string base64_encode(const unsigned char *buf, unsigned int bufLen);
+std::vector<unsigned char> base64_decode(const std::string &encoded_string);
 
 }  // namespace utils

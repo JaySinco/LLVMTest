@@ -54,6 +54,7 @@
         "${workspaceFolder}/deps/stb/include/",
         "${workspaceFolder}/deps/webview2/include/",
         "${workspaceFolder}/deps/wil/include/",
+        "${workspaceFolder}/deps/json/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",

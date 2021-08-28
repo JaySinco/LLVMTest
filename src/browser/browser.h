@@ -15,17 +15,17 @@ class browser
 public:
     browser();
     ~browser();
-    bool open(const std::wstring &title, const std::pair<int, int> &size = {1440, 900},
-              bool show = true);
-    bool wait_utill_closed();
-    bool close();
-    bool is_closed() const;
+    bool open(const std::pair<int, int> &size = {1440, 900}, bool show = true);
     bool navigate(const std::wstring &url);
-    std::pair<bool, std::string> run_script(const std::wstring &source);
+    bool screenshot(const std::wstring &path, int width, int height);
+    bool call_devtools_protocol(const std::wstring &method, const std::wstring &paramsJson,
+                                std::wstring &respJson);
+    bool wait_utill_closed();
+    bool is_closed() const;
+    bool close();
 
 private:
-    using data_t = std::map<std::string, std::string>;
-    using task_t = std::packaged_task<data_t()>;
+    using task_t = std::packaged_task<bool()>;
     enum class status
     {
         INITIAL,
