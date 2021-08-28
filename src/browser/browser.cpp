@@ -71,8 +71,9 @@ bool browser::wait_utill_closed()
 
 bool browser::is_closed() const { return status_ == status::CLOSED; }
 
-bool browser::navigate(const std::wstring &url) const
+bool browser::navigate(const std::wstring &url)
 {
+    this->navigate_completed = false;
     task_t task([=]() -> data_t {
         HRESULT hr = wv_window->Navigate(url.c_str());
         if (FAILED(hr)) {
@@ -83,9 +84,12 @@ bool browser::navigate(const std::wstring &url) const
     auto future = task.get_future();
     this->post_task(std::move(task));
     auto data = future.get();
-    if (data["err"] != "") {
+    if (data.find("err") != data.end()) {
         LOG(ERROR) << data["err"];
         return false;
+    }
+    while (!this->navigate_completed) {
+        std::this_thread::sleep_for(100ms);
     }
     return true;
 }
@@ -99,13 +103,13 @@ std::pair<bool, std::string> browser::run_script(const std::wstring &source)
             source.c_str(),
             Callback<ICoreWebView2ExecuteScriptCompletedHandler>([&](HRESULT err_code,
                                                                      LPCWSTR res_json) -> HRESULT {
-                data_t data;
+                data_t data1;
                 if (FAILED(err_code)) {
-                    data["err"] = "failed to execute script, hr={}"_format(err_code);
+                    data1["err"] = "failed to execute script, hr={}"_format(err_code);
                 } else {
-                    data["obj"] = utils::ws2s(res_json, true);
+                    data1["obj"] = utils::ws2s(res_json, true);
                 }
-                promise1.set_value(data);
+                promise1.set_value(data1);
                 return S_OK;
             }).Get());
         if (FAILED(hr)) {
@@ -116,12 +120,12 @@ std::pair<bool, std::string> browser::run_script(const std::wstring &source)
     auto future2 = task.get_future();
     this->post_task(std::move(task));
     auto data2 = future2.get();
-    if (data2["err"] != "") {
+    if (data2.find("err") != data2.end()) {
         LOG(ERROR) << data2["err"];
         return {false, ""};
     }
     auto data1 = future1.get();
-    if (data1["err"] != "") {
+    if (data1.find("err") != data1.end()) {
         LOG(ERROR) << data1["err"];
         return {false, ""};
     }
@@ -166,11 +170,23 @@ HRESULT browser::controller_created(HRESULT result, ICoreWebView2Controller *con
     RECT rect;
     GetClientRect(h_browser, &rect);
     wv_controller->put_Bounds(rect);
+    wv_window->OpenDevToolsWindow();
+
     wv_window->add_NewWindowRequested(
         Callback<ICoreWebView2NewWindowRequestedEventHandler>(this, &browser::new_window_requested)
             .Get(),
         nullptr);
-    wv_window->OpenDevToolsWindow();
+
+    wv_window->add_NavigationCompleted(
+        Callback<ICoreWebView2NavigationCompletedEventHandler>(this, &browser::navigation_completed)
+            .Get(),
+        nullptr);
+
+    wv_window->add_WebMessageReceived(
+        Callback<ICoreWebView2WebMessageReceivedEventHandler>(this, &browser::web_message_received)
+            .Get(),
+        nullptr);
+
     status_ = status::RUNNING;
     return S_OK;
 }
@@ -180,10 +196,26 @@ HRESULT browser::new_window_requested(ICoreWebView2 *sender,
 {
     wchar_t *url;
     args->get_Uri(&url);
-    VLOG(1) << "new window requested, url=" << utils::ws2s(url);
     sender->Navigate(url);
     CoTaskMemFree(url);
     args->put_Handled(TRUE);
+    return S_OK;
+}
+
+HRESULT browser::navigation_completed(ICoreWebView2 *sender,
+                                      ICoreWebView2NavigationCompletedEventArgs *args)
+{
+    this->navigate_completed = true;
+    return S_OK;
+}
+
+HRESULT browser::web_message_received(ICoreWebView2 *sender,
+                                      ICoreWebView2WebMessageReceivedEventArgs *args)
+{
+    wchar_t *msg;
+    args->TryGetWebMessageAsString(&msg);
+    LOG(INFO) << "[MESSAGE] " << utils::ws2s(msg);
+    CoTaskMemFree(msg);
     return S_OK;
 }
 
@@ -198,7 +230,7 @@ LRESULT CALLBACK browser::scoped_wnd_proc(HWND hwnd, UINT msg, WPARAM wParam, LP
             };
             break;
         case WM_DESTROY:
-            VLOG(1) << "clean up webview";
+            VLOG(1) << "clean up webview2";
             wv_controller = nullptr;
             wv_window = nullptr;
             PostQuitMessage(0);

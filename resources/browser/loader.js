@@ -1,3 +1,1 @@
-document.addEventListener("DOMContentLoaded", function (event) {
-    console.log('Hello from CEF!');
-});
+window.chrome.webview.postMessage(`Hello ${document.title}: ${document.readyState}`)

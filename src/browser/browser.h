@@ -20,7 +20,7 @@ public:
     bool wait_utill_closed();
     bool close();
     bool is_closed() const;
-    bool navigate(const std::wstring &url) const;
+    bool navigate(const std::wstring &url);
     std::pair<bool, std::string> run_script(const std::wstring &source);
 
 private:
@@ -39,12 +39,17 @@ private:
     HRESULT controller_created(HRESULT result, ICoreWebView2Controller *controller);
     HRESULT new_window_requested(ICoreWebView2 *sender,
                                  ICoreWebView2NewWindowRequestedEventArgs *args);
+    HRESULT navigation_completed(ICoreWebView2 *sender,
+                                 ICoreWebView2NavigationCompletedEventArgs *args);
+    HRESULT web_message_received(ICoreWebView2 *sender,
+                                 ICoreWebView2WebMessageReceivedEventArgs *args);
     LRESULT scoped_wnd_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     static LRESULT wnd_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     HWND h_browser = NULL;
     std::mutex lock_running;
     std::atomic<status> status_ = status::INITIAL;
+    std::atomic<bool> navigate_completed = false;
     wil::com_ptr<ICoreWebView2Controller> wv_controller = nullptr;
     wil::com_ptr<ICoreWebView2> wv_window = nullptr;
 };
