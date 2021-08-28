@@ -1,27 +1,17 @@
-#include <windows.h>
-#include <iostream>
-#include "../utils.h"
-#include "simple-app.h"
+#include "browser.h"
 
-int main()
+int main(int argc, char **argv)
 {
-    CefEnableHighDPISupport();
-    CefMainArgs main_args;
-    CefRefPtr<SimpleApp> app(new SimpleApp);
-    int exit_code = CefExecuteProcess(main_args, app, nullptr);
-    if (exit_code >= 0) {
-        return exit_code;
-    }
-    CefSettings settings;
-    settings.no_sandbox = true;
-    settings.windowless_rendering_enabled = true;
-    settings.log_severity = LOGSEVERITY_INFO;
-    std::wstring cachePath = utils::getExePath() + L"\\cache";
-    CefString(&settings.root_cache_path).FromWString(cachePath);
-    CefString(&settings.cache_path).FromWString(cachePath);
-    CefInitialize(main_args, settings, app, nullptr);
-    LOG(INFO) << "cachePath=" << utils::ws2s(cachePath);
-    CefRunMessageLoop();
-    CefShutdown();
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+
+    browser br;
+    if (!br.open(L"browser")) return -1;
+    if (!br.navigate(L"https://www.baidu.com")) return -1;
+    std::string js = utils::readFile(L"resources/browser/loader.js").second;
+    auto r = br.run_script(utils::s2ws(js, true));
+    br.wait_utill_closed();
     return 0;
 }

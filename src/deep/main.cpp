@@ -1,4 +1,5 @@
 #include "prec.h"
+#include "../utils.h"
 
 void mnist();
 void linear_regression();
@@ -10,11 +11,9 @@ int main(int argc, char **argv)
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
 
+    TRY_;
     torch::manual_seed(1);
-    try {
-        linear_regression();
-    } catch (std::exception &err) {
-        LOG(ERROR) << err.what();
-    }
+    linear_regression();
+    CATCH_;
     return 0;
 }

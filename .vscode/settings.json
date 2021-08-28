@@ -7,7 +7,7 @@
         "deps/*/lib": true,
         "deps/*/share": true,
         "deps/*/src/out": true,
-        "deps/*/src/*[0-9]": true,
+        "deps/*/src/*[_-]*": true,
     },
     "files.watcherExclude": {
         "bin": true,
@@ -52,6 +52,8 @@
         "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
         "${workspaceFolder}/deps/libcef/",
         "${workspaceFolder}/deps/stb/include/",
+        "${workspaceFolder}/deps/webview2/include/",
+        "${workspaceFolder}/deps/wil/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",

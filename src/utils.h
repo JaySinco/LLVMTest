@@ -10,7 +10,11 @@ using namespace std::chrono_literals;
 using namespace std::string_literals;
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#define Throw_Error(s) throw utils::error("[{}:{}] {}"_format(__FILENAME__, __LINE__, (s)));
+#define THROW_(s) throw utils::error("[{}:{}] {}"_format(__FILENAME__, __LINE__, (s)));
+#define TRY_ try {
+#define CATCH_ \
+    }          \
+    catch (const std::exception &err) { LOG(ERROR) << err.what(); }
 
 namespace utils
 {
