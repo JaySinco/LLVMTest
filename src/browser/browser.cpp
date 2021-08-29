@@ -257,13 +257,18 @@ HRESULT browser::web_message_received(ICoreWebView2 *sender,
 {
     wchar_t *msg;
     args->TryGetWebMessageAsString(&msg);
+    std::shared_ptr<void> msg_guard(nullptr, [&](void *) { CoTaskMemFree(msg); });
     std::string msgJson = utils::ws2s(msg, true);
-    LOG(INFO) << "[MESSAGE] " << msgJson;
     auto message = nlohmann::json::parse(msgJson);
-    int width = message["scrollWidth"].get<int>();
-    int height = message["scrollHeight"].get<int>();
-    std::thread([=]() { this->screenshot(L"out.png", width, height); }).detach();
-    CoTaskMemFree(msg);
+    std::string channel = message["channel"].get<std::string>();
+    auto payload = message["payload"];
+    if (channel == "log") {
+        LOG(INFO) << payload.get<std::string>();
+    } else if (channel == "capture") {
+        int width = payload["width"].get<int>();
+        int height = payload["height"].get<int>();
+        std::thread([=]() { this->screenshot(L"out.png", width, height); }).detach();
+    }
     return S_OK;
 }
 
