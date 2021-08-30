@@ -1,5 +1,6 @@
 #include "prec.h"
 #include "../utils.h"
+#include <opencv2/highgui.hpp>
 
 void mnist();
 void linear_regression();
@@ -14,6 +15,10 @@ int main(int argc, char **argv)
     TRY_;
     torch::manual_seed(1);
     linear_regression();
+
+    auto img = cv::imread("./bin/browser/screenshot.png");
+    cv::imshow("screenshot", img);
+    cv::waitKey(0);
     CATCH_;
     return 0;
 }

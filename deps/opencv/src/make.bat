@@ -10,7 +10,7 @@ PUSHD %OUTDIR%
 cmake -G Ninja ^
     -DCMAKE_INSTALL_PREFIX=%~dp0..\ ^
     -DCMAKE_BUILD_TYPE=Release ^
-    -DBUILD_SHARED_LIBS=OFF ^
+    -DBUILD_SHARED_LIBS=ON ^
     -DBUILD_WITH_STATIC_CRT=OFF ^
     -DBUILD_EXAMPLES=OFF ^
     -DBUILD_TESTS=OFF ^
@@ -21,6 +21,8 @@ cmake -G Ninja ^
     -DBUILD_opencv_python2=OFF ^
     -DBUILD_opencv_python3=OFF ^
     -DWITH_CUDA=OFF ^
+    -DBUILD_opencv_world=ON ^
+    -DBUILD_opencv_contrib_world=ON ^
     -DOPENCV_EXTRA_MODULES_PATH=%~dp0opencv_contrib-4.5.3\modules ^
     ..\opencv-4.5.3
 IF %ERRORLEVEL% == 0 (ninja && ninja install) 
