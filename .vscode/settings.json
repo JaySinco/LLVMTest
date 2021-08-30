@@ -6,6 +6,8 @@
         "deps/*/include": true,
         "deps/*/lib": true,
         "deps/*/share": true,
+        "deps/*/x64": true,
+        "deps/*/etc": true,
         "deps/*/src/out": true,
         "deps/*/src/*[_-]*": true,
     },
@@ -55,6 +57,7 @@
         "${workspaceFolder}/deps/webview2/include/",
         "${workspaceFolder}/deps/wil/include/",
         "${workspaceFolder}/deps/json/include/",
+        "${workspaceFolder}/deps/opencv/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",

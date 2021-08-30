@@ -4,5 +4,7 @@
 /deps/*/include
 /deps/*/lib
 /deps/*/share
+/deps/*/x64
+/deps/*/etc
 /deps/*/src/*
 !/deps/*/src/make.bat

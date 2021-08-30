@@ -1,4 +1,5 @@
 find_package(Torch REQUIRED PATHS ${CMAKE_SOURCE_DIR}/deps/libtorch/share/cmake/)
+find_package(OpenCV REQUIRED PATHS ${CMAKE_SOURCE_DIR}/deps/opencv/x64/vc16/staticlib/)
 
 add_executable(deep
     mnist.cpp
@@ -10,9 +11,10 @@ target_precompile_headers(deep PUBLIC prec.h)
 target_include_directories(deep PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/libtorch/include/
     ${CMAKE_SOURCE_DIR}/deps/libtorch/include/torch/csrc/api/include/
+    ${CMAKE_SOURCE_DIR}/deps/opencv/include/
 )
 
-target_link_libraries(deep PUBLIC utils ${TORCH_LIBRARIES})
+target_link_libraries(deep PUBLIC utils ${TORCH_LIBRARIES} ${OpenCV_LIBS})
 
 set_target_properties(deep PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep"
