@@ -337,7 +337,7 @@ HRESULT browser::web_message_received(ICoreWebView2 *sender,
     } else if (channel == "region_screenshot") {
         std::wstring path = utils::s2ws(payload["path"].get<std::string>(), true);
         if (path.size() <= 0) {
-            path = utils::getExePath() + L"\\screenshot.png";
+            path = utils::getExeDir() + L"\\screenshot.png";
         }
         int width = payload["width"].get<int>();
         int height = payload["height"].get<int>();

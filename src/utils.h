@@ -23,7 +23,7 @@ struct error: public std::exception
     error(const std::string &s): std::exception(s.c_str()){};
 };
 
-std::wstring getExePath();
+std::wstring getExeDir();
 
 std::pair<bool, std::string> readFile(const std::wstring &path);
 

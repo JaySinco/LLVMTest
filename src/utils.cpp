@@ -43,7 +43,7 @@ std::pair<bool, std::string> readFile(const std::wstring &path)
     return {true, ss.str()};
 }
 
-std::wstring getExePath()
+std::wstring getExeDir()
 {
     wchar_t buf[MAX_PATH + 1] = {0};
     GetModuleFileNameW(NULL, buf, MAX_PATH);
