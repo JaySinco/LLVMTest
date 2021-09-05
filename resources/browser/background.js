@@ -66,17 +66,25 @@ async function get_full_page_size() {
     return { width, height };
 }
 
-async function full_page_screenshot(path) {
-    log(`[SCREENSHOT] ${document.readyState} ${document.URL}`);
+function get_all_rect(element, resArr) {
+    for (let child of element.children) {
+        let rect = child.getBoundingClientRect();
+        resArr.push([rect.x, rect.y, rect.width, rect.height]);
+        get_all_rect();
+    }
+}
+
+async function full_page_tag(path) {
+    log(`[TAG] ${document.readyState} ${document.URL}`);
     let { width, height } = await get_full_page_size();
     await delay(500);
-    ipc_send("region_screenshot", { width, height, path });
+    ipc_send("region_tag", { width, height, path });
 }
 
 document.addEventListener('keydown', async (event) => {
     const keyName = event.key;
     if (keyName === 'F6') {
-        await full_page_screenshot("");
+        await full_page_tag("");
         return;
     }
 }, false);
@@ -86,7 +94,7 @@ window.chrome.webview.addEventListener("message", async (msg) => {
         log(`receive messge => ${JSON.stringify(msg.data)}`);
         let { channel, payload } = msg.data;
         switch (channel) {
-            case "full_page_screenshot": await full_page_screenshot(payload["path"]); break;
+            case "full_page_tag": await full_page_tag(payload["path"]); break;
         }
     } catch (e) {
         log(`[ERROR] ${e}`);

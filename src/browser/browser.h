@@ -11,6 +11,7 @@
 #include <optional>
 #include <map>
 #include <future>
+#include <opencv2/core/types.hpp>
 
 class browser
 {
@@ -22,8 +23,7 @@ public:
     bool execute_script(const std::wstring &script, std::wstring &respJson);
     bool call_devtools_protocol(const std::wstring &method, const std::wstring &paramsJson,
                                 std::wstring &respJson);
-    bool full_page_screenshot(const std::wstring &path);
-    bool region_screenshot(const std::wstring &path, int width, int height);
+    bool full_page_tag(const std::wstring &path);
     bool wait_utill_closed();
     bool is_closed() const;
     bool close();
@@ -43,7 +43,9 @@ private:
     bool call_devtools_protocol_(const std::wstring &method, const std::wstring &paramsJson,
                                  std::promise<std::optional<std::wstring>> *resp = nullptr);
     bool post_web_message_(const std::string &channel, const nlohmann::json &payload);
-    bool full_page_screenshot_(const std::wstring &path);
+    bool full_page_tag_(const std::wstring &path);
+    bool region_tag(const std::wstring &path, int width, int height,
+                    const std::vector<cv::Rect> &rects);
 
     bool post_task_sync(std::function<bool()> task) const;
     HRESULT environment_created(HRESULT result, ICoreWebView2Environment *environment);
@@ -62,7 +64,7 @@ private:
     std::mutex lock_running;
     std::atomic<status> status_ = status::INITIAL;
     std::atomic<bool> navigate_completed = false;
-    std::atomic<bool> region_screenshot_completed = false;
+    std::atomic<bool> region_tag_completed = false;
     wil::com_ptr<ICoreWebView2Controller> wv_controller = nullptr;
     wil::com_ptr<ICoreWebView2> wv_window = nullptr;
 };

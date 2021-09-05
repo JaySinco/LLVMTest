@@ -3,6 +3,8 @@
 #include <wrl.h>
 #include <thread>
 #include <fstream>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #define WM_ASYNC_CALL WM_USER + 1
 
 using namespace Microsoft::WRL;
@@ -95,34 +97,35 @@ bool browser::navigate(const std::wstring &url)
     return true;
 }
 
-bool browser::full_page_screenshot_(const std::wstring &path)
+bool browser::full_page_tag_(const std::wstring &path)
 {
     nlohmann::json payload = {
         {"path", utils::ws2s(path, true)},
     };
-    if (!this->post_web_message_("full_page_screenshot", payload)) {
+    if (!this->post_web_message_("full_page_tag", payload)) {
         return false;
     }
     return true;
 }
 
-bool browser::full_page_screenshot(const std::wstring &path)
+bool browser::full_page_tag(const std::wstring &path)
 {
-    this->region_screenshot_completed = false;
-    if (!this->post_task_sync(std::bind(&browser::full_page_screenshot_, this, std::cref(path)))) {
+    this->region_tag_completed = false;
+    if (!this->post_task_sync(std::bind(&browser::full_page_tag_, this, std::cref(path)))) {
         return false;
     }
-    while (!this->region_screenshot_completed) {
+    while (!this->region_tag_completed) {
         std::this_thread::sleep_for(100ms);
     }
     return true;
 }
 
-bool browser::region_screenshot(const std::wstring &path, int width, int height)
+bool browser::region_tag(const std::wstring &path, int width, int height,
+                         const std::vector<cv::Rect> &rects)
 {
-    LOG(INFO) << "capture region {}x{} to {}"_format(width, height, utils::ws2s(path));
-    std::shared_ptr<void> completed_guard(
-        nullptr, [&](void *) { this->region_screenshot_completed = true; });
+    LOG(INFO) << "tag region {}x{} to {}"_format(width, height, utils::ws2s(path));
+    std::shared_ptr<void> completed_guard(nullptr,
+                                          [&](void *) { this->region_tag_completed = true; });
     nlohmann::json request;
     request["format"] = "png";
     request["fromSurface"] = true;
@@ -137,10 +140,12 @@ bool browser::region_screenshot(const std::wstring &path, int width, int height)
     }
     auto response = nlohmann::json::parse(utils::ws2s(respJson, true));
     auto data = utils::base64_decode(response["data"].get<std::string>());
-    std::ofstream fileSaved(path, std::ios::out | std::ios::binary);
-    fileSaved.write(reinterpret_cast<const char *>(data.data()), data.size());
-    fileSaved.close();
-    LOG(INFO) << "capture done";
+    auto image = cv::imdecode(cv::Mat(data), cv::IMREAD_COLOR);
+    for (const auto rect: rects) {
+        cv::rectangle(image, rect, {0, 0, 0}, 3);
+    }
+    cv::imwrite(utils::ws2s(path), image);
+    LOG(INFO) << "tag done";
     return true;
 }
 
@@ -334,14 +339,14 @@ HRESULT browser::web_message_received(ICoreWebView2 *sender,
     auto payload = message["payload"];
     if (channel == "log") {
         LOG(INFO) << payload.get<std::string>();
-    } else if (channel == "region_screenshot") {
+    } else if (channel == "region_tag") {
         std::wstring path = utils::s2ws(payload["path"].get<std::string>(), true);
         if (path.size() <= 0) {
             path = utils::getExeDir() + L"\\screenshot.png";
         }
         int width = payload["width"].get<int>();
         int height = payload["height"].get<int>();
-        std::thread([=]() { this->region_screenshot(path, width, height); }).detach();
+        std::thread([=]() { this->region_tag(path, width, height); }).detach();
     }
     return S_OK;
 }
