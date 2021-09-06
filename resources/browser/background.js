@@ -69,8 +69,15 @@ async function get_full_page_size() {
 function get_all_rect(element, resArr) {
     for (let child of element.children) {
         let rect = child.getBoundingClientRect();
-        resArr.push([rect.x, rect.y, rect.width, rect.height]);
-        get_all_rect();
+        if (rect.width > 0 && rect.height > 0) {
+            resArr.push([
+                rect.left + window.scrollX,
+                rect.top + window.scrollY,
+                rect.width,
+                rect.height
+            ]);
+        }
+        get_all_rect(child, resArr);
     }
 }
 
@@ -78,7 +85,10 @@ async function full_page_tag(path) {
     log(`[TAG] ${document.readyState} ${document.URL}`);
     let { width, height } = await get_full_page_size();
     await delay(500);
-    ipc_send("region_tag", { width, height, path });
+    let rects = [];
+    get_all_rect(document.documentElement, rects);
+    log(`get all ${rects.length} rect`);
+    ipc_send("region_tag", { width, height, path, rects });
 }
 
 document.addEventListener('keydown', async (event) => {

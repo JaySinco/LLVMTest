@@ -142,7 +142,7 @@ bool browser::region_tag(const std::wstring &path, int width, int height,
     auto data = utils::base64_decode(response["data"].get<std::string>());
     auto image = cv::imdecode(cv::Mat(data), cv::IMREAD_COLOR);
     for (const auto rect: rects) {
-        cv::rectangle(image, rect, {0, 0, 0}, 3);
+        cv::rectangle(image, rect, {0, 0, 0}, 1);
     }
     cv::imwrite(utils::ws2s(path), image);
     LOG(INFO) << "tag done";
@@ -346,7 +346,18 @@ HRESULT browser::web_message_received(ICoreWebView2 *sender,
         }
         int width = payload["width"].get<int>();
         int height = payload["height"].get<int>();
-        std::thread([=]() { this->region_tag(path, width, height); }).detach();
+        std::vector<cv::Rect> rects;
+        auto rectsJson = payload["rects"];
+        for (const auto &rectJson: rectsJson) {
+            cv::Rect rect;
+            rect.x = rectJson[0].get<int>();
+            rect.y = rectJson[1].get<int>();
+            rect.width = rectJson[2].get<int>();
+            rect.height = rectJson[3].get<int>();
+            rects.push_back(rect);
+        }
+        std::thread(std::bind(&browser::region_tag, this, path, width, height, std::move(rects)))
+            .detach();
     }
     return S_OK;
 }
