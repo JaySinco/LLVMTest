@@ -12,6 +12,6 @@ cmake -G Ninja ^
     -DCMAKE_BUILD_TYPE=Release ^
     -DFMT_TEST=OFF ^
     -DFMT_DOC=OFF ^
-    ..\fmt-7.1.3
+    ..\fmt-8.0.1
 IF %ERRORLEVEL% == 0 (ninja && ninja install)
 POPD

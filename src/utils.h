@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
+#include <vector>
 #include <chrono>
 
 using namespace fmt::literals;

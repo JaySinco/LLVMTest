@@ -42,7 +42,7 @@ public:
             auto sample = this->data[index];
             sample = sample.to(torch::kCPU);
             cv::Mat image(cv::Size(sample.size(0), sample.size(1)), CV_8UC1, sample.data_ptr());
-            int label = this->target[index][0].item<int>();
+            int label = this->target[index].item<int>();
             std::string winname =
                 "{}#{}"_format(FashionMnistDataset::labelDescMap.at(label), index);
             cv::namedWindow(winname, cv::WINDOW_NORMAL);
@@ -51,6 +51,7 @@ public:
             cv::imshow(winname, image);
         }
         cv::waitKey(0);
+        cv::destroyAllWindows();
     }
 
     static const std::map<unsigned, std::string> labelDescMap;
@@ -105,8 +106,9 @@ private:
         for (int32_t i = 0; i < items; ++i) {
             file.read((char *)&buf[i], sizeof(unsigned char));
         }
-        this->target = torch::from_blob(
-            buf, {items, 1}, [](void *buf) { delete[](unsigned char *) buf; }, torch::kUInt8);
+        torch::Tensor labels = torch::from_blob(
+            buf, {items}, [](void *buf) { delete[](unsigned char *) buf; }, torch::kUInt8);
+        this->target = labels.to(torch::kLong);
     }
 
     torch::Tensor data;
@@ -118,12 +120,102 @@ const std::map<unsigned, std::string> FashionMnistDataset::labelDescMap = {
     {5, "Sandal"},  {6, "Shirt"},   {7, "Sneaker"},  {8, "Bag"},   {9, "Ankle boot"},
 };
 
+struct Net: torch::nn::Module
+{
+    Net(): fc1(784, 10) { register_module("fc1", fc1); }
+
+    torch::Tensor forward(torch::Tensor x)
+    {
+        x = x.view({-1, 784});
+        x = fc1->forward(x);
+        return torch::log_softmax(x, 1);
+    }
+
+    torch::nn::Linear fc1;
+};
+
+template <typename DataLoader>
+void train(int32_t epoch, Net &model, torch::Device device, DataLoader &data_loader,
+           torch::optim::Optimizer &optimizer, size_t dataset_size)
+{
+    model.train();
+    size_t batch_idx = 0;
+    for (auto &batch: data_loader) {
+        auto data = batch.data.to(device), targets = batch.target.to(device);
+        optimizer.zero_grad();
+        auto output = model.forward(data);
+        auto loss = torch::nll_loss(output, targets);
+        AT_ASSERT(!std::isnan(loss.template item<float>()));
+        loss.backward();
+        optimizer.step();
+
+        if (batch_idx++ % 10 == 0) {
+            std::cout << "\rTrain Epoch: {} [{:5}/{:5}] Loss: {:.4f}"_format(
+                epoch, batch_idx * batch.data.size(0), dataset_size, loss.template item<float>());
+        }
+    }
+}
+
+template <typename DataLoader>
+void test(Net &model, torch::Device device, DataLoader &data_loader, size_t dataset_size)
+{
+    torch::NoGradGuard no_grad;
+    model.eval();
+    double test_loss = 0;
+    int32_t correct = 0;
+    for (const auto &batch: data_loader) {
+        auto data = batch.data.to(device), targets = batch.target.to(device);
+        auto output = model.forward(data);
+        test_loss +=
+            torch::nll_loss(output, targets, {}, torch::Reduction::Sum).template item<float>();
+        auto pred = output.argmax(1);
+        correct += pred.eq(targets).sum().template item<int64_t>();
+    }
+
+    test_loss /= dataset_size;
+    std::cout << "\nTest set: Average loss: {:.4f} | Accuracy: {:.3f}\n"_format(
+        test_loss, static_cast<double>(correct) / dataset_size);
+}
+
 void fashion_mnist()
 {
+    const int kTrainBatchSize = 256;
+    const int kTestBatchSize = 1000;
+    const int kNumberOfEpochs = 10;
+    const float kLearningRate = 0.1;
     const std::wstring kDataRoot = L"./resources/deep/fashion-mnist/";
+
     FashionMnistDataset trainMinst = FashionMnistDataset(kDataRoot);
     FashionMnistDataset testMinst = FashionMnistDataset(kDataRoot, true);
-    auto trainDataset = trainMinst.map(torch::data::transforms::Stack<>());
-    auto testDataset = testMinst.map(torch::data::transforms::Stack<>());
     trainMinst.show_rand(5);
+
+    torch::DeviceType device_type;
+    if (torch::cuda::is_available()) {
+        std::cout << "CUDA available! Training on GPU." << std::endl;
+        device_type = torch::kCUDA;
+    } else {
+        std::cout << "Training on CPU." << std::endl;
+        device_type = torch::kCPU;
+    }
+    torch::Device device(device_type);
+
+    Net model;
+    model.to(device);
+    auto train_dataset = trainMinst.map(torch::data::transforms::Normalize<>(0, 255))
+                             .map(torch::data::transforms::Stack<>());
+    const size_t train_dataset_size = train_dataset.size().value();
+    auto train_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+        std::move(train_dataset), kTrainBatchSize);
+
+    auto test_dataset = testMinst.map(torch::data::transforms::Normalize<>(0, 255))
+                            .map(torch::data::transforms::Stack<>());
+    const size_t test_dataset_size = test_dataset.size().value();
+    auto test_loader = torch::data::make_data_loader(std::move(test_dataset), kTestBatchSize);
+
+    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(kLearningRate));
+
+    for (size_t epoch = 1; epoch <= kNumberOfEpochs; ++epoch) {
+        train(epoch, model, device, *train_loader, optimizer, train_dataset_size);
+        test(model, device, *test_loader, test_dataset_size);
+    }
 }
