@@ -7,12 +7,12 @@
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
 public:
-    FashionMnistDataset(const std::wstring &dataRoot, bool testMode = false)
+    FashionMnistDataset(const std::wstring &dataRoot, bool train = true)
     {
         std::wstring imagesPath =
-            dataRoot + (testMode ? L"t10k-images-idx3-ubyte" : L"train-images-idx3-ubyte");
+            dataRoot + (train ? L"train-images-idx3-ubyte" : L"t10k-images-idx3-ubyte");
         std::wstring labelsPath =
-            dataRoot + (testMode ? L"t10k-labels-idx1-ubyte" : L"train-labels-idx1-ubyte");
+            dataRoot + (train ? L"train-labels-idx1-ubyte" : L"t10k-labels-idx1-ubyte");
 
         this->readImages(imagesPath);
         this->readLabels(labelsPath);
@@ -39,7 +39,7 @@ public:
         const int winsize = 250;
         for (int i = 0; i < indexList.size(); ++i) {
             size_t index = indexList[i];
-            auto sample = this->data[index];
+            auto sample = this->data[index][0];
             sample = sample.to(torch::kCPU);
             cv::Mat image(cv::Size(sample.size(0), sample.size(1)), CV_8UC1, sample.data_ptr());
             int label = this->target[index].item<int>();
@@ -87,7 +87,7 @@ private:
             file.read((char *)&buf[i * rows * cols], sizeof(unsigned char) * rows * cols);
         }
         this->data = torch::from_blob(
-            buf, {images, rows, cols, 1}, [](void *buf) { delete[](unsigned char *) buf; },
+            buf, {images, 1, rows, cols}, [](void *buf) { delete[](unsigned char *) buf; },
             torch::kUInt8);
     }
 
@@ -179,15 +179,10 @@ void test(Net &model, torch::Device device, DataLoader &data_loader, size_t data
 
 void fashion_mnist()
 {
-    const int kTrainBatchSize = 256;
-    const int kTestBatchSize = 1000;
-    const int kNumberOfEpochs = 10;
-    const float kLearningRate = 0.1;
     const std::wstring kDataRoot = L"./resources/deep/fashion-mnist/";
-
-    FashionMnistDataset trainMinst = FashionMnistDataset(kDataRoot);
-    FashionMnistDataset testMinst = FashionMnistDataset(kDataRoot, true);
-    trainMinst.show_rand(5);
+    FashionMnistDataset train_mnist(kDataRoot);
+    FashionMnistDataset test_mnist(kDataRoot, false);
+    train_mnist.show_rand(5);
 
     torch::DeviceType device_type;
     if (torch::cuda::is_available()) {
@@ -201,20 +196,20 @@ void fashion_mnist()
 
     Net model;
     model.to(device);
-    auto train_dataset = trainMinst.map(torch::data::transforms::Normalize<>(0, 255))
+    auto train_dataset = train_mnist.map(torch::data::transforms::Normalize<>(0, 255))
                              .map(torch::data::transforms::Stack<>());
     const size_t train_dataset_size = train_dataset.size().value();
     auto train_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-        std::move(train_dataset), kTrainBatchSize);
+        std::move(train_dataset), 64);
 
-    auto test_dataset = testMinst.map(torch::data::transforms::Normalize<>(0, 255))
+    auto test_dataset = test_mnist.map(torch::data::transforms::Normalize<>(0, 255))
                             .map(torch::data::transforms::Stack<>());
     const size_t test_dataset_size = test_dataset.size().value();
-    auto test_loader = torch::data::make_data_loader(std::move(test_dataset), kTestBatchSize);
+    auto test_loader = torch::data::make_data_loader(std::move(test_dataset), 1000);
 
-    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(kLearningRate));
+    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(0.01).momentum(0.5));
 
-    for (size_t epoch = 1; epoch <= kNumberOfEpochs; ++epoch) {
+    for (size_t epoch = 1; epoch <= 10; ++epoch) {
         train(epoch, model, device, *train_loader, optimizer, train_dataset_size);
         test(model, device, *test_loader, test_dataset_size);
     }
