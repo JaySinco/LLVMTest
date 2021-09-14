@@ -20,6 +20,7 @@ void linear_regression()
     std::vector<float> wVec{2.0, -3.4};
     const int nFeature = wVec.size();
     const float b = 4.2;
+    const float lr = 0.03;
     const int totalSize = 1000;
     const int batchSize = 10;
     const int nEpoch = 3;
@@ -38,7 +39,7 @@ void linear_regression()
     layer0->weight.data().normal_(0, 0.01);
     layer0->bias.data().fill_(0);
     auto loss = torch::nn::MSELoss();
-    auto optimizer = torch::optim::SGD(net->parameters(), 0.03);
+    auto optimizer = torch::optim::SGD(net->parameters(), lr);
 
     for (int i = 0; i < nEpoch; ++i) {
         for (auto &batch: *loader) {
