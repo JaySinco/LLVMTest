@@ -23,7 +23,7 @@ bool browser::open(const std::pair<int, int> &size, bool show)
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         RegisterClass(&wc);
         h_browser = CreateWindow(wc.lpszClassName, L"browser", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-                                 CW_USEDEFAULT, size.first, size.second, NULL, NULL,
+                                 CW_USEDEFAULT, size.first + 16, size.second + 39, NULL, NULL,
                                  GetModuleHandle(NULL), this);
         if (!h_browser) {
             LOG(ERROR) << "failed to create window";

@@ -66,10 +66,49 @@ async function get_full_page_size() {
     return { width, height };
 }
 
+function is_target(element) {
+    let tagList = ["DIV", "H1", "H2", "H3", "A", "INPUT", "SPAN", "P"];
+    return tagList.indexOf(element.tagName) !== -1;
+}
+
+function has_child_target(element) {
+    for (let child of element.children) {
+        if (is_target(child) || has_child_target(child)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function is_keep_anyway(element) {
+    let tagList = ["I"];
+    return tagList.indexOf(element.tagName) !== -1;
+}
+
+function keep_element(element) {
+    if (is_target(element)) {
+        if (!has_child_target(element)) {
+            return true;
+        }
+        if (element.hasChildNodes()) {
+            for (let node of element.childNodes) {
+                if (node.nodeType === 3 && node.textContent.trim().length > 0) {
+                    console.log(element)
+                    return true;
+                }
+            }
+        }
+    }
+    if (is_keep_anyway(element)) {
+        return true;
+    }
+    return false;
+}
+
 function get_all_rect(element, resArr) {
     for (let child of element.children) {
         let rect = child.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
+        if (rect.width > 0 && rect.height > 0 && keep_element(child)) {
             resArr.push([
                 rect.left + window.scrollX,
                 rect.top + window.scrollY,
@@ -77,7 +116,9 @@ function get_all_rect(element, resArr) {
                 rect.height
             ]);
         }
-        get_all_rect(child, resArr);
+        else {
+            get_all_rect(child, resArr);
+        }
     }
 }
 
