@@ -120,10 +120,11 @@ bool browser::full_page_tag(const std::wstring &path)
     return true;
 }
 
-bool browser::region_tag(const std::wstring &path, int width, int height,
+bool browser::region_tag(const std::wstring &path, const cv::Rect &region,
                          const std::vector<cv::Rect> &rects)
 {
-    LOG(INFO) << "tag region {}x{} to {}"_format(width, height, utils::ws2s(path));
+    LOG(INFO) << "tag region({}x{}, {}x{}) to {}"_format(region.x, region.y, region.width,
+                                                         region.height, utils::ws2s(path));
     std::shared_ptr<void> completed_guard(nullptr,
                                           [&](void *) { this->region_tag_completed = true; });
     nlohmann::json request;
@@ -131,7 +132,8 @@ bool browser::region_tag(const std::wstring &path, int width, int height,
     request["fromSurface"] = true;
     request["captureBeyondViewport"] = true;
     request["clip"] = {
-        {"x", 0}, {"y", 0}, {"width", width}, {"height", height}, {"scale", 1},
+        {"x", region.x},           {"y", region.y}, {"width", region.width},
+        {"height", region.height}, {"scale", 1},
     };
     std::wstring respJson;
     if (!this->call_devtools_protocol(L"Page.captureScreenshot", utils::s2ws(request.dump(), true),
@@ -344,8 +346,11 @@ HRESULT browser::web_message_received(ICoreWebView2 *sender,
         if (path.size() <= 0) {
             path = utils::getExeDir() + L"\\screenshot.png";
         }
-        int width = payload["width"].get<int>();
-        int height = payload["height"].get<int>();
+        cv::Rect region;
+        region.x = payload["x"].get<int>();
+        region.y = payload["y"].get<int>();
+        region.width = payload["width"].get<int>();
+        region.height = payload["height"].get<int>();
         std::vector<cv::Rect> rects;
         auto rectsJson = payload["rects"];
         for (const auto &rectJson: rectsJson) {
@@ -356,8 +361,7 @@ HRESULT browser::web_message_received(ICoreWebView2 *sender,
             rect.height = rectJson[3].get<int>();
             rects.push_back(rect);
         }
-        std::thread(std::bind(&browser::region_tag, this, path, width, height, std::move(rects)))
-            .detach();
+        std::thread(std::bind(&browser::region_tag, this, path, region, std::move(rects))).detach();
     }
     return S_OK;
 }

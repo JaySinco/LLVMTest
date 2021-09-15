@@ -44,7 +44,7 @@ private:
                                  std::promise<std::optional<std::wstring>> *resp = nullptr);
     bool post_web_message_(const std::string &channel, const nlohmann::json &payload);
     bool full_page_tag_(const std::wstring &path);
-    bool region_tag(const std::wstring &path, int width, int height,
+    bool region_tag(const std::wstring &path, const cv::Rect &region,
                     const std::vector<cv::Rect> &rects);
 
     bool post_task_sync(std::function<bool()> task) const;

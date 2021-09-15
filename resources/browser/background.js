@@ -83,12 +83,18 @@ function get_all_rect(element, resArr) {
 
 async function full_page_tag(path) {
     log(`[TAG] ${document.readyState} ${document.URL}`);
+    let style = document.createElement("style");
+    style.innerHTML = `body::-webkit-scrollbar {display: none;}`;
+    document.head.appendChild(style);
     let { width, height } = await get_full_page_size();
     await delay(500);
     let rects = [];
     get_all_rect(document.documentElement, rects);
     log(`get all ${rects.length} rect`);
-    ipc_send("region_tag", { width, height, path, rects });
+    ipc_send("region_tag", {
+        x: 0, y: 0, width, height,
+        path, rects
+    });
 }
 
 document.addEventListener('keydown', async (event) => {
