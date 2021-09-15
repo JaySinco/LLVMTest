@@ -67,7 +67,7 @@ async function get_full_page_size() {
 }
 
 function is_target(element) {
-    let tagList = ["DIV", "H1", "H2", "H3", "A", "INPUT", "SPAN", "P"];
+    let tagList = ["DIV", "H1", "H2", "H3", "A", "INPUT", "SPAN", "P", "I"];
     return tagList.indexOf(element.tagName) !== -1;
 }
 
@@ -78,11 +78,6 @@ function has_child_target(element) {
         }
     }
     return false;
-}
-
-function is_keep_anyway(element) {
-    let tagList = ["I"];
-    return tagList.indexOf(element.tagName) !== -1;
 }
 
 function keep_element(element) {
@@ -98,9 +93,6 @@ function keep_element(element) {
                 }
             }
         }
-    }
-    if (is_keep_anyway(element)) {
-        return true;
     }
     return false;
 }
