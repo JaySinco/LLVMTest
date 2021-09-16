@@ -130,7 +130,7 @@ async function full_page_tag(path) {
     });
 }
 
-document.addEventListener('keydown', async (event) => {
+document.addEventListener('keyup', async (event) => {
     const keyName = event.key;
     if (keyName === 'F6') {
         await full_page_tag("");
