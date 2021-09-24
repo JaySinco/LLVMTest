@@ -122,16 +122,22 @@ const std::map<unsigned, std::string> FashionMnistDataset::labelDescMap = {
 
 struct Net: torch::nn::Module
 {
-    Net(): fc1(784, 10) { register_module("fc1", fc1); }
+    Net(): fc1(784, 256), fc2(256, 10)
+    {
+        register_module("fc1", fc1);
+        register_module("fc2", fc2);
+    }
 
     torch::Tensor forward(torch::Tensor x)
     {
-        x = x.view({-1, 784});
-        x = fc1->forward(x);
+        x = x.reshape({-1, 784});
+        x = torch::relu(fc1->forward(x));
+        x = fc2->forward(x);
         return torch::log_softmax(x, 1);
     }
 
     torch::nn::Linear fc1;
+    torch::nn::Linear fc2;
 };
 
 template <typename DataLoader>
