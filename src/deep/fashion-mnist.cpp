@@ -132,6 +132,7 @@ struct Net: torch::nn::Module
     {
         x = x.reshape({-1, 784});
         x = torch::relu(fc1->forward(x));
+        x = torch::dropout(x, 0.5, is_training());
         x = fc2->forward(x);
         return torch::log_softmax(x, 1);
     }
