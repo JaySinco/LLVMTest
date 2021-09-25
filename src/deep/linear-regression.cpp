@@ -36,7 +36,7 @@ void linear_regression()
 
     torch::nn::Sequential net(torch::nn::Linear(2, 1));
     auto layer0 = net[0]->as<torch::nn::Linear>();
-    layer0->weight.data().normal_(0, 0.01);
+    torch::nn::init::normal_(layer0->weight, 0, 0.01);
     layer0->bias.data().fill_(0);
     auto loss = torch::nn::MSELoss();
     auto optimizer = torch::optim::SGD(net->parameters(), lr);
