@@ -3,6 +3,7 @@
 #include <fstream>
 #include <random>
 #include <opencv2/highgui.hpp>
+#include <filesystem>
 
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
@@ -79,8 +80,7 @@ private:
         int32_t images = header[1];
         int32_t rows = header[2];
         int32_t cols = header[3];
-        std::cout << "reading {}x{}x{} images from {}\n"_format(images, rows, cols,
-                                                                utils::ws2s(path));
+        std::cout << "Read {}x{}x{} images from {}\n"_format(images, rows, cols, utils::ws2s(path));
         size_t numel = images * rows * cols;
         auto buf = new unsigned char[numel]{0};
         for (int32_t i = 0; i < images; ++i) {
@@ -101,7 +101,7 @@ private:
             header[i] = reverseInt(header[i]);
         }
         int32_t items = header[1];
-        std::cout << "reading {} labels from {}\n"_format(items, utils::ws2s(path));
+        std::cout << "Read {} labels from {}\n"_format(items, utils::ws2s(path));
         auto buf = new unsigned char[items]{0};
         for (int32_t i = 0; i < items; ++i) {
             file.read((char *)&buf[i], sizeof(unsigned char));
@@ -201,8 +201,16 @@ void fashion_mnist()
     }
     torch::Device device(device_type);
 
+    auto saved_model_path = utils::ws2s(utils::getExeDir() + L"\\fashion-mnist.model.pt");
     Net model;
     model.to(device);
+    if (std::filesystem::exists(saved_model_path)) {
+        std::cout << "Read model from file: " << saved_model_path << std::endl;
+        torch::serialize::InputArchive inArch;
+        inArch.load_from(saved_model_path);
+        model.load(inArch);
+    }
+
     auto train_dataset = train_mnist.map(torch::data::transforms::Normalize<>(0, 255))
                              .map(torch::data::transforms::Stack<>());
     const size_t train_dataset_size = train_dataset.size().value();
@@ -220,4 +228,9 @@ void fashion_mnist()
         train(epoch, model, device, *train_loader, optimizer, train_dataset_size);
         test(model, device, *test_loader, test_dataset_size);
     }
+
+    std::cout << "Save model to file: " << saved_model_path << std::endl;
+    torch::serialize::OutputArchive outArch;
+    model.save(outArch);
+    outArch.save_to(saved_model_path);
 }
