@@ -126,20 +126,26 @@ struct Net: torch::nn::Module
         : conv1(torch::nn::Conv2dOptions(1, 10, 5)),
           conv2(torch::nn::Conv2dOptions(10, 20, 5)),
           fc1(320, 50),
-          fc2(50, 10)
+          fc2(50, 10),
+          bn1(10),
+          bn2(20),
+          bn3(50)
     {
         register_module("conv1", conv1);
         register_module("conv2", conv2);
         register_module("fc1", fc1);
         register_module("fc2", fc2);
+        register_module("bn1", bn1);
+        register_module("bn2", bn2);
+        register_module("bn3", bn3);
     }
 
     torch::Tensor forward(torch::Tensor x)
     {
-        x = torch::relu(torch::max_pool2d(conv1->forward(x), 2));
-        x = torch::relu(torch::max_pool2d(conv2->forward(x), 2));
+        x = torch::relu(torch::max_pool2d(bn1->forward(conv1->forward(x)), 2));
+        x = torch::relu(torch::max_pool2d(bn2->forward(conv2->forward(x)), 2));
         x = x.reshape({-1, 320});
-        x = torch::relu(fc1->forward(x));
+        x = torch::relu(bn3->forward(fc1->forward(x)));
         x = torch::dropout(x, 0.5, is_training());
         x = fc2->forward(x);
         return torch::log_softmax(x, 1);
@@ -149,6 +155,9 @@ struct Net: torch::nn::Module
     torch::nn::Conv2d conv2;
     torch::nn::Linear fc1;
     torch::nn::Linear fc2;
+    torch::nn::BatchNorm2d bn1;
+    torch::nn::BatchNorm2d bn2;
+    torch::nn::BatchNorm1d bn3;
 };
 
 template <typename DataLoader>
@@ -232,7 +241,7 @@ void fashion_mnist()
     const size_t test_dataset_size = test_dataset.size().value();
     auto test_loader = torch::data::make_data_loader(std::move(test_dataset), 1000);
 
-    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(0.01).momentum(0.5));
+    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(0.05).momentum(0.5));
 
     for (size_t epoch = 1; epoch <= 10; ++epoch) {
         train(epoch, model, device, *train_loader, optimizer, train_dataset_size);
