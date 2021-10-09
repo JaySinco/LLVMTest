@@ -58,6 +58,8 @@
         "${workspaceFolder}/deps/wil/include/",
         "${workspaceFolder}/deps/json/include/",
         "${workspaceFolder}/deps/opencv/include/",
+        "${workspaceFolder}/deps/python/include/",
+        "${workspaceFolder}/deps/pybind11/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",
