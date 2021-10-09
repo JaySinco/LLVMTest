@@ -15,6 +15,7 @@ target_link_libraries(utils PUBLIC
 )
 
 add_subdirectory(testing)
+add_subdirectory(python)
 add_subdirectory(calc)
 add_subdirectory(deep)
 add_subdirectory(browser)
