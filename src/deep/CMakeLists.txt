@@ -36,6 +36,12 @@ endif()
 if(NOT EXISTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/python3.dll)
     add_custom_command(TARGET deep POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/deps/python/bin/
-        $<TARGET_FILE_DIR:deep>
+            $<TARGET_FILE_DIR:deep>
+
+        COMMAND $<TARGET_FILE_DIR:deep>/python.exe
+            ${CMAKE_SOURCE_DIR}/resources/python/get-pip.py
+
+        COMMAND $<TARGET_FILE_DIR:deep>/Scripts/pip.exe
+            config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
     )
 endif()
