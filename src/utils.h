@@ -4,14 +4,9 @@
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
 #include <vector>
-#include <chrono>
-
-using namespace fmt::literals;
-using namespace std::chrono_literals;
-using namespace std::string_literals;
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#define THROW_(s) throw utils::error("[{}:{}] {}"_format(__FILENAME__, __LINE__, (s)));
+#define THROW_(s) throw utils::error(fmt::format("[{}:{}] {}", __FILENAME__, __LINE__, (s)));
 #define TRY_ try {
 #define CATCH_ \
     }          \

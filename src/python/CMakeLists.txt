@@ -28,3 +28,12 @@ if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
         COMMAND_ERROR_IS_FATAL ANY
     )
 endif()
+
+add_executable(testing-python testing.cpp)
+
+target_link_libraries(testing-python PUBLIC utils python)
+
+set_target_properties(testing-python PROPERTIES
+    OUTPUT_NAME "testing"
+    RUNTIME_OUTPUT_DIRECTORY ${PYTHON_TARGET_DIR}
+)

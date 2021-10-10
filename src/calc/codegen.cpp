@@ -7,6 +7,8 @@
 #define DELIMITER \
     "-------------------------------------------------------------------------------\n"
 
+using namespace fmt::literals;
+
 CodeGen::CodeGen() { this->initModuleAndPass(); }
 
 void CodeGen::initModuleAndPass()

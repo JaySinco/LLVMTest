@@ -3,10 +3,13 @@
 #include <wrl.h>
 #include <thread>
 #include <fstream>
+#include <chrono>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #define WM_ASYNC_CALL WM_USER + 1
 
+using namespace fmt::literals;
+using namespace std::chrono_literals;
 using namespace Microsoft::WRL;
 
 browser::browser() {}

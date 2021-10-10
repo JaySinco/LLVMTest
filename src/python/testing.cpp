@@ -1,0 +1,32 @@
+#include "../utils.h"
+#define GOOGLE_GLOG_DLL_DECL
+#define GLOG_NO_ABBREVIATED_SEVERITIES
+#include <glog/logging.h>
+#include <pybind11/embed.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
+
+namespace py = pybind11;
+using namespace py::literals;
+
+int main(int argc, char **argv)
+{
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+
+    TRY_;
+    py::scoped_interpreter guard{};
+    py::module_ pyplot = py::module_::import("matplotlib.pyplot");
+    std::vector<float> buf = {8, 11, 1, 5, 6, 7};
+    auto capsule = py::capsule(buf.data(), [](void *v) {});
+    py::array_t<float> arr({3, 2}, {sizeof(float) * 2, sizeof(float)}, buf.data(), capsule);
+    py::print(arr);
+    pyplot.attr("subplot")(1, 2, 1);
+    pyplot.attr("imshow")(arr);
+    pyplot.attr("subplot")(1, 2, 2);
+    pyplot.attr("plot")(std::vector<int>{1, 2, 3}, std::vector<int>{4, 2, 3}, "b");
+    pyplot.attr("show")("block"_a = true);
+    CATCH_;
+}

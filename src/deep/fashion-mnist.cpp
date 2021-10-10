@@ -5,6 +5,8 @@
 #include <opencv2/highgui.hpp>
 #include <filesystem>
 
+using namespace fmt::literals;
+
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
 public:
