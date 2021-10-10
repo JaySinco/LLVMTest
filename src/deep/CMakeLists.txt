@@ -5,6 +5,7 @@ add_executable(deep
     fashion-mnist.cpp
     main.cpp
 )
+
 target_precompile_headers(deep PUBLIC prec.h)
 
 target_include_directories(deep PUBLIC

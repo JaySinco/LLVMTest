@@ -14,7 +14,12 @@ target_link_libraries(utils PUBLIC
     shlwapi.lib
 )
 
-add_subdirectory(testing)
+add_executable(testing-utils testing.cpp)
+
+target_link_libraries(testing-utils PUBLIC utils)
+
+set_target_properties(testing-utils PROPERTIES OUTPUT_NAME "testing")
+
 add_subdirectory(python)
 add_subdirectory(calc)
 add_subdirectory(deep)

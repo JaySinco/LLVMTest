@@ -1,6 +1,7 @@
 file(GLOB_RECURSE ANTLR4_RUNTIME_SRC
     ${CMAKE_SOURCE_DIR}/deps/antlr4/src/antlr4-4.9.2/runtime/Cpp/runtime/src/*.cpp
 )
+
 add_library(antlr4_runtime ${ANTLR4_RUNTIME_SRC})
 
 target_include_directories(antlr4_runtime PUBLIC
@@ -16,11 +17,14 @@ target_compile_definitions(antlr4_runtime PUBLIC
 if(NOT(EXISTS ${CMAKE_CURRENT_LIST_DIR}/gen-cpp AND
     ${CMAKE_CURRENT_LIST_DIR}/gen-cpp/TLexer.h IS_NEWER_THAN ${CMAKE_CURRENT_LIST_DIR}/TLexer.g4 AND
     ${CMAKE_CURRENT_LIST_DIR}/gen-cpp/TParser.h IS_NEWER_THAN ${CMAKE_CURRENT_LIST_DIR}/TParser.g4))
+
     message(STATUS "Regenerating antlr4 cpp files")
+
     execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory 
         ${CMAKE_CURRENT_LIST_DIR}/gen-cpp
         COMMAND_ERROR_IS_FATAL ANY
     )
+
     execute_process(
         COMMAND java -jar ${CMAKE_SOURCE_DIR}/deps/antlr4/bin/antlr-4.9.2-complete.jar
             -encoding utf8 -Dlanguage=Cpp -Werror -no-listener -no-visitor -o gen-cpp T*.g4
@@ -30,6 +34,7 @@ if(NOT(EXISTS ${CMAKE_CURRENT_LIST_DIR}/gen-cpp AND
 endif()
 
 file(GLOB_RECURSE CALC_GENCPP_SRC gen-cpp/*.cpp)
+
 add_executable(calc
     ${CALC_GENCPP_SRC}
     jit-compiler.cpp
@@ -50,6 +55,7 @@ execute_process(
     OUTPUT_VARIABLE LLVM_LIBRARIES
     COMMAND_ERROR_IS_FATAL ANY
 )
+
 separate_arguments(LLVM_LIBRARIES)
 
 target_link_libraries(calc utils antlr4_runtime ${LLVM_LIBRARIES})
