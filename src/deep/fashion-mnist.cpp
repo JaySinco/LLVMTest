@@ -4,7 +4,11 @@
 #include <random>
 #include <opencv2/highgui.hpp>
 #include <filesystem>
+#include <pybind11/embed.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
+namespace py = pybind11;
 using namespace fmt::literals;
 
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
@@ -37,24 +41,28 @@ public:
         this->show(indexList);
     }
 
-    void show(const std::vector<size_t> &indexList)
+    void show(const std::vector<size_t> &indexList, int ncols = 5)
     {
-        const int winsize = 250;
+        py::scoped_interpreter guard{};
+        py::module_ plt = py::module_::import("matplotlib.pyplot");
         for (int i = 0; i < indexList.size(); ++i) {
             size_t index = indexList[i];
             auto sample = this->data[index][0];
             sample = sample.to(torch::kCPU);
-            cv::Mat image(cv::Size(sample.size(0), sample.size(1)), CV_8UC1, sample.data_ptr());
+            auto capsule = py::capsule(sample.data_ptr(), [](void *v) {});
+            py::array_t<uint8_t> arr({sample.size(0), sample.size(1)},
+                                     {sizeof(uint8_t) * sample.size(1), sizeof(uint8_t)},
+                                     static_cast<const uint8_t *>(sample.data_ptr()), capsule);
+            int nrows = std::ceil(indexList.size() / float(ncols));
+            auto ax = plt.attr("subplot")(nrows, ncols, i + 1);
             int label = this->target[index].item<int>();
-            std::string winname =
-                "{}#{}"_format(FashionMnistDataset::labelDescMap.at(label), index);
-            cv::namedWindow(winname, cv::WINDOW_NORMAL);
-            cv::resizeWindow(winname, winsize, winsize);
-            cv::moveWindow(winname, winsize * i, 0);
-            cv::imshow(winname, image);
+            std::string labelName = FashionMnistDataset::labelDescMap.at(label);
+            ax.attr("set_title")(labelName);
+            ax.attr("axes").attr("get_xaxis")().attr("set_visible")(false);
+            ax.attr("axes").attr("get_yaxis")().attr("set_visible")(false);
+            ax.attr("imshow")(arr);
         }
-        cv::waitKey(0);
-        cv::destroyAllWindows();
+        plt.attr("show")(py::arg("block") = true);
     }
 
     static const std::map<unsigned, std::string> labelDescMap;
@@ -210,7 +218,7 @@ void fashion_mnist()
     const std::wstring kDataRoot = L"./resources/deep/fashion-mnist/";
     FashionMnistDataset train_mnist(kDataRoot);
     FashionMnistDataset test_mnist(kDataRoot, false);
-    train_mnist.show_rand(5);
+    train_mnist.show_rand(15);
 
     torch::DeviceType device_type;
     if (torch::cuda::is_available()) {

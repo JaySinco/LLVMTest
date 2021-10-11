@@ -19,6 +19,6 @@ IF NOT EXIST ..\..\bin (
 )
 
 echo .\Lib> ..\..\bin\python38._pth
+echo .\Lib\site-packages>> ..\..\bin\python38._pth
 echo .\Lib\python38.zip>> ..\..\bin\python38._pth
 echo .>> ..\..\bin\python38._pth
-echo import site>> ..\..\bin\python38._pth
