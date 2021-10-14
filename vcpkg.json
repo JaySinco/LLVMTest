@@ -8,6 +8,12 @@
         "glog",
         "nlohmann-json",
         "wil",
-        "opencv4"
+        {
+            "name": "opencv4",
+            "default-features": true,
+            "features": [
+                "world"
+            ]
+        }
     ]
 }

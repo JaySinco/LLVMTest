@@ -53,7 +53,6 @@
         "${workspaceFolder}/deps/libcef/",
         "${workspaceFolder}/deps/stb/include/",
         "${workspaceFolder}/deps/webview2/include/",
-        "${workspaceFolder}/deps/opencv/include/",
         "${workspaceFolder}/deps/python/include/",
         "${workspaceFolder}/deps/pybind11/include/",
     ],

@@ -25,7 +25,7 @@ cmake -G Ninja ^
     -DCMAKE_CXX_COMPILER="clang-cl" ^
     -DCMAKE_LINKER="lld-link" ^
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%~dp0%BINDIR%\ ^
-    -DCMAKE_BUILD_TYPE=Debug ^
+    -DCMAKE_BUILD_TYPE=Release ^
     ..
 IF %ERRORLEVEL% == 0 (ninja %1)
 POPD

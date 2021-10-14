@@ -11,8 +11,12 @@ target_include_directories(browser PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/webview2/include/
 )
 
-target_link_libraries(browser PUBLIC utils version.lib
-    nlohmann_json::nlohmann_json WIL::WIL opencv_world
+target_link_libraries(browser PUBLIC
+    utils
+    version.lib
+    WIL::WIL
+    opencv_world
+    nlohmann_json::nlohmann_json
     ${CMAKE_SOURCE_DIR}/deps/webview2/lib/WebView2LoaderStatic.lib
 )
 

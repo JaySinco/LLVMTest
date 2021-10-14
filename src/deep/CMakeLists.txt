@@ -1,4 +1,5 @@
 find_package(Torch REQUIRED PATHS ${CMAKE_SOURCE_DIR}/deps/libtorch/share/cmake/)
+find_package(OpenCV CONFIG REQUIRED)
 
 add_executable(deep
     linear-regression.cpp
@@ -11,11 +12,13 @@ target_precompile_headers(deep PUBLIC prec.h)
 target_include_directories(deep PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/libtorch/include/
     ${CMAKE_SOURCE_DIR}/deps/libtorch/include/torch/csrc/api/include/
-    ${CMAKE_SOURCE_DIR}/deps/opencv/include/
 )
 
-target_link_libraries(deep PUBLIC utils python ${TORCH_LIBRARIES}
-    ${CMAKE_SOURCE_DIR}/deps/opencv/x64/vc16/lib/opencv_world453.lib
+target_link_libraries(deep PUBLIC
+    utils
+    python
+    opencv_world
+    ${TORCH_LIBRARIES}
 )
 
 set_target_properties(deep PROPERTIES
@@ -28,7 +31,6 @@ file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/python38._pth
 
 add_custom_command(TARGET deep POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/deps/opencv/x64/vc16/bin/opencv_world453.dll
         ${CMAKE_SOURCE_DIR}/deps/python/bin/python3.dll
         ${CMAKE_SOURCE_DIR}/deps/python/bin/python38.dll
     $<TARGET_FILE_DIR:deep>

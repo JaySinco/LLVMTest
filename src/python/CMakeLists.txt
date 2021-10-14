@@ -27,6 +27,11 @@ if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
             config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
         COMMAND_ERROR_IS_FATAL ANY
     )
+    execute_process(
+        COMMAND ${PYTHON_TARGET_DIR}/Scripts/pip.exe install -r
+            ${CMAKE_SOURCE_DIR}/resources/python/requirements.txt
+        COMMAND_ERROR_IS_FATAL ANY
+    )
 endif()
 
 add_executable(testing-python testing.cpp)

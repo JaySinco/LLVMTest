@@ -9,7 +9,10 @@ target_include_directories(utils PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/boost/include/boost-1_76/
 )
 
-target_link_libraries(utils PUBLIC fmt::fmt glog::glog)
+target_link_libraries(utils PUBLIC
+    fmt::fmt
+    glog::glog
+)
 
 add_executable(testing-utils testing.cpp)
 
