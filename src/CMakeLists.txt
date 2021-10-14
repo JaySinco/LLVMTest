@@ -1,18 +1,15 @@
 add_library(utils utils.cpp)
 
+find_package(fmt CONFIG REQUIRED)
+find_package(glog CONFIG REQUIRED)
+
 target_include_directories(utils PUBLIC
     ${CMAKE_SOURCE_DIR}/deps/gflags/include/
     ${CMAKE_SOURCE_DIR}/deps/glog/include/
-    ${CMAKE_SOURCE_DIR}/deps/fmt/include/
     ${CMAKE_SOURCE_DIR}/deps/boost/include/boost-1_76/
 )
 
-target_link_libraries(utils PUBLIC
-    ${CMAKE_SOURCE_DIR}/deps/gflags/lib/gflags_static.lib
-    ${CMAKE_SOURCE_DIR}/deps/glog/lib/glog.lib
-    ${CMAKE_SOURCE_DIR}/deps/fmt/lib/fmt.lib
-    shlwapi.lib
-)
+target_link_libraries(utils PUBLIC fmt::fmt glog::glog)
 
 add_executable(testing-utils testing.cpp)
 

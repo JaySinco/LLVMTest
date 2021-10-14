@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "prototyping",
+    "version-string": "0.1.0",
+    "dependencies": [
+        "fmt",
+        "gflags",
+        "glog",
+        "nlohmann-json",
+        "wil",
+        "opencv4"
+    ]
+}

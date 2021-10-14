@@ -44,9 +44,7 @@
         "alignTrailers": false
     },
     "C_Cpp.default.includePath": [
-        "${workspaceFolder}/deps/gflags/include/",
-        "${workspaceFolder}/deps/glog/include/",
-        "${workspaceFolder}/deps/fmt/include/",
+        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include",
         "${workspaceFolder}/deps/boost/include/boost-1_76/",
         "${workspaceFolder}/deps/antlr4/src/antlr4-4.9.2/runtime/Cpp/runtime/src/",
         "${workspaceFolder}/deps/llvm/include/",
@@ -55,8 +53,6 @@
         "${workspaceFolder}/deps/libcef/",
         "${workspaceFolder}/deps/stb/include/",
         "${workspaceFolder}/deps/webview2/include/",
-        "${workspaceFolder}/deps/wil/include/",
-        "${workspaceFolder}/deps/json/include/",
         "${workspaceFolder}/deps/opencv/include/",
         "${workspaceFolder}/deps/python/include/",
         "${workspaceFolder}/deps/pybind11/include/",

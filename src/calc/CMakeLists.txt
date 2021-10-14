@@ -59,3 +59,7 @@ execute_process(
 separate_arguments(LLVM_LIBRARIES)
 
 target_link_libraries(calc utils antlr4_runtime ${LLVM_LIBRARIES})
+
+set_target_properties(calc PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/calc"
+)
