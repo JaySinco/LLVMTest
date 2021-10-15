@@ -1,22 +1,16 @@
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(WIL CONFIG REQUIRED)
-find_package(OpenCV CONFIG REQUIRED)
-
 add_executable(browser 
     browser.cpp
     main.cpp
 )
 
-target_include_directories(browser PUBLIC
+target_include_directories(browser PRIVATE
     ${CMAKE_SOURCE_DIR}/deps/webview2/include/
 )
 
-target_link_libraries(browser PUBLIC
+target_link_libraries(browser PRIVATE
     utils
     version.lib
-    WIL::WIL
-    opencv_world
-    nlohmann_json::nlohmann_json
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/opencv_world.lib
     ${CMAKE_SOURCE_DIR}/deps/webview2/lib/WebView2LoaderStatic.lib
 )
 

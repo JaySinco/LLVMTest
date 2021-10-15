@@ -15,14 +15,7 @@
                 "world"
             ]
         },
-        {
-            "name": "llvm",
-            "default-features": false,
-            "features": [
-                "default-options",
-                "default-targets"
-            ]
-        },
-        "antlr4"
+        "antlr4",
+        "boost-algorithm"
     ]
 }

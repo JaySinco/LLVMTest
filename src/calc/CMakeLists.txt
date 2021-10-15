@@ -1,5 +1,3 @@
-find_package(LLVM CONFIG REQUIRED)
-
 file(GLOB_RECURSE CALC_GENCPP_SRC .antlr/*.cpp)
 
 add_executable(calc
@@ -18,16 +16,23 @@ target_compile_definitions(calc PRIVATE
 target_precompile_headers(calc PRIVATE prec.h)
 
 target_include_directories(calc PRIVATE
-    ${LLVM_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/deps/llvm/include/
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/antlr4-runtime
 )
 
-llvm_map_components_to_libnames(llvm_libs core orcjit native)
+execute_process(
+    COMMAND ${CMAKE_SOURCE_DIR}/deps/llvm/bin/llvm-config.exe --libs core orcjit native
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE llvm_libs
+    COMMAND_ERROR_IS_FATAL ANY
+)
+
+separate_arguments(llvm_libs)
 
 target_link_libraries(calc
     utils
     ${llvm_libs}
-    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/lib/antlr4-runtime.lib
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/antlr4-runtime.lib
 )
 
 set_target_properties(calc PROPERTIES

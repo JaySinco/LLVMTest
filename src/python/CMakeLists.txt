@@ -36,7 +36,7 @@ endif()
 
 add_executable(testing-python testing.cpp)
 
-target_link_libraries(testing-python PUBLIC utils python)
+target_link_libraries(testing-python PRIVATE utils python)
 
 set_target_properties(testing-python PROPERTIES
     OUTPUT_NAME "testing"

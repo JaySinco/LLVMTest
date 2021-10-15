@@ -5,7 +5,7 @@
             "name": "Debug exe",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/python/testing-python.exe",
+            "program": "${workspaceFolder}/bin/python/testing.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
