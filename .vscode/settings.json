@@ -1,7 +1,9 @@
 {
+    "editor.formatOnSave": true,
     "files.exclude": {
         "bin": true,
         "out": true,
+        "deps/vcpkg": false,
         "deps/*/bin": true,
         "deps/*/include": true,
         "deps/*/lib": true,
@@ -15,6 +17,29 @@
         "bin": true,
         "out": true,
         "deps": true,
+    },
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include",
+        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include/antlr4-runtime",
+        "${workspaceFolder}/deps/boost/include/boost-1_76/",
+        "${workspaceFolder}/deps/libtorch/include/",
+        "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
+        "${workspaceFolder}/deps/libcef/",
+        "${workspaceFolder}/deps/stb/include/",
+        "${workspaceFolder}/deps/webview2/include/",
+        "${workspaceFolder}/deps/python/include/",
+        "${workspaceFolder}/deps/pybind11/include/",
+    ],
+    "C_Cpp.default.defines": [
+        "UNICODE",
+    ],
+    "antlr4.generation": {
+        "mode": "external",
+        "language": "Cpp",
+        "visitors": false,
+        "listeners": false,
+        "outputDir": ".antlr"
     },
     "antlr4.format": {
         "alignTrailingComments": false,
@@ -43,22 +68,4 @@
         "alignLabels": true,
         "alignTrailers": false
     },
-    "C_Cpp.default.includePath": [
-        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include",
-        "${workspaceFolder}/deps/boost/include/boost-1_76/",
-        "${workspaceFolder}/deps/antlr4/src/antlr4-4.9.2/runtime/Cpp/runtime/src/",
-        "${workspaceFolder}/deps/llvm/include/",
-        "${workspaceFolder}/deps/libtorch/include/",
-        "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
-        "${workspaceFolder}/deps/libcef/",
-        "${workspaceFolder}/deps/stb/include/",
-        "${workspaceFolder}/deps/webview2/include/",
-        "${workspaceFolder}/deps/python/include/",
-        "${workspaceFolder}/deps/pybind11/include/",
-    ],
-    "C_Cpp.default.defines": [
-        "UNICODE",
-    ],
-    "C_Cpp.default.cppStandard": "c++17",
-    "editor.formatOnSave": true,
 }

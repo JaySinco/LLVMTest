@@ -1,7 +1,7 @@
 #pragma once
 #include "prec.h"
 #include "jit-compiler.h"
-#include "gen-cpp/TParser.h"
+#include ".antlr/TParser.h"
 
 class CodeGen
 {

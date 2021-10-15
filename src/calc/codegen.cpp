@@ -1,8 +1,8 @@
 #include "codegen.h"
 #include "../utils.h"
 #include "antlr4-runtime.h"
-#include "gen-cpp/TLexer.h"
-#include "gen-cpp/TParser.h"
+#include ".antlr/TLexer.h"
+#include ".antlr/TParser.h"
 
 #define DELIMITER \
     "-------------------------------------------------------------------------------\n"

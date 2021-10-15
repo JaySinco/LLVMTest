@@ -20,12 +20,12 @@ POPD
 IF NOT EXIST %OUTDIR% (MKDIR %OUTDIR%)
 PUSHD %OUTDIR%
 cmake -G Ninja ^
-    -DCMAKE_TOOLCHAIN_FILE=%~dp0deps\vcpkg\bin\scripts\buildsystems\vcpkg.cmake ^
+    -DCMAKE_TOOLCHAIN_FILE=%~dp0deps\vcpkg\scripts\buildsystems\vcpkg.cmake ^
     -DCMAKE_C_COMPILER="clang-cl" ^
     -DCMAKE_CXX_COMPILER="clang-cl" ^
     -DCMAKE_LINKER="lld-link" ^
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%~dp0%BINDIR%\ ^
-    -DCMAKE_BUILD_TYPE=Release ^
+    -DCMAKE_BUILD_TYPE=Debug ^
     ..
 IF %ERRORLEVEL% == 0 (ninja %1)
 POPD
