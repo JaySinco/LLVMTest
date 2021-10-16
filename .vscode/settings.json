@@ -22,12 +22,11 @@
     "C_Cpp.default.includePath": [
         "${workspaceFolder}/out/vcpkg_installed/x64-windows/include",
         "${workspaceFolder}/out/vcpkg_installed/x64-windows/include/antlr4-runtime",
+        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include/python3",
         "${workspaceFolder}/deps/libtorch/include/",
         "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
         "${workspaceFolder}/deps/libcef/",
         "${workspaceFolder}/deps/llvm/include/",
-        "${workspaceFolder}/deps/python/include/",
-        "${workspaceFolder}/deps/pybind11/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",

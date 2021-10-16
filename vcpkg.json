@@ -15,8 +15,10 @@
                 "world"
             ]
         },
-        "antlr4",
         "boost-algorithm",
-        "webview2"
+        "antlr4-ce",
+        "webview2-ce",
+        "python3-ce",
+        "pybind11-ce"
     ]
 }

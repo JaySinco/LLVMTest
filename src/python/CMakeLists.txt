@@ -1,21 +1,24 @@
 add_library(python INTERFACE)
 
 target_include_directories(python INTERFACE
-    ${CMAKE_SOURCE_DIR}/deps/python/include/
-    ${CMAKE_SOURCE_DIR}/deps/pybind11/include/
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/python3
 )
 
 target_link_libraries(python INTERFACE
-    ${CMAKE_SOURCE_DIR}/deps/python/lib/python38.lib
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/python38.lib
 )
 
 set(PYTHON_TARGET_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/python)
 
 if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     execute_process(
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/deps/python/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/python3/
             ${PYTHON_TARGET_DIR}/
         COMMAND_ERROR_IS_FATAL ANY
+    )
+    file(WRITE ${PYTHON_TARGET_DIR}/python38._pth
+        ".\\Lib\n.\\Lib\\site-packages\n.\\Lib\\python38.zip\n.\n"
     )
     execute_process(
         COMMAND ${PYTHON_TARGET_DIR}/python.exe

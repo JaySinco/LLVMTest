@@ -28,13 +28,6 @@ file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/python38._pth
     "..\\python\\Lib\n..\\python\\Lib\\site-packages\n..\\python\\Lib\\python38.zip\n.\n"
 )
 
-add_custom_command(TARGET deep POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/deps/python/bin/python3.dll
-        ${CMAKE_SOURCE_DIR}/deps/python/bin/python38.dll
-    $<TARGET_FILE_DIR:deep>
-)
-
 if(NOT EXISTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/torch.dll)
     file(GLOB TORCH_DLLS ${CMAKE_SOURCE_DIR}/deps/libtorch/lib/*.dll)
     add_custom_command(TARGET deep POST_BUILD
