@@ -25,7 +25,6 @@
         "${workspaceFolder}/deps/libtorch/include/",
         "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
         "${workspaceFolder}/deps/libcef/",
-        "${workspaceFolder}/deps/webview2/include/",
         "${workspaceFolder}/deps/llvm/include/",
         "${workspaceFolder}/deps/python/include/",
         "${workspaceFolder}/deps/pybind11/include/",

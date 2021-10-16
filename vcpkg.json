@@ -16,6 +16,7 @@
             ]
         },
         "antlr4",
-        "boost-algorithm"
+        "boost-algorithm",
+        "webview2"
     ]
 }
