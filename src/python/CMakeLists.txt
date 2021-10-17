@@ -17,9 +17,6 @@ if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
             ${PYTHON_TARGET_DIR}/
         COMMAND_ERROR_IS_FATAL ANY
     )
-    file(WRITE ${PYTHON_TARGET_DIR}/python38._pth
-        ".\\Lib\n.\\Lib\\site-packages\n.\\Lib\\python38.zip\n.\n"
-    )
     execute_process(
         COMMAND ${PYTHON_TARGET_DIR}/python.exe
             ${CMAKE_SOURCE_DIR}/resources/python/get-pip.py

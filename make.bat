@@ -20,7 +20,7 @@ POPD
 IF NOT EXIST %OUTDIR% (MKDIR %OUTDIR%)
 PUSHD %OUTDIR%
 cmake -G Ninja ^
-    -DCMAKE_TOOLCHAIN_FILE=%~dp0deps\vcpkg\scripts\buildsystems\vcpkg.cmake ^
+    -DVCPKG_ROOT_DIR=%~dp0deps\vcpkg ^
     -DCMAKE_C_COMPILER="clang-cl" ^
     -DCMAKE_CXX_COMPILER="clang-cl" ^
     -DCMAKE_LINKER="lld-link" ^

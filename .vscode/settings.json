@@ -1,9 +1,10 @@
 {
     "editor.formatOnSave": true,
+    "files.trimTrailingWhitespace": true,
     "files.exclude": {
         "bin": true,
         "out": true,
-        "deps/vcpkg": false,
+        "deps/vcpkg/*": true,
         "deps/*/bin": true,
         "deps/*/include": true,
         "deps/*/lib": true,
@@ -20,13 +21,11 @@
     },
     "C_Cpp.default.cppStandard": "c++17",
     "C_Cpp.default.includePath": [
-        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include",
-        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include/antlr4-runtime",
-        "${workspaceFolder}/out/vcpkg_installed/x64-windows/include/python3",
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include",
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/antlr4-runtime",
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/python3",
         "${workspaceFolder}/deps/libtorch/include/",
         "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
-        "${workspaceFolder}/deps/libcef/",
-        "${workspaceFolder}/deps/llvm/include/",
     ],
     "C_Cpp.default.defines": [
         "UNICODE",

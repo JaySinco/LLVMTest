@@ -25,7 +25,7 @@ set_target_properties(deep PROPERTIES
 )
 
 file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/python38._pth
-    "..\\python\\Lib\n..\\python\\Lib\\site-packages\n..\\python\\Lib\\python38.zip\n.\n"
+    "..\\python\\Lib\n..\\python\\Lib\\site-packages\n..\\python\\python38.zip\n.\n"
 )
 
 if(NOT EXISTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/torch.dll)

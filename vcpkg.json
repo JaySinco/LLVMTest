@@ -8,6 +8,7 @@
         "glog",
         "nlohmann-json",
         "wil",
+        "boost-algorithm",
         {
             "name": "opencv4",
             "default-features": true,
@@ -15,7 +16,14 @@
                 "world"
             ]
         },
-        "boost-algorithm",
+        {
+            "name": "llvm-ce",
+            "default-features": false,
+            "features": [
+                "default-options",
+                "default-targets"
+            ]
+        },
         "antlr4-ce",
         "webview2-ce",
         "python3-ce",
