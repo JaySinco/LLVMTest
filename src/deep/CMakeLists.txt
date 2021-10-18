@@ -1,4 +1,6 @@
-find_package(Torch REQUIRED PATHS ${CMAKE_SOURCE_DIR}/deps/libtorch/share/cmake/)
+set(TORCH_ROOT_DIR ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/libtorch/)
+
+find_package(Torch REQUIRED PATHS ${TORCH_ROOT_DIR}/share/cmake/)
 
 add_executable(deep
     linear-regression.cpp
@@ -9,8 +11,8 @@ add_executable(deep
 target_precompile_headers(deep PRIVATE prec.h)
 
 target_include_directories(deep PRIVATE
-    ${CMAKE_SOURCE_DIR}/deps/libtorch/include/
-    ${CMAKE_SOURCE_DIR}/deps/libtorch/include/torch/csrc/api/include/
+    ${TORCH_ROOT_DIR}}/include/
+    ${TORCH_ROOT_DIR}}/include/torch/csrc/api/include/
 )
 
 target_link_libraries(deep
@@ -29,7 +31,7 @@ file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/python38._pth
 )
 
 if(NOT EXISTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/deep/torch.dll)
-    file(GLOB TORCH_DLLS ${CMAKE_SOURCE_DIR}/deps/libtorch/lib/*.dll)
+    file(GLOB TORCH_DLLS ${TORCH_ROOT_DIR}/lib/*.dll)
     add_custom_command(TARGET deep POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TORCH_DLLS}
         $<TARGET_FILE_DIR:deep>

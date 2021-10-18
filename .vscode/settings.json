@@ -19,18 +19,6 @@
         "out": true,
         "deps": true,
     },
-    "C_Cpp.default.cppStandard": "c++17",
-    "C_Cpp.default.includePath": [
-        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include",
-        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/antlr4-runtime",
-        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/python3",
-        "${workspaceFolder}/deps/libtorch/include/",
-        "${workspaceFolder}/deps/libtorch/include/torch/csrc/api/include/",
-    ],
-    "C_Cpp.default.defines": [
-        "UNICODE",
-        "SOURCE_DIR=\"\""
-    ],
     "antlr4.generation": {
         "mode": "external",
         "language": "Cpp",
@@ -39,30 +27,25 @@
         "outputDir": ".antlr"
     },
     "antlr4.format": {
-        "alignTrailingComments": false,
-        "allowShortBlocksOnASingleLine": true,
-        "breakBeforeBraces": false,
         "columnLimit": 110,
-        "continuationIndentWidth": 4,
         "indentWidth": 4,
-        "keepEmptyLinesAtTheStartOfBlocks": false,
-        "maxEmptyLinesToKeep": 1,
-        "reflowComments": true,
         "spaceBeforeAssignmentOperators": false,
         "tabWidth": 4,
         "useTab": false,
-        "alignColons": "none",
-        "singleLineOverrulesHangingColon": true,
-        "allowShortRulesOnASingleLine": true,
         "alignSemicolons": "hanging",
-        "breakBeforeParens": false,
-        "ruleInternalsOnSingleLine": false,
-        "minEmptyLines": 0,
-        "groupedAlignments": true,
         "alignFirstTokens": true,
         "alignLexerCommands": true,
-        "alignActions": false,
-        "alignLabels": true,
-        "alignTrailers": false
     },
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include",
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/antlr4-runtime",
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/python3",
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/tools/libtorch/include/",
+        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/tools/libtorch/include/torch/csrc/api/include/",
+    ],
+    "C_Cpp.default.defines": [
+        "UNICODE",
+        "SOURCE_DIR=\"\""
+    ],
 }

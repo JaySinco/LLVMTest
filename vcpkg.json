@@ -25,6 +25,7 @@
             ]
         },
         "antlr4-ce",
+        "libtorch-ce",
         "webview2-ce",
         "python3-ce",
         "pybind11-ce"
