@@ -321,7 +321,7 @@ HRESULT browser::navigation_completed(ICoreWebView2 *sender,
                                       ICoreWebView2NavigationCompletedEventArgs *args)
 {
     this->navigate_completed = true;
-    auto stat = utils::readFile(L"resources/browser/background.js");
+    auto stat = utils::readFile(utils::getResAbs(L"browser/background.js"));
     if (!stat.first) {
         LOG(ERROR) << "failed to load background.js";
         return S_OK;

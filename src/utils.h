@@ -20,6 +20,7 @@ struct error: public std::exception
 };
 
 std::wstring getExeDir();
+std::wstring getResAbs(const std::wstring &relpath);
 
 std::pair<bool, std::string> readFile(const std::wstring &path);
 

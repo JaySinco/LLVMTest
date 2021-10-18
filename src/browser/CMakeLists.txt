@@ -1,9 +1,9 @@
-add_executable(browser 
+add_executable(browser
     browser.cpp
     main.cpp
 )
 
-target_link_libraries(browser PRIVATE
+target_link_libraries(browser
     utils
     version.lib
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/opencv_world.lib

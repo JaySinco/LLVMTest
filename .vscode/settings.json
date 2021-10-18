@@ -29,6 +29,7 @@
     ],
     "C_Cpp.default.defines": [
         "UNICODE",
+        "SOURCE_DIR=\"\""
     ],
     "antlr4.generation": {
         "mode": "external",

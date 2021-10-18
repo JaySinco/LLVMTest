@@ -13,7 +13,7 @@ target_include_directories(deep PRIVATE
     ${CMAKE_SOURCE_DIR}/deps/libtorch/include/torch/csrc/api/include/
 )
 
-target_link_libraries(deep PRIVATE
+target_link_libraries(deep
     utils
     python
     ${TORCH_LIBRARIES}
