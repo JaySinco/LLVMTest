@@ -7,7 +7,6 @@
         "gflags",
         "glog",
         "nlohmann-json",
-        "wil",
         "boost-algorithm",
         {
             "name": "opencv4",
@@ -24,6 +23,7 @@
                 "default-targets"
             ]
         },
+        "wil-ce",
         "antlr4-ce",
         "libtorch-ce",
         "webview2-ce",
