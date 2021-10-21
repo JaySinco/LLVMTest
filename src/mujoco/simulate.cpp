@@ -1333,7 +1333,7 @@ void uiEvent(mjuiState *state)
     // 3D scroll
     if (state->type == mjEVENT_SCROLL && state->mouserect == 3 && m) {
         // emulate vertical mouse motion = 5% of window height
-        mjv_moveCamera(m, mjMOUSE_ZOOM, 0, -0.05 * state->sy, &scn, &cam);
+        mjv_moveCamera(m, mjMOUSE_ZOOM, 0, +0.05 * state->sy, &scn, &cam);
 
         return;
     }
