@@ -1,4 +1,4 @@
-set(TORCH_ROOT_DIR ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/libtorch/)
+set(TORCH_ROOT_DIR ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/extras/libtorch/)
 
 find_package(Torch REQUIRED PATHS ${TORCH_ROOT_DIR}/share/cmake/)
 

@@ -8,6 +8,7 @@
         "glog",
         "nlohmann-json",
         "boost-algorithm",
+        "glfw3",
         {
             "name": "opencv4",
             "default-features": true,
@@ -28,6 +29,7 @@
         "libtorch-ce",
         "webview2-ce",
         "python3-ce",
-        "pybind11-ce"
+        "pybind11-ce",
+        "mujoco-ce"
     ]
 }
