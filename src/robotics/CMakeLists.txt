@@ -15,7 +15,7 @@ add_executable(simulate uitools.cpp simulate.cpp)
 
 target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
 
-target_link_libraries(simulate mujoco)
+target_link_libraries(simulate utils mujoco)
 
 add_executable(testing-${CURRENT_DIR} testing.cpp)
 

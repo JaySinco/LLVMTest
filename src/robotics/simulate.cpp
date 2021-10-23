@@ -1724,10 +1724,9 @@ int main(int argc, const char **argv)
     init();
 
     // request loadmodel if file given (otherwise drag-and-drop)
-    if (argc > 1) {
-        mju_strncpy(filename, argv[1], 1000);
-        settings.loadrequest = 2;
-    }
+    const char *arg1 = (argc > 1) ? argv[1] : (SOURCE_DIR "/config/model/humanoid.xml");
+    mju_strncpy(filename, arg1, 1000);
+    settings.loadrequest = 2;
 
     // start simulation thread
     std::thread simthread(simulate);
