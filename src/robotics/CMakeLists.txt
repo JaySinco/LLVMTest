@@ -1,3 +1,5 @@
+get_filename_component(CURRENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
 add_library(mujoco INTERFACE)
 
 target_include_directories(mujoco INTERFACE
@@ -15,15 +17,6 @@ target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
 
 target_link_libraries(simulate mujoco)
 
-set_target_properties(simulate PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mujoco"
-)
+add_executable(testing-${CURRENT_DIR} testing.cpp)
 
-add_executable(testing-mujoco testing.cpp)
-
-target_link_libraries(testing-mujoco utils mujoco)
-
-set_target_properties(testing-mujoco PROPERTIES
-    OUTPUT_NAME "testing"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mujoco"
-)
+target_link_libraries(testing-${CURRENT_DIR} utils mujoco)

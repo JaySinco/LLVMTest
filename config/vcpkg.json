@@ -3,12 +3,6 @@
     "name": "prototyping",
     "version-string": "0.1.0",
     "dependencies": [
-        "fmt",
-        "gflags",
-        "glog",
-        "nlohmann-json",
-        "boost-algorithm",
-        "glfw3",
         {
             "name": "opencv4",
             "default-features": true,
@@ -16,18 +10,13 @@
                 "world"
             ]
         },
-        {
-            "name": "llvm-ce",
-            "default-features": false,
-            "features": [
-                "default-options",
-                "default-targets"
-            ]
-        },
-        "wil-ce",
-        "antlr4-ce",
+        "fmt",
+        "gflags",
+        "glog",
+        "nlohmann-json",
+        "boost-algorithm",
+        "glfw3",
         "libtorch-ce",
-        "webview2-ce",
         "python3-ce",
         "pybind11-ce",
         "mujoco-ce"

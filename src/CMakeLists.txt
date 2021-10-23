@@ -1,7 +1,6 @@
 add_library(utils utils.cpp)
 
-target_compile_definitions(utils PUBLIC
-    UNICODE
+target_compile_definitions(utils PUBLIC UNICODE
     SOURCE_DIR="${CMAKE_SOURCE_DIR}"
 )
 
@@ -17,14 +16,10 @@ target_link_libraries(utils PUBLIC
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/glog.lib
 )
 
-add_executable(testing-utils testing.cpp)
+add_executable(testing testing.cpp)
 
-target_link_libraries(testing-utils utils)
-
-set_target_properties(testing-utils PROPERTIES OUTPUT_NAME "testing")
+target_link_libraries(testing utils)
 
 add_subdirectory(python)
-add_subdirectory(calc)
-add_subdirectory(deep)
-add_subdirectory(browser)
-add_subdirectory(mujoco)
+add_subdirectory(robotics)
+add_subdirectory(d2l)

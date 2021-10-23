@@ -1,4 +1,6 @@
-#include "prec.h"
+#include "../utils.h"
+#define C10_USE_GLOG
+#include <torch/torch.h>
 
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {
@@ -54,4 +56,18 @@ void linear_regression()
     std::cout << std::endl;
     std::cout << "w =" << layer0->weight.data() << std::endl;
     std::cout << "b =" << layer0->bias.data() << std::endl;
+}
+
+int main(int argc, char **argv)
+{
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+
+    TRY_;
+    torch::manual_seed(1);
+    linear_regression();
+    CATCH_;
+    return 0;
 }

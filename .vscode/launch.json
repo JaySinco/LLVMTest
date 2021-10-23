@@ -5,7 +5,7 @@
             "name": "Debug exe",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/python/testing.exe",
+            "program": "${workspaceFolder}/bin/testing.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
@@ -15,16 +15,6 @@
                 "moduleLoad": true,
                 "trace": true
             }
-        },
-        {
-            "name": "Debug ANTLR4 grammar",
-            "type": "antlr-debug",
-            "request": "launch",
-            "input": "resources/calc/input.txt",
-            "grammar": "src/calc/TParser.g4",
-            "startRule": "program",
-            "printParseTree": true,
-            "visualParseTree": true
         }
     ]
 }

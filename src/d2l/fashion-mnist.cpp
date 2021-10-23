@@ -1,8 +1,8 @@
-#include "prec.h"
 #include "../utils.h"
+#define C10_USE_GLOG
+#include <torch/torch.h>
 #include <fstream>
 #include <random>
-#include <opencv2/highgui.hpp>
 #include <filesystem>
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
@@ -215,7 +215,7 @@ void test(Net &model, torch::Device device, DataLoader &data_loader, size_t data
 
 void fashion_mnist()
 {
-    const std::wstring kDataRoot = utils::getResAbs(L"deep/fashion-mnist/");
+    const std::wstring kDataRoot = utils::s2ws(SOURCE_DIR "/config/data/fashion-mnist/");
     FashionMnistDataset train_mnist(kDataRoot);
     FashionMnistDataset test_mnist(kDataRoot, false);
     train_mnist.show_rand(15);
@@ -262,4 +262,18 @@ void fashion_mnist()
     torch::serialize::OutputArchive outArch;
     model.save(outArch);
     outArch.save_to(saved_model_path);
+}
+
+int main(int argc, char **argv)
+{
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+
+    TRY_;
+    torch::manual_seed(1);
+    fashion_mnist();
+    CATCH_;
+    return 0;
 }

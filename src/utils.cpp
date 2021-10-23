@@ -51,11 +51,6 @@ std::wstring getExeDir()
     return buf;
 }
 
-std::wstring getResAbs(const std::wstring &relpath)
-{
-    return s2ws(SOURCE_DIR, false) + L"/resources/" + relpath;
-}
-
 static const std::string base64_chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"

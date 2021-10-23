@@ -19,27 +19,9 @@
         "out": true,
         "deps": true,
     },
-    "antlr4.generation": {
-        "mode": "external",
-        "language": "Cpp",
-        "visitors": false,
-        "listeners": false,
-        "outputDir": ".antlr"
-    },
-    "antlr4.format": {
-        "columnLimit": 110,
-        "indentWidth": 4,
-        "spaceBeforeAssignmentOperators": false,
-        "tabWidth": 4,
-        "useTab": false,
-        "alignSemicolons": "hanging",
-        "alignFirstTokens": true,
-        "alignLexerCommands": true,
-    },
     "C_Cpp.default.cppStandard": "c++17",
     "C_Cpp.default.includePath": [
         "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include",
-        "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/antlr4-runtime",
         "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/python3",
         "${workspaceFolder}/deps/vcpkg/installed/x64-windows/extras/libtorch/include/",
         "${workspaceFolder}/deps/vcpkg/installed/x64-windows/extras/libtorch/include/torch/csrc/api/include/",

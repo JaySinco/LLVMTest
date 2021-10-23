@@ -1,14 +1,16 @@
-add_library(python INTERFACE)
+get_filename_component(CURRENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
-target_include_directories(python INTERFACE
+add_library(python3 INTERFACE)
+
+target_include_directories(python3 INTERFACE
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/python3
 )
 
-target_link_libraries(python INTERFACE
+target_link_libraries(python3 INTERFACE
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/python38.lib
 )
 
-set(PYTHON_TARGET_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/python)
+set(PYTHON_TARGET_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CURRENT_DIR})
 
 if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     execute_process(
@@ -19,7 +21,7 @@ if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     )
     execute_process(
         COMMAND ${PYTHON_TARGET_DIR}/python.exe
-            ${CMAKE_SOURCE_DIR}/resources/python/get-pip.py
+            ${CMAKE_SOURCE_DIR}/config/get-pip.py
         COMMAND_ERROR_IS_FATAL ANY
     )
     execute_process(
@@ -29,16 +31,15 @@ if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     )
     execute_process(
         COMMAND ${PYTHON_TARGET_DIR}/Scripts/pip.exe install -r
-            ${CMAKE_SOURCE_DIR}/resources/python/requirements.txt
+            ${CMAKE_SOURCE_DIR}/config/requirements.txt
         COMMAND_ERROR_IS_FATAL ANY
     )
 endif()
 
-add_executable(testing-python testing.cpp)
-
-target_link_libraries(testing-python utils python)
-
-set_target_properties(testing-python PROPERTIES
-    OUTPUT_NAME "testing"
-    RUNTIME_OUTPUT_DIRECTORY ${PYTHON_TARGET_DIR}
+file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/python38._pth
+    ".\\python\\Lib\n.\\python\\Lib\\site-packages\n.\\python\\python38.zip\n.\n"
 )
+
+add_executable(testing-${CURRENT_DIR} testing.cpp)
+
+target_link_libraries(testing-${CURRENT_DIR} utils python3)

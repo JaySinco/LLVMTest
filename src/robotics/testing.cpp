@@ -103,7 +103,7 @@ int main(int argc, const char **argv)
         printf(" USAGE:  basic [modelfile]\n");
         return 0;
     }
-    const char *filename = (argc > 1) ? argv[1] : (SOURCE_DIR "/resources/mujoco/hello.xml");
+    const char *filename = (argc > 1) ? argv[1] : (SOURCE_DIR "/config/model/humanoid.xml");
 
     // load and compile model
     char error[1000] = "Could not load binary model";
