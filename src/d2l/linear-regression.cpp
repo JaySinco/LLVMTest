@@ -1,6 +1,5 @@
 #include "../utils.h"
-#define C10_USE_GLOG
-#include <torch/torch.h>
+#include "prec.h"
 
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {

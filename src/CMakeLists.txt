@@ -1,3 +1,6 @@
+set(TORCH_ROOT_DIR ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/extras/libtorch/)
+find_package(Torch REQUIRED PATHS ${TORCH_ROOT_DIR}/share/cmake/)
+
 add_library(utils utils.cpp)
 
 target_compile_definitions(utils PUBLIC UNICODE
@@ -21,5 +24,5 @@ add_executable(testing testing.cpp)
 target_link_libraries(testing utils)
 
 add_subdirectory(python)
-add_subdirectory(robotics)
 add_subdirectory(d2l)
+add_subdirectory(robotics)

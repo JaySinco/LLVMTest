@@ -41,5 +41,4 @@ file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/python38._pth
 )
 
 add_executable(testing-${CURRENT_DIR} testing.cpp)
-
 target_link_libraries(testing-${CURRENT_DIR} utils python3)

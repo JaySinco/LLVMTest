@@ -12,11 +12,9 @@ target_link_libraries(mujoco INTERFACE
 )
 
 add_executable(simulate uitools.cpp simulate.cpp)
-
 target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
-
 target_link_libraries(simulate utils mujoco)
 
 add_executable(testing-${CURRENT_DIR} testing.cpp)
-
-target_link_libraries(testing-${CURRENT_DIR} utils mujoco)
+target_precompile_headers(testing-${CURRENT_DIR} PRIVATE prec.h)
+target_link_libraries(testing-${CURRENT_DIR} utils mujoco libtorch)

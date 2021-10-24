@@ -1,6 +1,5 @@
 #include "../utils.h"
-#define C10_USE_GLOG
-#include <torch/torch.h>
+#include "prec.h"
 #include <fstream>
 #include <random>
 #include <filesystem>

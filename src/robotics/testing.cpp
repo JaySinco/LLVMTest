@@ -1,17 +1,5 @@
-// Copyright 2021 DeepMind Technologies Limited
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
+#include "../utils.h"
+#include "prec.h"
 #include "mujoco/mujoco.h"
 #include "GLFW/glfw3.h"
 #include "stdio.h"
@@ -95,15 +83,35 @@ void scroll(GLFWwindow *window, double xoffset, double yoffset)
     mjv_moveCamera(m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &scn, &cam);
 }
 
+struct Net: torch::nn::Module
+{
+    Net(int64_t in_features, int64_t out_features): fc1(in_features, 50), fc2(50, out_features)
+    {
+        register_module("fc1", fc1);
+        register_module("fc2", fc2);
+    }
+
+    torch::Tensor forward(torch::Tensor x)
+    {
+        x = torch::relu(fc1->forward(x));
+        x = torch::sigmoid(fc2->forward(x));
+        return x;
+    }
+
+    torch::nn::Linear fc1;
+    torch::nn::Linear fc2;
+};
+
 // main function
 int main(int argc, const char **argv)
 {
+    TRY_;
     // check command-line arguments
     if (argc > 2) {
         printf(" USAGE:  basic [modelfile]\n");
         return 0;
     }
-    const char *filename = (argc > 1) ? argv[1] : (SOURCE_DIR "/config/model/humanoid.xml");
+    const char *filename = (argc > 1) ? argv[1] : (SOURCE_DIR "/config/model/hopper.xml");
 
     // load and compile model
     char error[1000] = "Could not load binary model";
@@ -115,6 +123,14 @@ int main(int argc, const char **argv)
 
     // make data
     d = mj_makeData(m);
+
+    // init network
+    LOG(INFO) << "generalized-coordinates: " << m->nq;
+    LOG(INFO) << "degrees-of-freedom: " << m->nv;
+    LOG(INFO) << "controls: " << m->nu;
+    Net model(m->nq + m->nv, m->nu);
+    torch::NoGradGuard no_grad;
+    model.eval();
 
     // init GLFW
     if (!glfwInit()) mju_error("Could not initialize GLFW");
@@ -147,7 +163,23 @@ int main(int argc, const char **argv)
         //  this loop will finish on time for the next frame to be rendered at 60 fps.
         //  Otherwise add a cpu timer and exit this loop when it is time to render.
         mjtNum simstart = d->time;
-        while (d->time - simstart < 1.0 / 60.0) mj_step(m, d);
+        while (d->time - simstart < 1.0 / 60.0) {
+            mj_step(m, d);
+            mjtNum *buf = new mjtNum[m->nq + m->nv]{0};
+            std::memcpy(buf, d->qpos, sizeof(mjtNum) * m->nq);
+            std::memcpy(buf + m->nq, d->qvel, sizeof(mjtNum) * m->nv);
+            auto state = torch::from_blob(
+                buf, {1, m->nq + m->nv}, [](void *buf) { delete[](mjtNum *) buf; },
+                torch::kFloat64);
+            state = state.to(torch::kFloat32);
+            auto act = model.forward(state);
+            for (int i = 0; i < m->nu; ++i) {
+                mjtNum min = m->actuator_ctrlrange[2 * i];
+                mjtNum max = m->actuator_ctrlrange[2 * i + 1];
+                double factor = act[0][i].item<double>();
+                d->ctrl[i] = min + (max - min) * factor;
+            }
+        }
 
         // get framebuffer viewport
         mjrRect viewport = {0, 0, 0, 0};
@@ -176,6 +208,6 @@ int main(int argc, const char **argv)
 #if defined(__APPLE__) || defined(_WIN32)
     glfwTerminate();
 #endif
-
+    CATCH_
     return 1;
 }
