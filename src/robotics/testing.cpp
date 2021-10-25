@@ -111,7 +111,8 @@ int main(int argc, const char **argv)
         printf(" USAGE:  basic [modelfile]\n");
         return 0;
     }
-    const char *filename = (argc > 1) ? argv[1] : (SOURCE_DIR "/config/model/hopper.xml");
+    std::string arg1 = (__DIRNAME__ / "MJCF/hopper.xml").string();
+    const char *filename = (argc > 1) ? argv[1] : arg1.c_str();
 
     // load and compile model
     char error[1000] = "Could not load binary model";

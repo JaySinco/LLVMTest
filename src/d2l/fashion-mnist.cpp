@@ -214,7 +214,7 @@ void test(Net &model, torch::Device device, DataLoader &data_loader, size_t data
 
 void fashion_mnist()
 {
-    const std::wstring kDataRoot = utils::s2ws(SOURCE_DIR "/config/data/fashion-mnist/");
+    const std::wstring kDataRoot = (__DIRNAME__ / "dataset/fashion-mnist/").wstring();
     FashionMnistDataset train_mnist(kDataRoot);
     FashionMnistDataset test_mnist(kDataRoot, false);
     train_mnist.show_rand(15);

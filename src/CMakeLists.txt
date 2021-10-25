@@ -3,10 +3,6 @@ find_package(Torch REQUIRED PATHS ${TORCH_ROOT_DIR}/share/cmake/)
 
 add_library(utils utils.cpp)
 
-target_compile_definitions(utils PUBLIC UNICODE
-    SOURCE_DIR="${CMAKE_SOURCE_DIR}"
-)
-
 target_compile_options(utils PUBLIC -Wno-ignored-attributes)
 
 target_include_directories(utils PUBLIC

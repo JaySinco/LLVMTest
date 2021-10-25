@@ -28,6 +28,5 @@
     ],
     "C_Cpp.default.defines": [
         "UNICODE",
-        "SOURCE_DIR=\".\""
     ],
 }

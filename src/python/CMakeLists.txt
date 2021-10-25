@@ -21,7 +21,7 @@ if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     )
     execute_process(
         COMMAND ${PYTHON_TARGET_DIR}/python.exe
-            ${CMAKE_SOURCE_DIR}/config/get-pip.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/get-pip.py
         COMMAND_ERROR_IS_FATAL ANY
     )
     execute_process(
@@ -31,7 +31,7 @@ if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     )
     execute_process(
         COMMAND ${PYTHON_TARGET_DIR}/Scripts/pip.exe install -r
-            ${CMAKE_SOURCE_DIR}/config/requirements.txt
+            ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
         COMMAND_ERROR_IS_FATAL ANY
     )
 endif()
@@ -40,5 +40,5 @@ file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/python38._pth
     ".\\python\\Lib\n.\\python\\Lib\\site-packages\n.\\python\\python38.zip\n.\n"
 )
 
-add_executable(testing-${CURRENT_DIR} testing.cpp)
-target_link_libraries(testing-${CURRENT_DIR} utils python3)
+add_executable(${CURRENT_DIR}-testing testing.cpp)
+target_link_libraries(${CURRENT_DIR}-testing utils python3)
