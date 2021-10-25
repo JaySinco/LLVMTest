@@ -103,15 +103,20 @@ struct Net: torch::nn::Module
 };
 
 // main function
-int main(int argc, const char **argv)
+int main(int argc, char **argv)
 {
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+
     TRY_;
     // check command-line arguments
     if (argc > 2) {
         printf(" USAGE:  basic [modelfile]\n");
         return 0;
     }
-    std::string arg1 = (__DIRNAME__ / "MJCF/hopper.xml").string();
+    std::string arg1 = (__DIRNAME__ / "xml/hopper.xml").string();
     const char *filename = (argc > 1) ? argv[1] : arg1.c_str();
 
     // load and compile model
@@ -135,6 +140,9 @@ int main(int argc, const char **argv)
 
     // init GLFW
     if (!glfwInit()) mju_error("Could not initialize GLFW");
+
+    // multisampling
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     // create window, make OpenGL context current, request v-sync
     GLFWwindow *window = glfwCreateWindow(1200, 900, "Demo", NULL, NULL);

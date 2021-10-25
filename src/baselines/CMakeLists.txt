@@ -11,7 +11,7 @@ target_link_libraries(mujoco INTERFACE
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/glfw3dll.lib
 )
 
-add_executable(simulate uitools.cpp simulate.cpp)
+add_executable(simulate tools/uitools.cpp tools/simulate.cpp)
 target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
 target_link_libraries(simulate utils mujoco)
 

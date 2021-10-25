@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../utils.h"
+#include "../../utils.h"
 #include "mujoco/mjxmacro.h"
 #include "uitools.h"
 #include "stdio.h"
@@ -1725,7 +1725,7 @@ int main(int argc, const char **argv)
     init();
 
     // request loadmodel if file given (otherwise drag-and-drop)
-    std::string arg1 = (__DIRNAME__ / "MJCF/hopper.xml").string();
+    std::string arg1 = (__DIRNAME__ / "../xml/hopper.xml").string();
     mju_strncpy(filename, (argc > 1) ? argv[1] : arg1.c_str(), 1000);
     settings.loadrequest = 2;
 
