@@ -15,6 +15,9 @@ add_executable(simulate tools/uitools.cpp tools/simulate.cpp)
 target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
 target_link_libraries(simulate utils mujoco)
 
-add_executable(${CURRENT_DIR}-testing testing.cpp)
+add_executable(${CURRENT_DIR}-testing
+    env/mujoco.cpp
+    testing.cpp
+)
 target_precompile_headers(${CURRENT_DIR}-testing PRIVATE prec.h)
 target_link_libraries(${CURRENT_DIR}-testing utils mujoco libtorch)

@@ -8,7 +8,6 @@
 #include <pybind11/numpy.h>
 
 namespace py = pybind11;
-using namespace fmt::literals;
 
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
@@ -89,7 +88,8 @@ private:
         int32_t images = header[1];
         int32_t rows = header[2];
         int32_t cols = header[3];
-        std::cout << "Read {}x{}x{} images from {}\n"_format(images, rows, cols, utils::ws2s(path));
+        std::cout << fmt::format("Read {}x{}x{} images from {}\n", images, rows, cols,
+                                 utils::ws2s(path));
         size_t numel = images * rows * cols;
         auto buf = new unsigned char[numel]{0};
         for (int32_t i = 0; i < images; ++i) {
@@ -110,7 +110,7 @@ private:
             header[i] = reverseInt(header[i]);
         }
         int32_t items = header[1];
-        std::cout << "Read {} labels from {}\n"_format(items, utils::ws2s(path));
+        std::cout << fmt::format("Read {} labels from {}\n", items, utils::ws2s(path));
         auto buf = new unsigned char[items]{0};
         for (int32_t i = 0; i < items; ++i) {
             file.read((char *)&buf[i], sizeof(unsigned char));
@@ -185,8 +185,9 @@ void train(int32_t epoch, Net &model, torch::Device device, DataLoader &data_loa
         optimizer.step();
 
         if (batch_idx++ % 10 == 0) {
-            std::cout << "\rTrain Epoch: {} [{:5}/{:5}] Loss: {:.4f}"_format(
-                epoch, batch_idx * batch.data.size(0), dataset_size, loss.template item<float>());
+            std::cout << fmt::format("\rTrain Epoch: {} [{:5}/{:5}] Loss: {:.4f}", epoch,
+                                     batch_idx * batch.data.size(0), dataset_size,
+                                     loss.template item<float>());
         }
     }
 }
@@ -208,8 +209,8 @@ void test(Net &model, torch::Device device, DataLoader &data_loader, size_t data
     }
 
     test_loss /= dataset_size;
-    std::cout << "\nTest set: Average loss: {:.4f} | Accuracy: {:.3f}\n"_format(
-        test_loss, static_cast<double>(correct) / dataset_size);
+    std::cout << fmt::format("\nTest set: Average loss: {:.4f} | Accuracy: {:.3f}\n", test_loss,
+                             static_cast<double>(correct) / dataset_size);
 }
 
 void fashion_mnist()
