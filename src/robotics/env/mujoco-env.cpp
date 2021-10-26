@@ -1,12 +1,11 @@
 #include "mujoco-env.h"
 #include <functional>
 #include <glog/logging.h>
+#include <cassert>
 
-namespace
-{
-MujocoEnv *this_;
+static MujocoEnv *this_;
 
-void keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
+static void glfw_cb_keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
 {
     if (act == GLFW_PRESS && key == GLFW_KEY_BACKSPACE) {
         mj_resetData(this_->m, this_->d);
@@ -14,7 +13,7 @@ void keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
     }
 }
 
-void mouse_button(GLFWwindow *window, int button, int act, int mods)
+static void glfw_cb_mouse_button(GLFWwindow *window, int button, int act, int mods)
 {
     glfwGetCursorPos(window, &this_->lastx, &this_->lasty);
     this_->button_left = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
@@ -22,7 +21,7 @@ void mouse_button(GLFWwindow *window, int button, int act, int mods)
     this_->button_right = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
 }
 
-void mouse_move(GLFWwindow *window, double xpos, double ypos)
+static void glfw_cb_mouse_move(GLFWwindow *window, double xpos, double ypos)
 {
     if (!this_->button_left && !this_->button_middle && !this_->button_right) {
         return;
@@ -50,12 +49,10 @@ void mouse_move(GLFWwindow *window, double xpos, double ypos)
     mjv_moveCamera(this_->m, action, dx / height, dy / height, &this_->scn, &this_->cam);
 }
 
-void scroll(GLFWwindow *window, double xoffset, double yoffset)
+static void glfw_cb_scroll(GLFWwindow *window, double xoffset, double yoffset)
 {
     mjv_moveCamera(this_->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &this_->scn, &this_->cam);
 }
-
-}  // namespace
 
 MujocoEnv::MujocoEnv(const std::string &model_path, int frame_skip, bool show_ui)
     : frame_skip(frame_skip), show_ui(show_ui)
@@ -85,10 +82,25 @@ MujocoEnv::~MujocoEnv()
     mj_deleteModel(m);
 }
 
-void MujocoEnv::step(float *action)
+double MujocoEnv::dt() const { return m->opt.timestep * frame_skip; }
+
+int MujocoEnv::action_dim() const { return m->nu; }
+
+int MujocoEnv::observe_dim() const { return m->nq + m->nv; }
+
+std::vector<double> MujocoEnv::get_observe()
 {
+    std::vector<double> observe(m->nq + m->nv);
+    std::memcpy(observe.data(), d->qpos, sizeof(mjtNum) * m->nq);
+    std::memcpy(observe.data() + m->nq, d->qvel, sizeof(mjtNum) * m->nv);
+    return observe;
+}
+
+void MujocoEnv::do_step(const std::vector<double> &action)
+{
+    assert(action.size() == action_dim());
     std::lock_guard guard(mtx);
-    for (int i = 0; i < m->nu; ++i) {
+    for (int i = 0; i < action.size(); ++i) {
         mjtNum min = m->actuator_ctrlrange[2 * i];
         mjtNum max = m->actuator_ctrlrange[2 * i + 1];
         d->ctrl[i] = (1 - action[i]) / 2.0 * min + (1 + action[i]) / 2.0 * max;
@@ -98,7 +110,48 @@ void MujocoEnv::step(float *action)
     }
 }
 
-bool MujocoEnv::ui_exited() { return !show_ui || (show_ui && ui_has_exited); }
+void MujocoEnv::reset()
+{
+    std::lock_guard guard(mtx);
+    mj_resetData(m, d);
+    mj_forward(m, d);
+}
+
+void MujocoEnv::ui_simulate(std::function<void()> step_func)
+{
+    const double syncmisalign = 0.1;
+    const double refreshfactor = 0.7;
+    double cpusync = 0;
+    mjtNum simsync = 0;
+    while (!ui_exited()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        double tmstart = glfwGetTime();
+        if (d->time < simsync || tmstart < cpusync || cpusync == 0 ||
+            mju_abs((d->time - simsync) - (tmstart - cpusync)) > syncmisalign) {
+            cpusync = tmstart;
+            simsync = d->time;
+            step_func();
+        } else {
+            while ((d->time - simsync) < (glfwGetTime() - cpusync) &&
+                   (glfwGetTime() - tmstart) < refreshfactor / vmode.refreshRate) {
+                mjtNum prevtm = d->time;
+                step_func();
+                if (d->time < prevtm) break;
+            }
+        }
+    }
+}
+
+bool MujocoEnv::ui_exited() const { return !show_ui || (show_ui && ui_has_exited); }
+
+void MujocoEnv::align_scale()
+{
+    cam.lookat[0] = m->stat.center[0];
+    cam.lookat[1] = m->stat.center[1];
+    cam.lookat[2] = m->stat.center[2];
+    cam.distance = 1.5 * m->stat.extent;
+    cam.type = mjCAMERA_FREE;
+}
 
 void MujocoEnv::render()
 {
@@ -108,7 +161,7 @@ void MujocoEnv::render()
     }
     glfwWindowHint(GLFW_SAMPLES, 4);
     vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
-    window = glfwCreateWindow(400, 300, "baselines", nullptr, nullptr);
+    window = glfwCreateWindow(400, 300, "robotics", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         THROW_("failed to create window");
@@ -122,11 +175,12 @@ void MujocoEnv::render()
     mjv_makeScene(m, &scn, 2000);
     mjr_defaultContext(&con);
     mjr_makeContext(m, &con, mjFONTSCALE_150);
+    align_scale();
 
-    glfwSetKeyCallback(window, keyboard);
-    glfwSetCursorPosCallback(window, mouse_move);
-    glfwSetMouseButtonCallback(window, mouse_button);
-    glfwSetScrollCallback(window, scroll);
+    glfwSetKeyCallback(window, glfw_cb_keyboard);
+    glfwSetCursorPosCallback(window, glfw_cb_mouse_move);
+    glfwSetMouseButtonCallback(window, glfw_cb_mouse_button);
+    glfwSetScrollCallback(window, glfw_cb_scroll);
 
     while (!glfwWindowShouldClose(window) && !ui_exit_request) {
         {
