@@ -1,4 +1,4 @@
-#include "env/mujoco.h"
+#include "env/mujoco-env.h"
 #include "prec.h"
 
 struct Net: torch::nn::Module
@@ -14,6 +14,23 @@ struct Net: torch::nn::Module
         x = torch::relu(fc1->forward(x));
         x = torch::tanh(fc2->forward(x));
         return x;
+    }
+
+    std::vector<float> act(const MujocoEnv &env)
+    {
+        torch::NoGradGuard no_grad;
+        this->eval();
+        mjtNum *buf = new mjtNum[env.m->nq + env.m->nv]{0};
+        std::memcpy(buf, env.d->qpos, sizeof(mjtNum) * env.m->nq);
+        std::memcpy(buf + env.m->nq, env.d->qvel, sizeof(mjtNum) * env.m->nv);
+        auto state = torch::from_blob(
+            buf, {1, env.m->nq + env.m->nv}, [](void *buf) { delete[](mjtNum *) buf; },
+            torch::kFloat64);
+        state = state.to(torch::kFloat32);
+        auto out = this->forward(state);
+        float *beg = (float *)out.data_ptr();
+        float *end = beg + fc2.ptr()->options.out_features();
+        return {beg, end};
     }
 
     torch::nn::Linear fc1;
@@ -35,28 +52,35 @@ int main(int argc, char **argv)
     }
     std::string arg1 = (__DIRNAME__ / "xml/hopper.xml").string();
     const char *filename = (argc > 1) ? argv[1] : arg1.c_str();
-    MuJoCo env(filename, 4, true);
+    MujocoEnv env(filename, 4, true);
 
     // init network
     LOG(INFO) << "generalized-coordinates: " << env.m->nq;
     LOG(INFO) << "degrees-of-freedom: " << env.m->nv;
     LOG(INFO) << "controls: " << env.m->nu;
     Net model(env.m->nq + env.m->nv, env.m->nu);
-    torch::NoGradGuard no_grad;
-    model.eval();
 
+    const double syncmisalign = 0.1;
+    const double refreshfactor = 0.7;
+    double cpusync = 0;
+    mjtNum simsync = 0;
     while (!env.ui_exited()) {
-        mjtNum simstart = env.d->time;
-        while (env.d->time - simstart < 1.0 / 60.0) {
-            mjtNum *buf = new mjtNum[env.m->nq + env.m->nv]{0};
-            std::memcpy(buf, env.d->qpos, sizeof(mjtNum) * env.m->nq);
-            std::memcpy(buf + env.m->nq, env.d->qvel, sizeof(mjtNum) * env.m->nv);
-            auto state = torch::from_blob(
-                buf, {1, env.m->nq + env.m->nv}, [](void *buf) { delete[](mjtNum *) buf; },
-                torch::kFloat64);
-            state = state.to(torch::kFloat32);
-            auto act = model.forward(state);
-            env.do_simulation((float *)act.data_ptr());
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        double tmstart = glfwGetTime();
+        if (env.d->time < simsync || tmstart < cpusync || cpusync == 0 ||
+            mju_abs((env.d->time - simsync) - (tmstart - cpusync)) > syncmisalign) {
+            cpusync = tmstart;
+            simsync = env.d->time;
+            auto action = model.act(env);
+            env.step(action.data());
+        } else {
+            while ((env.d->time - simsync) < (glfwGetTime() - cpusync) &&
+                   (glfwGetTime() - tmstart) < refreshfactor / env.vmode.refreshRate) {
+                mjtNum prevtm = env.d->time;
+                auto action = model.act(env);
+                env.step(action.data());
+                if (env.d->time < prevtm) break;
+            }
         }
     }
     CATCH_

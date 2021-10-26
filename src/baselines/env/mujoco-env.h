@@ -7,12 +7,12 @@
 #include <future>
 #include <thread>
 
-class MuJoCo
+class MujocoEnv
 {
 public:
-    MuJoCo(const std::string &model_path, int frame_skip, bool show_gui);
-    ~MuJoCo();
-    void do_simulation(float *act);
+    MujocoEnv(const std::string &model_path, int frame_skip, bool show_ui);
+    ~MujocoEnv();
+    void step(float *action);
     bool ui_exited();
 
     mjModel *m = nullptr;
@@ -21,6 +21,7 @@ public:
     mjvOption opt;
     mjvScene scn;
     mjrContext con;
+    GLFWvidmode vmode;
     bool button_left = false;
     bool button_middle = false;
     bool button_right = false;
@@ -31,7 +32,7 @@ private:
     void render();
 
     int frame_skip = 1;
-    bool show_gui = true;
+    bool show_ui = true;
     std::mutex mtx;
     std::future<void> ui_ret;
     std::atomic<bool> ui_exit_request = false;

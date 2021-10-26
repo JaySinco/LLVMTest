@@ -1,10 +1,10 @@
-#include "mujoco.h"
+#include "mujoco-env.h"
 #include <functional>
 #include <glog/logging.h>
 
 namespace
 {
-MuJoCo *this_;
+MujocoEnv *this_;
 
 void keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
 {
@@ -57,8 +57,8 @@ void scroll(GLFWwindow *window, double xoffset, double yoffset)
 
 }  // namespace
 
-MuJoCo::MuJoCo(const std::string &model_path, int frame_skip, bool show_gui)
-    : frame_skip(frame_skip), show_gui(show_gui)
+MujocoEnv::MujocoEnv(const std::string &model_path, int frame_skip, bool show_ui)
+    : frame_skip(frame_skip), show_ui(show_ui)
 {
     this_ = this;
     char error[1000] = {0};
@@ -68,16 +68,16 @@ MuJoCo::MuJoCo(const std::string &model_path, int frame_skip, bool show_gui)
     }
     d = mj_makeData(m);
     mj_forward(m, d);
-    if (show_gui) {
-        std::packaged_task<void()> task(std::bind(&MuJoCo::render, this));
+    if (show_ui) {
+        std::packaged_task<void()> task(std::bind(&MujocoEnv::render, this));
         ui_ret = std::move(task.get_future());
         std::thread(std::move(task)).detach();
     }
 }
 
-MuJoCo::~MuJoCo()
+MujocoEnv::~MujocoEnv()
 {
-    if (show_gui) {
+    if (show_ui) {
         ui_exit_request = true;
         ui_ret.get();
     }
@@ -85,27 +85,28 @@ MuJoCo::~MuJoCo()
     mj_deleteModel(m);
 }
 
-void MuJoCo::do_simulation(float *act)
+void MujocoEnv::step(float *action)
 {
     std::lock_guard guard(mtx);
     for (int i = 0; i < m->nu; ++i) {
         mjtNum min = m->actuator_ctrlrange[2 * i];
         mjtNum max = m->actuator_ctrlrange[2 * i + 1];
-        d->ctrl[i] = (1 - act[i]) / 2.0 * min + (1 + act[i]) / 2.0 * max;
+        d->ctrl[i] = (1 - action[i]) / 2.0 * min + (1 + action[i]) / 2.0 * max;
     }
     for (int i = 0; i < frame_skip; ++i) {
         mj_step(m, d);
     }
 }
 
-bool MuJoCo::ui_exited() { return !show_gui || (show_gui && ui_has_exited); }
+bool MujocoEnv::ui_exited() { return !show_ui || (show_ui && ui_has_exited); }
 
-void MuJoCo::render()
+void MujocoEnv::render()
 {
     if (!glfwInit()) {
         THROW_("failed to init glfw");
     }
     glfwWindowHint(GLFW_SAMPLES, 4);
+    vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
     window = glfwCreateWindow(400, 300, "baselines", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
