@@ -83,6 +83,6 @@ int main(int argc, char **argv)
             }
         }
     }
-    CATCH_
+    CATCH_;
     return 1;
 }

@@ -102,6 +102,7 @@ bool MujocoEnv::ui_exited() { return !show_ui || (show_ui && ui_has_exited); }
 
 void MujocoEnv::render()
 {
+    TRY_;
     if (!glfwInit()) {
         THROW_("failed to init glfw");
     }
@@ -142,6 +143,8 @@ void MujocoEnv::render()
     mjv_freeScene(&scn);
     mjr_freeContext(&con);
     glfwTerminate();
+    CATCH_;
+
     ui_has_exited = true;
     LOG(INFO) << "render exit";
 }
