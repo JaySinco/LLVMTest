@@ -21,4 +21,4 @@ target_link_libraries(testing utils)
 
 add_subdirectory(python)
 add_subdirectory(d2l)
-add_subdirectory(baselines)
+add_subdirectory(robotics)
