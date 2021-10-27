@@ -1,5 +1,4 @@
 #include "env/hopper.h"
-#include "prec.h"
 
 struct Net: torch::nn::Module
 {
@@ -16,18 +15,12 @@ struct Net: torch::nn::Module
         return x;
     }
 
-    std::vector<double> act(std::vector<double> &observe)
+    torch::Tensor act(torch::Tensor observe)
     {
-        assert(observe.size() == fc1->options.in_features());
+        assert(observe.dim() == 2 && observe.size(1) == fc1->options.in_features());
         torch::NoGradGuard no_grad;
         this->eval();
-        auto state = torch::from_blob(
-            observe.data(), {1, (int64_t)observe.size()}, [](void *) {}, torch::kFloat64);
-        state = state.to(torch::kFloat32);
-        auto out = this->forward(state);
-        float *beg = (float *)out.data_ptr();
-        float *end = beg + fc2->options.out_features();
-        return {beg, end};
+        return this->forward(observe);
     }
 
     torch::nn::Linear fc1;
@@ -43,8 +36,7 @@ int main(int argc, char **argv)
 
     TRY_;
     HopperEnv env(true);
-    LOG(INFO) << fmt::format("observe={}, action={}", env.observe_dim(), env.action_dim());
-    Net model(env.observe_dim(), env.action_dim());
+    Net model(env.observe_size(), env.action_size());
 
     env.ui_simulate([&]() {
         auto observe = env.get_observe();

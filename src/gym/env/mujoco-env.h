@@ -1,5 +1,6 @@
 #pragma once
 #include "../../utils.h"
+#include "../prec.h"
 #include "mujoco/mujoco.h"
 #include "GLFW/glfw3.h"
 #include <string>
@@ -12,11 +13,11 @@ class MujocoEnv
 public:
     MujocoEnv(const std::string &model_path, int frame_skip, bool show_ui);
     virtual ~MujocoEnv();
-    virtual int action_dim() const;
-    virtual int observe_dim() const;
-    virtual std::vector<double> get_observe();
-    virtual bool step(const std::vector<double> &action, double &reward) = 0;
-    void do_step(const std::vector<double> &action);
+    virtual int action_size() const;
+    virtual int observe_size() const;
+    virtual torch::Tensor get_observe();
+    virtual bool step(torch::Tensor action, double &reward) = 0;
+    void do_step(torch::Tensor action);
     void reset();
     void ui_simulate(std::function<void()> step_func);
     bool ui_exited() const;

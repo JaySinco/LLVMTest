@@ -1,4 +1,4 @@
-get_filename_component(CURRENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 add_library(mujoco INTERFACE)
 
@@ -15,9 +15,9 @@ add_executable(simulate tools/uitools.cpp tools/simulate.cpp)
 target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
 target_link_libraries(simulate utils mujoco)
 
-add_executable(${CURRENT_DIR}-testing
+add_executable(${CURRENT_DIR_NAME}-testing
     env/mujoco-env.cpp
     testing.cpp
 )
-target_precompile_headers(${CURRENT_DIR}-testing PRIVATE prec.h)
-target_link_libraries(${CURRENT_DIR}-testing utils mujoco libtorch)
+target_precompile_headers(${CURRENT_DIR_NAME}-testing PRIVATE prec.h)
+target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch)

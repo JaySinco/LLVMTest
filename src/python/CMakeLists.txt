@@ -1,4 +1,4 @@
-get_filename_component(CURRENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 add_library(python3 INTERFACE)
 
@@ -10,7 +10,7 @@ target_link_libraries(python3 INTERFACE
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/python38.lib
 )
 
-set(PYTHON_TARGET_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CURRENT_DIR})
+set(PYTHON_TARGET_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CURRENT_DIR_NAME})
 
 if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     execute_process(
@@ -40,5 +40,5 @@ file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/python38._pth
     ".\\python\\Lib\n.\\python\\Lib\\site-packages\n.\\python\\python38.zip\n.\n"
 )
 
-add_executable(${CURRENT_DIR}-testing testing.cpp)
-target_link_libraries(${CURRENT_DIR}-testing utils python3)
+add_executable(${CURRENT_DIR_NAME}-testing testing.cpp)
+target_link_libraries(${CURRENT_DIR_NAME}-testing utils python3)

@@ -1,7 +1,5 @@
 #include "mujoco-env.h"
 #include <functional>
-#include <glog/logging.h>
-#include <cassert>
 
 static MujocoEnv *this_;
 
@@ -84,26 +82,30 @@ MujocoEnv::~MujocoEnv()
 
 double MujocoEnv::dt() const { return m->opt.timestep * frame_skip; }
 
-int MujocoEnv::action_dim() const { return m->nu; }
+int MujocoEnv::action_size() const { return m->nu; }
 
-int MujocoEnv::observe_dim() const { return m->nq + m->nv; }
+int MujocoEnv::observe_size() const { return m->nq + m->nv; }
 
-std::vector<double> MujocoEnv::get_observe()
+torch::Tensor MujocoEnv::get_observe()
 {
-    std::vector<double> observe(m->nq + m->nv);
-    std::memcpy(observe.data(), d->qpos, sizeof(mjtNum) * m->nq);
-    std::memcpy(observe.data() + m->nq, d->qvel, sizeof(mjtNum) * m->nv);
-    return observe;
+    mjtNum *buf = new mjtNum[m->nq + m->nv];
+    std::memcpy(buf, d->qpos, sizeof(mjtNum) * m->nq);
+    std::memcpy(buf + m->nq, d->qvel, sizeof(mjtNum) * m->nv);
+    auto ob = torch::from_blob(
+        buf, {1, m->nq + m->nv}, [](void *buf) { delete[](mjtNum *) buf; }, torch::kFloat64);
+    ob = ob.to(torch::kFloat32);
+    return ob;
 }
 
-void MujocoEnv::do_step(const std::vector<double> &action)
+void MujocoEnv::do_step(torch::Tensor action)
 {
-    assert(action.size() == action_dim());
+    assert(action.dim() == 2 && action.size(1) == action_size());
     std::lock_guard guard(mtx);
-    for (int i = 0; i < action.size(); ++i) {
+    for (int i = 0; i < action.size(1); ++i) {
         mjtNum min = m->actuator_ctrlrange[2 * i];
         mjtNum max = m->actuator_ctrlrange[2 * i + 1];
-        d->ctrl[i] = (1 - action[i]) / 2.0 * min + (1 + action[i]) / 2.0 * max;
+        double act = action[0][i].item<double>();
+        d->ctrl[i] = (1 - act) / 2.0 * min + (1 + act) / 2.0 * max;
     }
     for (int i = 0; i < frame_skip; ++i) {
         mj_step(m, d);
