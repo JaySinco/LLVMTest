@@ -8,11 +8,11 @@
 #include <future>
 #include <thread>
 
-class MujocoEnv
+class Env
 {
 public:
-    MujocoEnv(const std::string &model_path, int frame_skip, bool show_ui);
-    virtual ~MujocoEnv();
+    Env(const std::string &model_path, int frame_skip, bool show_ui);
+    virtual ~Env();
     virtual int action_size() const;
     virtual int observe_size() const;
     virtual torch::Tensor get_observe();

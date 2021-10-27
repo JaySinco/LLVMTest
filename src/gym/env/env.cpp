@@ -1,7 +1,7 @@
-#include "mujoco-env.h"
+#include "env.h"
 #include <functional>
 
-static MujocoEnv *this_;
+static Env *this_;
 
 static void glfw_cb_keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
 {
@@ -52,7 +52,7 @@ static void glfw_cb_scroll(GLFWwindow *window, double xoffset, double yoffset)
     mjv_moveCamera(this_->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &this_->scn, &this_->cam);
 }
 
-MujocoEnv::MujocoEnv(const std::string &model_path, int frame_skip, bool show_ui)
+Env::Env(const std::string &model_path, int frame_skip, bool show_ui)
     : frame_skip(frame_skip), show_ui(show_ui)
 {
     this_ = this;
@@ -64,13 +64,13 @@ MujocoEnv::MujocoEnv(const std::string &model_path, int frame_skip, bool show_ui
     d = mj_makeData(m);
     mj_forward(m, d);
     if (show_ui) {
-        std::packaged_task<void()> task(std::bind(&MujocoEnv::render, this));
+        std::packaged_task<void()> task(std::bind(&Env::render, this));
         ui_ret = std::move(task.get_future());
         std::thread(std::move(task)).detach();
     }
 }
 
-MujocoEnv::~MujocoEnv()
+Env::~Env()
 {
     if (show_ui) {
         ui_exit_request = true;
@@ -80,13 +80,13 @@ MujocoEnv::~MujocoEnv()
     mj_deleteModel(m);
 }
 
-double MujocoEnv::dt() const { return m->opt.timestep * frame_skip; }
+double Env::dt() const { return m->opt.timestep * frame_skip; }
 
-int MujocoEnv::action_size() const { return m->nu; }
+int Env::action_size() const { return m->nu; }
 
-int MujocoEnv::observe_size() const { return m->nq + m->nv; }
+int Env::observe_size() const { return m->nq + m->nv; }
 
-torch::Tensor MujocoEnv::get_observe()
+torch::Tensor Env::get_observe()
 {
     mjtNum *buf = new mjtNum[m->nq + m->nv];
     std::memcpy(buf, d->qpos, sizeof(mjtNum) * m->nq);
@@ -97,7 +97,7 @@ torch::Tensor MujocoEnv::get_observe()
     return ob;
 }
 
-void MujocoEnv::do_step(torch::Tensor action)
+void Env::do_step(torch::Tensor action)
 {
     assert(action.dim() == 2 && action.size(1) == action_size());
     std::lock_guard guard(mtx);
@@ -112,14 +112,14 @@ void MujocoEnv::do_step(torch::Tensor action)
     }
 }
 
-void MujocoEnv::reset()
+void Env::reset()
 {
     std::lock_guard guard(mtx);
     mj_resetData(m, d);
     mj_forward(m, d);
 }
 
-void MujocoEnv::ui_simulate(std::function<void()> step_func)
+void Env::ui_simulate(std::function<void()> step_func)
 {
     const double syncmisalign = 0.1;
     const double refreshfactor = 0.7;
@@ -144,9 +144,9 @@ void MujocoEnv::ui_simulate(std::function<void()> step_func)
     }
 }
 
-bool MujocoEnv::ui_exited() const { return !show_ui || (show_ui && ui_has_exited); }
+bool Env::ui_exited() const { return !show_ui || (show_ui && ui_has_exited); }
 
-void MujocoEnv::align_scale()
+void Env::align_scale()
 {
     cam.lookat[0] = m->stat.center[0];
     cam.lookat[1] = m->stat.center[1];
@@ -155,7 +155,7 @@ void MujocoEnv::align_scale()
     cam.type = mjCAMERA_FREE;
 }
 
-void MujocoEnv::render()
+void Env::render()
 {
     TRY_;
     if (!glfwInit()) {
