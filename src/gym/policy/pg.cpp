@@ -1,5 +1,7 @@
 #include "pg.h"
 
+namespace pg
+{
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {
     TensorDataset(torch::Tensor data, torch::Tensor target)
@@ -15,38 +17,15 @@ struct TensorDataset: public torch::data::Dataset<TensorDataset>
     torch::Tensor target;
 };
 
-PG::PG(const Env &env): net(env.observe_size(), env.action_size()), opt(net.parameters(), 1e-3) {}
-
-torch::Tensor PG::make_action(torch::Tensor observe)
-{
-    assert(observe.dim() == 2 && observe.size(1) == net.fc1->options.in_features());
-    torch::NoGradGuard no_grad;
-    net.eval();
-    auto action = net.forward(observe);
-    return action;
-}
-
-void PG::update(torch::Tensor observe, torch::Tensor reward)
-{
-    assert(observe.dim() == 2 && observe.size(1) == net.fc1->options.in_features());
-    assert(reward.dim() == 2 && reward.size(1) == 1);
-    net.train();
-    auto action = net.forward(observe);
-    auto loss = -1 * (net.log_prob(action) * reward).mean();
-    opt.zero_grad();
-    loss.backward();
-    opt.step();
-};
-
-PG::Net::Net(int64_t n_in, int64_t n_out, double std)
-    : fc1(n_in, 50), fc2(50, n_out), log_std(torch::full(n_out, std))
+Actor::Actor(int64_t n_in, int64_t n_out, double std)
+    : fc1(n_in, 64), fc2(64, n_out), log_std(torch::full(n_out, std))
 {
     register_module("fc1", fc1);
     register_module("fc2", fc2);
     register_parameter("log_std", log_std);
 }
 
-torch::Tensor PG::Net::forward(torch::Tensor x)
+torch::Tensor Actor::forward(torch::Tensor x)
 {
     mu = torch::relu(fc1->forward(x));
     mu = torch::tanh(fc2->forward(mu));
@@ -57,9 +36,59 @@ torch::Tensor PG::Net::forward(torch::Tensor x)
     return mu;
 }
 
-torch::Tensor PG::Net::log_prob(torch::Tensor action)
+torch::Tensor Actor::log_prob(torch::Tensor action)
 {
     torch::Tensor std_square = (log_std + log_std).exp();
     return -((action - mu) * (action - mu)) / (2 * std_square) - log_std -
            std::log(std::sqrt(2 * M_PI));
 }
+
+PG::PG(int64_t n_in, int64_t n_out): actor(n_in, n_out), opt(actor.parameters(), 1e-3) {}
+
+torch::Tensor PG::make_action(torch::Tensor observe, bool is_training)
+{
+    if (is_training) {
+        actor.train();
+        return actor.forward(observe);
+    } else {
+        torch::NoGradGuard no_grad;
+        actor.eval();
+        return actor.forward(observe);
+    }
+}
+
+torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor done, double gamma)
+{
+    auto returns = torch::zeros_like(reward);
+    double running_returns = 0;
+    for (int i = reward.size(0) - 1; i >= 0; --i) {
+        running_returns =
+            reward[i][0].item<double>() + gamma * running_returns * done[i][0].item<double>();
+        returns[i][0] = running_returns;
+    }
+    returns = (returns - returns.mean()) / returns.std();
+    return returns;
+}
+
+void PG::update(torch::Tensor observe, torch::Tensor reward, torch::Tensor done)
+{
+    int epochs = 5;
+    int mini_batch_size = 128;
+    auto returns = calc_returns(reward, done);
+    auto dataset = TensorDataset{observe, returns}.map(torch::data::transforms::Stack<>());
+    auto loader = torch::data::make_data_loader<torch::data::samplers::DistributedRandomSampler>(
+        std::move(dataset), mini_batch_size);
+
+    for (int e = 0; e < epochs; ++e) {
+        for (auto &batch: *loader) {
+            actor.train();
+            auto action = actor.forward(batch.data);
+            auto loss = -1 * (actor.log_prob(action) * batch.target).mean();
+            opt.zero_grad();
+            loss.backward();
+            opt.step();
+        }
+    }
+};
+
+}  // namespace pg

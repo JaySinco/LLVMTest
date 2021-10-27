@@ -15,6 +15,10 @@ add_executable(simulate uitools.cpp simulate.cpp)
 target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
 target_link_libraries(simulate utils mujoco)
 
-add_executable(${CURRENT_DIR_NAME}-testing env/env.cpp testing.cpp)
+add_executable(${CURRENT_DIR_NAME}-testing
+    env/env.cpp
+    policy/pg.cpp
+    testing.cpp
+)
 target_precompile_headers(${CURRENT_DIR_NAME}-testing PRIVATE prec.h)
 target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch)

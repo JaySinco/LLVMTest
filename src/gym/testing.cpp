@@ -1,6 +1,19 @@
 #include "env/hopper.h"
 #include "policy/pg.h"
 
+void test(Env &env, Policy &policy)
+{
+    env.ui_simulate([&]() {
+        auto ob = env.get_observe();
+        auto action = policy.make_action(ob, false);
+        double reward;
+        bool done = env.step(action, reward);
+        if (done) {
+            env.reset();
+        }
+    });
+}
+
 int main(int argc, char **argv)
 {
     FLAGS_logtostderr = 1;
@@ -10,17 +23,8 @@ int main(int argc, char **argv)
 
     TRY_;
     Hopper env(true);
-    PG plc(env);
-    env.ui_simulate([&]() {
-        auto ob = env.get_observe();
-        auto action = plc.make_action(ob, true);
-        double reward;
-        bool done = env.step(action, reward);
-        plc.update(action, reward);
-        if (done) {
-            env.reset();
-        }
-    });
+    pg::PG policy(env.observe_size(), env.action_size());
+
     CATCH_;
     return 0;
 }

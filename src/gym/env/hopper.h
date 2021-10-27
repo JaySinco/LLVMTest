@@ -4,7 +4,7 @@
 class Hopper: public Env
 {
 public:
-    Hopper(bool show_ui): Env((__DIRNAME__ / "assets/hopper.xml").string(), 4, show_ui) {}
+    Hopper(bool show_ui): Env((__DIRNAME__ / "hopper.xml").string(), 4, show_ui) {}
 
     int observe_size() const override { return m->nq - 1 + m->nv; }
 
