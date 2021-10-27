@@ -4,7 +4,7 @@
 class HopperEnv: public MujocoEnv
 {
 public:
-    HopperEnv(bool show_ui): MujocoEnv((__DIRNAME__ / "hopper.xml").string(), 4, show_ui) {}
+    HopperEnv(bool show_ui): MujocoEnv((__DIRNAME__ / "assets/hopper.xml").string(), 4, show_ui) {}
 
     int observe_size() const override { return m->nq - 1 + m->nv; }
 
