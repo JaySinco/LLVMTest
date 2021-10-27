@@ -13,10 +13,13 @@ int main(int argc, char **argv)
     PG plc(env);
     env.ui_simulate([&]() {
         auto ob = env.get_observe();
-        auto action = plc.act_on(ob, true);
+        auto action = plc.make_action(ob, true);
         double reward;
-        env.step(action, reward);
+        bool done = env.step(action, reward);
         plc.update(action, reward);
+        if (done) {
+            env.reset();
+        }
     });
     CATCH_;
     return 0;

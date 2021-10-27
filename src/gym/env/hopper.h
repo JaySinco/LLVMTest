@@ -25,13 +25,15 @@ public:
         mjtNum posbefore = d->qpos[0];
         do_step(action);
         mjtNum posafter = d->qpos[0];
-        mjtNum height = d->qpos[1];
-        mjtNum ang = d->qpos[2];
+
         double alive_bonus = 1.0;
         reward = (posafter - posbefore) / dt();
         reward += alive_bonus;
         reward -= 1e-3 * at::sum(at::square(action)).item<double>();
-        bool done = false;
+
+        mjtNum height = d->qpos[1];
+        mjtNum ang = d->qpos[2];
+        bool done = !(height > 0.7 && std::abs(ang) < 0.2);
         return done;
     };
 };

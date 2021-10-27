@@ -1656,8 +1656,8 @@ void init(void)
     vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
 
     // create window
-    window =
-        glfwCreateWindow((2 * vmode.width) / 3, (2 * vmode.height) / 3, "Simulate", NULL, NULL);
+    // (2 * vmode.width) / 3, (2 * vmode.height) / 3
+    window = glfwCreateWindow(850, 300, "Simulate", NULL, NULL);
     if (!window) {
         glfwTerminate();
         mju_error("could not create window");
