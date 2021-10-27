@@ -19,7 +19,7 @@ public:
     virtual bool step(torch::Tensor action, double &reward) = 0;
     void do_step(torch::Tensor action);
     void reset();
-    void ui_simulate(std::function<void()> step_func);
+    void ui_sync(std::function<void()> step_func);
     bool ui_exited() const;
     double dt() const;
 

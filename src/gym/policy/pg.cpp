@@ -43,7 +43,7 @@ torch::Tensor Actor::log_prob(torch::Tensor action)
            std::log(std::sqrt(2 * M_PI));
 }
 
-PG::PG(int64_t n_in, int64_t n_out): actor(n_in, n_out), opt(actor.parameters(), 1e-3) {}
+PG::PG(int64_t n_in, int64_t n_out): actor(n_in, n_out), opt(actor.parameters(), 3e-4) {}
 
 torch::Tensor PG::make_action(torch::Tensor observe, bool is_training)
 {
@@ -57,24 +57,24 @@ torch::Tensor PG::make_action(torch::Tensor observe, bool is_training)
     }
 }
 
-torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor done, double gamma)
+torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor alive, double gamma)
 {
     auto returns = torch::zeros_like(reward);
     double running_returns = 0;
     for (int i = reward.size(0) - 1; i >= 0; --i) {
         running_returns =
-            reward[i][0].item<double>() + gamma * running_returns * done[i][0].item<double>();
+            reward[i][0].item<double>() + gamma * running_returns * alive[i][0].item<double>();
         returns[i][0] = running_returns;
     }
     returns = (returns - returns.mean()) / returns.std();
     return returns;
 }
 
-void PG::update(torch::Tensor observe, torch::Tensor reward, torch::Tensor done)
+void PG::update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive)
 {
     int epochs = 5;
-    int mini_batch_size = 128;
-    auto returns = calc_returns(reward, done);
+    int mini_batch_size = 64;
+    auto returns = calc_returns(reward, alive);
     auto dataset = TensorDataset{observe, returns}.map(torch::data::transforms::Stack<>());
     auto loader = torch::data::make_data_loader<torch::data::samplers::DistributedRandomSampler>(
         std::move(dataset), mini_batch_size);

@@ -22,10 +22,10 @@ class PG: public Policy
 public:
     PG(int64_t n_in, int64_t n_out);
     torch::Tensor make_action(torch::Tensor observe, bool is_training) override;
-    void update(torch::Tensor observe, torch::Tensor reward, torch::Tensor done) override;
+    void update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive) override;
 
 private:
-    torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor done, double gamma = 0.99);
+    torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive, double gamma = 0.99);
     Actor actor;
     torch::optim::Adam opt;
 };

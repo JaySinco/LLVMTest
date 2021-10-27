@@ -119,7 +119,7 @@ void Env::reset()
     mj_forward(m, d);
 }
 
-void Env::ui_simulate(std::function<void()> step_func)
+void Env::ui_sync(std::function<void()> step_func)
 {
     const double syncmisalign = 0.1;
     const double refreshfactor = 0.7;
