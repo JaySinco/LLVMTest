@@ -16,27 +16,28 @@ struct HyperParams
 class Actor: public torch::nn::Module
 {
 public:
-    Actor(int in, int out, int hidden, double std);
+    Actor(int in, int out, int hidden);
     torch::Tensor forward(torch::Tensor x);
-    torch::Tensor log_prob(torch::Tensor action);
 
 private:
     torch::nn::Linear fc1;
     torch::nn::Linear fc2;
     torch::nn::Linear fc3;
-    torch::Tensor mu;
-    torch::Tensor log_std;
 };
 
 class PG: public Policy
 {
 public:
     PG(int64_t ob_size, int64_t act_size, const HyperParams &hp);
-    torch::Tensor make_action(torch::Tensor observe, bool is_training) override;
+    void train() override;
+    void eval() override;
+    torch::Tensor get_action(torch::Tensor observe) override;
     void update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive) override;
 
 private:
     torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive);
+    torch::Tensor log_prob(torch::Tensor action, torch::Tensor mu);
+    torch::Tensor sample_normal(torch::Tensor mu);
     Actor actor;
     torch::optim::Adam opt;
     HyperParams hp;

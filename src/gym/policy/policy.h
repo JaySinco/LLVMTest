@@ -5,7 +5,9 @@ class Policy
 {
 public:
     virtual ~Policy() {}
-    virtual torch::Tensor make_action(torch::Tensor observe, bool is_training) = 0;
+    virtual void train() = 0;
+    virtual void eval() = 0;
+    virtual torch::Tensor get_action(torch::Tensor observe) = 0;
     virtual void update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive) = 0;
 };
 

@@ -2,49 +2,34 @@
 
 namespace pg
 {
-Actor::Actor(int in, int out, int hidden, double log_std)
-    : fc1(in, hidden), fc2(hidden, hidden), fc3(hidden, out), log_std(torch::full(out, log_std))
+Actor::Actor(int in, int out, int hidden): fc1(in, hidden), fc2(hidden, hidden), fc3(hidden, out)
 {
     register_module("fc1", fc1);
     register_module("fc2", fc2);
     register_module("fc3", fc3);
-    register_parameter("log_std", this->log_std);
 }
 
 torch::Tensor Actor::forward(torch::Tensor x)
 {
-    x = torch::relu(fc1->forward(x));
-    x = torch::relu(fc2->forward(x));
-    mu = torch::tanh(fc3->forward(x));
-    if (this->is_training()) {
-        torch::NoGradGuard no_grad;
-        return at::normal(mu, log_std.exp().expand_as(mu));
-    }
+    auto mu = torch::relu(fc1->forward(x));
+    mu = torch::relu(fc2->forward(mu));
+    mu = torch::tanh(fc3->forward(mu));
     return mu;
 }
 
-torch::Tensor Actor::log_prob(torch::Tensor action)
-{
-    auto var = (log_std + log_std).exp();
-    auto log_density = -(action - mu).pow(2) / (2 * var) - log_std - std::log(std::sqrt(2 * M_PI));
-    return log_density.sum(1, true);
-}
-
 PG::PG(int64_t ob_size, int64_t act_size, const HyperParams &hp)
-    : actor(ob_size, act_size, hp.hidden, hp.log_std), opt(actor.parameters(), hp.lr), hp(hp)
+    : actor(ob_size, act_size, hp.hidden), opt(actor.parameters(), hp.lr), hp(hp)
 {
 }
 
-torch::Tensor PG::make_action(torch::Tensor observe, bool is_training)
+void PG::train() { actor.train(); }
+
+void PG::eval() { actor.eval(); }
+
+torch::Tensor PG::get_action(torch::Tensor observe)
 {
-    if (is_training) {
-        actor.train();
-        return actor.forward(observe);
-    } else {
-        torch::NoGradGuard no_grad;
-        actor.eval();
-        return actor.forward(observe);
-    }
+    auto mu = actor.forward(observe);
+    return sample_normal(mu);
 }
 
 torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor alive)
@@ -59,6 +44,21 @@ torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor alive)
     return returns;
 }
 
+torch::Tensor PG::log_prob(torch::Tensor action, torch::Tensor mu)
+{
+    auto log_std = torch::full_like(mu, hp.log_std);
+    auto var = (log_std + log_std).exp();
+    auto density = -(action - mu).pow(2) / (2 * var) - log_std - std::log(std::sqrt(2 * M_PI));
+    return density.sum(1, true);
+}
+
+torch::Tensor PG::sample_normal(torch::Tensor mu)
+{
+    torch::NoGradGuard no_grad;
+    auto log_std = torch::full(mu.sizes(), hp.log_std);
+    return at::normal(mu, log_std.exp());
+}
+
 void PG::update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive)
 {
     auto returns = calc_returns(reward, alive);
@@ -68,9 +68,9 @@ void PG::update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive
 
     for (int e = 0; e < hp.epochs; ++e) {
         for (auto &batch: *loader) {
-            actor.train();
-            auto action = actor.forward(batch.data);
-            auto loss = -1 * (actor.log_prob(action) * batch.target).mean();
+            auto mu = actor.forward(batch.data);
+            auto action = sample_normal(mu);
+            auto loss = -1 * (log_prob(action, mu) * batch.target).mean();
             opt.zero_grad();
             loss.backward();
             opt.step();
