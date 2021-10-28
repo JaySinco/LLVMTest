@@ -5,12 +5,12 @@ namespace pg
 {
 struct HyperParams
 {
-    int hidden = 64;
-    int epochs = 5;
-    int mini_batch_size = 64;
-    double log_std = 0;
-    double gamma = 0.99;
-    double lr = 3e-4;
+    int hidden;
+    int epochs;
+    int mini_batch_size;
+    double log_std;
+    double gamma;
+    double lr;
 };
 
 class Actor: public torch::nn::Module

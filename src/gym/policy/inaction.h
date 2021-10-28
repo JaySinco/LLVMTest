@@ -1,12 +1,10 @@
 #pragma once
 #include "policy.h"
 
-namespace sloppy
-{
-class Sloppy: public Policy
+class Inaction: public Policy
 {
 public:
-    Sloppy(int64_t act_size): act_size(act_size){};
+    Inaction(int64_t act_size): act_size(act_size){};
 
     torch::Tensor get_action(torch::Tensor observe) override { return torch::zeros({1, act_size}); }
 
@@ -18,5 +16,3 @@ public:
 private:
     int64_t act_size;
 };
-
-}  // namespace sloppy
