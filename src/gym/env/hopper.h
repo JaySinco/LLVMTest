@@ -29,7 +29,7 @@ public:
         double alive_bonus = 1.0;
         reward = (posafter - posbefore) / dt();
         reward += alive_bonus;
-        reward -= 1e-3 * at::sum(at::square(action)).item<double>();
+        reward -= 1e-3 * at::square(action).sum().item<double>();
 
         mjtNum height = d->qpos[1];
         mjtNum ang = d->qpos[2];

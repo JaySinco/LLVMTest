@@ -1,7 +1,8 @@
 #include "env/hopper.h"
+#include "policy/sloppy.h"
 #include "policy/pg.h"
 
-void train(Env &env, Policy &policy, int steps = 2048, int iters = 15000)
+void train(Env &env, Policy &plc, int steps = 2048, int iters = 15000)
 {
     for (int i = 1; i <= iters; ++i) {
         double score = 0;
@@ -12,7 +13,7 @@ void train(Env &env, Policy &policy, int steps = 2048, int iters = 15000)
         for (int s = 0; s < steps; ++s) {
             auto ob = env.get_observe();
             observes.push_back(ob);
-            auto action = policy.make_action(ob, true);
+            auto action = plc.make_action(ob, true);
             double reward;
             bool done = env.step(action, reward);
             score += reward;
@@ -27,15 +28,15 @@ void train(Env &env, Policy &policy, int steps = 2048, int iters = 15000)
         double score_avg = std::reduce(scores.begin(), scores.end()) / scores.size();
         LOG(INFO) << fmt::format("iter {}, turns={}, score-avg={:.3f}", i, scores.size(),
                                  score_avg);
-        policy.update(torch::stack(observes), torch::stack(rewards), torch::stack(alives));
+        plc.update(torch::cat(observes), torch::cat(rewards), torch::cat(alives));
     }
 }
 
-void test(Env &env, Policy &policy)
+void test(Env &env, Policy &plc)
 {
     env.ui_sync([&]() {
         auto ob = env.get_observe();
-        auto action = policy.make_action(ob, false);
+        auto action = plc.make_action(ob, false);
         double reward;
         bool done = env.step(action, reward);
         if (done) {
@@ -52,9 +53,10 @@ int main(int argc, char **argv)
     google::InitGoogleLogging(argv[0]);
 
     TRY_;
-    Hopper env(true);
-    pg::PG policy(env.observe_size(), env.action_size());
-    train(env, policy);
+    Hopper env(false);
+    pg::HyperParams hp;
+    pg::PG plc(env.observe_size(), env.action_size(), hp);
+    train(env, plc);
     CATCH_;
     return 0;
 }
