@@ -29,15 +29,13 @@ class PG: public Policy
 {
 public:
     PG(int64_t ob_size, int64_t act_size, const HyperParams &hp);
-    void train() override;
-    void eval() override;
     torch::Tensor get_action(torch::Tensor observe) override;
-    void update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive) override;
+    void update(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
+                torch::Tensor alive) override;
 
 private:
     torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive);
     torch::Tensor log_prob(torch::Tensor action, torch::Tensor mu);
-    torch::Tensor sample_normal(torch::Tensor mu);
     Actor actor;
     torch::optim::Adam opt;
     HyperParams hp;

@@ -5,16 +5,17 @@
 void train(Env &env, Policy &plc, int steps = 2048, int iters = 15000)
 {
     for (int i = 1; i <= iters; ++i) {
-        plc.eval();
         double score = 0;
         std::vector<double> scores;
         std::vector<torch::Tensor> observes;
+        std::vector<torch::Tensor> actions;
         std::vector<torch::Tensor> rewards;
         std::vector<torch::Tensor> alives;
         for (int s = 0; s < steps; ++s) {
             auto ob = env.get_observe();
             observes.push_back(ob);
             auto action = plc.get_action(ob);
+            actions.push_back(action);
             double reward;
             bool done = env.step(action, reward);
             score += reward;
@@ -29,14 +30,13 @@ void train(Env &env, Policy &plc, int steps = 2048, int iters = 15000)
         double score_avg = std::reduce(scores.begin(), scores.end()) / scores.size();
         LOG(INFO) << fmt::format("iter {}, turns={}, score-avg={:.3f}", i, scores.size(),
                                  score_avg);
-        plc.train();
-        plc.update(torch::cat(observes), torch::cat(rewards), torch::cat(alives));
+        plc.update(torch::cat(observes), torch::cat(actions), torch::cat(rewards),
+                   torch::cat(alives));
     }
 }
 
 void eval(Env &env, Policy &plc)
 {
-    plc.eval();
     env.ui_sync([&]() {
         auto ob = env.get_observe();
         auto action = plc.get_action(ob);

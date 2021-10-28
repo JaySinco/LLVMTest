@@ -3,10 +3,7 @@
 
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {
-    TensorDataset(torch::Tensor data, torch::Tensor target)
-        : data(std::move(data)), target(std::move(target))
-    {
-    }
+    TensorDataset(torch::Tensor data, torch::Tensor target): data(data), target(target) {}
 
     ExampleType get(size_t index) override { return {data[index], target[index]}; }
 

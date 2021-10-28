@@ -22,14 +22,13 @@ PG::PG(int64_t ob_size, int64_t act_size, const HyperParams &hp)
 {
 }
 
-void PG::train() { actor.train(); }
-
-void PG::eval() { actor.eval(); }
-
 torch::Tensor PG::get_action(torch::Tensor observe)
 {
+    torch::NoGradGuard no_grad;
+    actor.eval();
     auto mu = actor.forward(observe);
-    return sample_normal(mu);
+    auto log_std = torch::full(mu.sizes(), hp.log_std);
+    return at::normal(mu, log_std.exp());
 }
 
 torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor alive)
@@ -52,25 +51,22 @@ torch::Tensor PG::log_prob(torch::Tensor action, torch::Tensor mu)
     return density.sum(1, true);
 }
 
-torch::Tensor PG::sample_normal(torch::Tensor mu)
-{
-    torch::NoGradGuard no_grad;
-    auto log_std = torch::full(mu.sizes(), hp.log_std);
-    return at::normal(mu, log_std.exp());
-}
-
-void PG::update(torch::Tensor observe, torch::Tensor reward, torch::Tensor alive)
+void PG::update(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
+                torch::Tensor alive)
 {
     auto returns = calc_returns(reward, alive);
-    auto dataset = TensorDataset{observe, returns}.map(torch::data::transforms::Stack<>());
+    auto dataset = TensorDataset{torch::cat({observe, action}, 1), returns}.map(
+        torch::data::transforms::Stack<>());
     auto loader = torch::data::make_data_loader<torch::data::samplers::DistributedRandomSampler>(
         std::move(dataset), hp.mini_batch_size);
 
+    actor.train();
     for (int e = 0; e < hp.epochs; ++e) {
         for (auto &batch: *loader) {
-            auto mu = actor.forward(batch.data);
-            auto action = sample_normal(mu);
-            auto loss = -1 * (log_prob(action, mu) * batch.target).mean();
+            auto ob = batch.data.slice(1, 0, observe.size(1));
+            auto act = batch.data.slice(1, observe.size(1));
+            auto mu = actor.forward(ob);
+            auto loss = -1 * (log_prob(act, mu) * batch.target).mean();
             opt.zero_grad();
             loss.backward();
             opt.step();
