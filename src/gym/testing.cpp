@@ -1,6 +1,4 @@
-#include "env/hopper.h"
-#include "policy/inaction.h"
-#include "policy/pg.h"
+#include "params.h"
 
 int main(int argc, char **argv)
 {
@@ -10,20 +8,10 @@ int main(int argc, char **argv)
     google::InitGoogleLogging(argv[0]);
 
     TRY_;
-    pg::HyperParams hp;
-    hp.max_iters = 15000;
-    hp.sampling_steps = 10240;
-    hp.minibatch_size = 512;
-    hp.epochs = 1;
-    hp.hidden = 64;
-    hp.log_std = 0;
-    hp.gamma = 0.99;
-    hp.lr = 3e-4;
-
-    Hopper env;
-    pg::PG plc(env, hp);
+    env::Hopper env;
+    policy::pg::PG plc(env, params::pg::hopper());
     plc.train();
-    plc.eval();
+    plc.eval(true);
     CATCH_;
     return 0;
 }

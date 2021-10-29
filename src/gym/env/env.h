@@ -8,6 +8,8 @@
 #include <future>
 #include <thread>
 
+namespace env
+{
 class Env
 {
 public:
@@ -56,3 +58,5 @@ private:
     std::atomic<bool> ui_has_exited = false;
     GLFWwindow *window = nullptr;
 };
+
+}  // namespace env

@@ -1,6 +1,8 @@
 #pragma once
 #include "../env/env.h"
 
+namespace policy
+{
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {
     TensorDataset(torch::Tensor data, torch::Tensor target): data(data), target(target) {}
@@ -16,12 +18,14 @@ struct TensorDataset: public torch::data::Dataset<TensorDataset>
 class Policy
 {
 public:
-    Policy(Env &env): env(env){};
+    Policy(env::Env &env): env(env){};
     virtual ~Policy() {}
-    virtual void train() = 0;
-    virtual void eval();
+    virtual void train(){};
+    virtual void eval(bool keep_going = false);
     virtual torch::Tensor get_action(torch::Tensor observe) = 0;
 
 protected:
-    Env &env;
+    env::Env &env;
 };
+
+}  // namespace policy

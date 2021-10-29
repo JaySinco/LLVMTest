@@ -5,6 +5,8 @@
 namespace py = pybind11;
 using namespace py::literals;
 
+namespace policy
+{
 namespace pg
 {
 Actor::Actor(int in, int out, int hidden): fc1(in, hidden), fc2(hidden, hidden), fc3(hidden, out)
@@ -22,7 +24,7 @@ torch::Tensor Actor::forward(torch::Tensor x)
     return mu;
 }
 
-PG::PG(Env &env, const HyperParams &hp)
+PG::PG(env::Env &env, const HyperParams &hp)
     : Policy(env),
       actor(env.ob_space(), env.act_space(), hp.hidden),
       opt(actor.parameters(), hp.lr),
@@ -129,3 +131,4 @@ void PG::learn_from_experience(torch::Tensor observe, torch::Tensor action, torc
 };
 
 }  // namespace pg
+}  // namespace policy

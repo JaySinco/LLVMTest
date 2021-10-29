@@ -1,6 +1,8 @@
 #include "env.h"
 #include <functional>
 
+namespace env
+{
 static Env *this_;
 
 static void glfw_cb_keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
@@ -204,3 +206,5 @@ void Env::render()
     ui_has_exited = true;
     LOG(INFO) << "render exit";
 }
+
+}  // namespace env

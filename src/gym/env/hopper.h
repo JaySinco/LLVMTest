@@ -1,6 +1,8 @@
 #pragma once
 #include "env.h"
 
+namespace env
+{
 class Hopper: public Env
 {
 public:
@@ -37,3 +39,5 @@ public:
         return done;
     };
 };
+
+}  // namespace env

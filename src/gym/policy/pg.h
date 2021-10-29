@@ -1,6 +1,8 @@
 #pragma once
 #include "policy.h"
 
+namespace policy
+{
 namespace pg
 {
 struct HyperParams
@@ -30,7 +32,7 @@ private:
 class PG: public Policy
 {
 public:
-    PG(Env &env, const HyperParams &hp);
+    PG(env::Env &env, const HyperParams &hp);
     torch::Tensor get_action(torch::Tensor observe) override;
     void train() override;
 
@@ -46,3 +48,4 @@ private:
 };
 
 }  // namespace pg
+}  // namespace policy
