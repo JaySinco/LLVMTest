@@ -1,14 +1,5 @@
 #pragma once
-#include "../prec.h"
-
-class Policy
-{
-public:
-    virtual ~Policy() {}
-    virtual torch::Tensor get_action(torch::Tensor observe) = 0;
-    virtual void update(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
-                        torch::Tensor alive) = 0;
-};
+#include "../env/env.h"
 
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {
@@ -20,4 +11,17 @@ struct TensorDataset: public torch::data::Dataset<TensorDataset>
 
     torch::Tensor data;
     torch::Tensor target;
+};
+
+class Policy
+{
+public:
+    Policy(Env &env): env(env){};
+    virtual ~Policy() {}
+    virtual void train() = 0;
+    virtual void eval();
+    virtual torch::Tensor get_action(torch::Tensor observe) = 0;
+
+protected:
+    Env &env;
 };

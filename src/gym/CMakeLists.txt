@@ -17,8 +17,9 @@ target_link_libraries(simulate utils mujoco)
 
 add_executable(${CURRENT_DIR_NAME}-testing
     env/env.cpp
+    policy/policy.cpp
     policy/pg.cpp
     testing.cpp
 )
 target_precompile_headers(${CURRENT_DIR_NAME}-testing PRIVATE prec.h)
-target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch)
+target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch python3)

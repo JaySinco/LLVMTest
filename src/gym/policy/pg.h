@@ -5,9 +5,11 @@ namespace pg
 {
 struct HyperParams
 {
-    int hidden;
+    int max_iters;
+    int sampling_steps;
+    int minibatch_size;
     int epochs;
-    int mini_batch_size;
+    int hidden;
     double log_std;
     double gamma;
     double lr;
@@ -28,14 +30,16 @@ private:
 class PG: public Policy
 {
 public:
-    PG(int64_t ob_size, int64_t act_size, const HyperParams &hp);
+    PG(Env &env, const HyperParams &hp);
     torch::Tensor get_action(torch::Tensor observe) override;
-    void update(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
-                torch::Tensor alive) override;
+    void train() override;
 
 private:
     torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive);
     torch::Tensor log_prob(torch::Tensor action, torch::Tensor mu);
+    void learn_from_experience(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
+                               torch::Tensor alive);
+
     Actor actor;
     torch::optim::Adam opt;
     HyperParams hp;

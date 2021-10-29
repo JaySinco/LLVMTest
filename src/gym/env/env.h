@@ -13,17 +13,17 @@ class Env
 public:
     Env(const std::string &model_path, int frame_skip, bool show_ui);
     virtual ~Env();
-    virtual int action_size() const;
-    virtual int observe_size() const;
+    virtual int act_space() const;
+    virtual int ob_space() const;
     virtual torch::Tensor get_observe();
     virtual bool step(torch::Tensor action, double &reward) = 0;
-    void do_step(torch::Tensor action);
     void reset();
     void ui_sync(std::function<void()> step_func);
-    bool ui_exited() const;
-    double dt() const;
 
 protected:
+    double dt() const;
+    void do_step(torch::Tensor action);
+
     mjModel *m = nullptr;
     mjData *d = nullptr;
 
@@ -35,6 +35,7 @@ private:
 
     void render();
     void align_scale();
+    bool ui_exited() const;
 
     mjvCamera cam;
     mjvOption opt;

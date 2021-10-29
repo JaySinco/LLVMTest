@@ -82,9 +82,9 @@ Env::~Env()
 
 double Env::dt() const { return m->opt.timestep * frame_skip; }
 
-int Env::action_size() const { return m->nu; }
+int Env::act_space() const { return m->nu; }
 
-int Env::observe_size() const { return m->nq + m->nv; }
+int Env::ob_space() const { return m->nq + m->nv; }
 
 torch::Tensor Env::get_observe()
 {
@@ -99,7 +99,7 @@ torch::Tensor Env::get_observe()
 
 void Env::do_step(torch::Tensor action)
 {
-    assert(action.dim() == 2 && action.size(1) == action_size());
+    assert(action.dim() == 2 && action.size(1) == act_space());
     std::lock_guard guard(mtx);
     for (int i = 0; i < action.size(1); ++i) {
         mjtNum min = m->actuator_ctrlrange[2 * i];

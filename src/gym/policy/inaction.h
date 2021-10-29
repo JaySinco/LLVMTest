@@ -4,15 +4,10 @@
 class Inaction: public Policy
 {
 public:
-    Inaction(int64_t act_size): act_size(act_size){};
+    Inaction(Env &env): Policy(env){};
 
-    torch::Tensor get_action(torch::Tensor observe) override { return torch::zeros({1, act_size}); }
-
-    void update(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
-                torch::Tensor alive) override
+    torch::Tensor get_action(torch::Tensor observe) override
     {
+        return torch::zeros({1, env.act_space()});
     }
-
-private:
-    int64_t act_size;
 };

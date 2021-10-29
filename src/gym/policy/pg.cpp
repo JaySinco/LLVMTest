@@ -1,4 +1,9 @@
 #include "pg.h"
+#include <pybind11/embed.h>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
+using namespace py::literals;
 
 namespace pg
 {
@@ -17,9 +22,58 @@ torch::Tensor Actor::forward(torch::Tensor x)
     return mu;
 }
 
-PG::PG(int64_t ob_size, int64_t act_size, const HyperParams &hp)
-    : actor(ob_size, act_size, hp.hidden), opt(actor.parameters(), hp.lr), hp(hp)
+PG::PG(Env &env, const HyperParams &hp)
+    : Policy(env),
+      actor(env.ob_space(), env.act_space(), hp.hidden),
+      opt(actor.parameters(), hp.lr),
+      hp(hp)
 {
+}
+
+void PG::train()
+{
+    std::atomic<bool> should_abort = false;
+    std::thread monitor([&] {
+        std::getchar();
+        should_abort = true;
+    });
+    std::vector<double> score_avgs;
+    for (int i = 1; i <= hp.max_iters && !should_abort; ++i) {
+        double score = 0;
+        std::vector<double> scores;
+        std::vector<torch::Tensor> observes;
+        std::vector<torch::Tensor> actions;
+        std::vector<torch::Tensor> rewards;
+        std::vector<torch::Tensor> alives;
+        for (int s = 0; s < hp.sampling_steps; ++s) {
+            auto ob = env.get_observe();
+            observes.push_back(ob);
+            auto action = get_action(ob);
+            actions.push_back(action);
+            double reward;
+            bool done = env.step(action, reward);
+            score += reward;
+            rewards.push_back(torch::full({1, 1}, reward));
+            alives.push_back(torch::full({1, 1}, done ? 0 : 1));
+            if (done) {
+                scores.push_back(score);
+                score = 0;
+                env.reset();
+            }
+        }
+        double score_avg = std::reduce(scores.begin(), scores.end()) / scores.size();
+        score_avgs.push_back(score_avg);
+        LOG(INFO) << fmt::format("[{:6d}]  score: {:9.3f} / {}", i, score_avg, scores.size());
+        learn_from_experience(torch::cat(observes), torch::cat(actions), torch::cat(rewards),
+                              torch::cat(alives));
+    }
+    py::scoped_interpreter guard{};
+    py::module_ plt = py::module_::import("matplotlib.pyplot");
+    plt.attr("title")("Average Score");
+    plt.attr("plot")(score_avgs, "b");
+    plt.attr("show")("block"_a = true);
+    monitor.join();
+    LOG(INFO) << "training over";
 }
 
 torch::Tensor PG::get_action(torch::Tensor observe)
@@ -51,14 +105,14 @@ torch::Tensor PG::log_prob(torch::Tensor action, torch::Tensor mu)
     return density.sum(1, true);
 }
 
-void PG::update(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
-                torch::Tensor alive)
+void PG::learn_from_experience(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
+                               torch::Tensor alive)
 {
     auto returns = calc_returns(reward, alive);
     auto dataset = TensorDataset{torch::cat({observe, action}, 1), returns}.map(
         torch::data::transforms::Stack<>());
     auto loader = torch::data::make_data_loader<torch::data::samplers::DistributedRandomSampler>(
-        std::move(dataset), hp.mini_batch_size);
+        std::move(dataset), hp.minibatch_size);
 
     actor.train();
     for (int e = 0; e < hp.epochs; ++e) {

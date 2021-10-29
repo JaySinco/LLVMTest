@@ -16,15 +16,15 @@ int main(int argc, char **argv)
 
     TRY_;
     py::scoped_interpreter guard{};
-    py::module_ pyplot = py::module_::import("matplotlib.pyplot");
+    py::module_ plt = py::module_::import("matplotlib.pyplot");
     std::vector<float> buf = {8, 11, 1, 5, 6, 7};
     auto capsule = py::capsule(buf.data(), [](void *v) {});
     py::array_t<float> arr({3, 2}, {sizeof(float) * 2, sizeof(float)}, buf.data(), capsule);
     py::print(arr);
-    pyplot.attr("subplot")(1, 2, 1);
-    pyplot.attr("imshow")(arr);
-    pyplot.attr("subplot")(1, 2, 2);
-    pyplot.attr("plot")(std::vector<int>{1, 2, 3}, std::vector<int>{4, 2, 3}, "b");
-    pyplot.attr("show")("block"_a = true);
+    plt.attr("subplot")(1, 2, 1);
+    plt.attr("imshow")(arr);
+    plt.attr("subplot")(1, 2, 2);
+    plt.attr("plot")(std::vector<int>{1, 2, 3}, std::vector<int>{4, 2, 3}, "b");
+    plt.attr("show")("block"_a = true);
     CATCH_;
 }
