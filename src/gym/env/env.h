@@ -21,6 +21,8 @@ public:
     virtual bool step(torch::Tensor action, double &reward) = 0;
     void reset();
     void ui_sync(std::function<void()> step_func);
+    void insert_scores(std::initializer_list<double> data);
+    void clear_scores();
 
 protected:
     double dt() const;
@@ -43,6 +45,7 @@ private:
     mjvOption opt;
     mjvScene scn;
     mjrContext con;
+    mjvFigure figscore;
     GLFWvidmode vmode;
     bool button_left = false;
     bool button_middle = false;
@@ -57,6 +60,7 @@ private:
     std::atomic<bool> ui_exit_request = false;
     std::atomic<bool> ui_has_exited = false;
     GLFWwindow *window = nullptr;
+    std::vector<double> scores;
 };
 
 }  // namespace env

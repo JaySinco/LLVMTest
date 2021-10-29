@@ -1657,7 +1657,7 @@ void init(void)
 
     // create window
     // (2 * vmode.width) / 3, (2 * vmode.height) / 3
-    window = glfwCreateWindow(850, 300, "Simulate", NULL, NULL);
+    window = glfwCreateWindow(1100, 600, "Simulate", NULL, NULL);
     if (!window) {
         glfwTerminate();
         mju_error("could not create window");

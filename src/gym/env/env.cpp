@@ -146,6 +146,18 @@ void Env::ui_sync(std::function<void()> step_func)
     }
 }
 
+void Env::insert_scores(std::initializer_list<double> data)
+{
+    std::lock_guard guard(mtx);
+    scores.insert(scores.end(), data.begin(), data.end());
+}
+
+void Env::clear_scores()
+{
+    std::lock_guard guard(mtx);
+    scores.clear();
+}
+
 bool Env::ui_exited() const { return !show_ui || (show_ui && ui_has_exited); }
 
 void Env::align_scale()
@@ -165,7 +177,7 @@ void Env::render()
     }
     glfwWindowHint(GLFW_SAMPLES, 4);
     vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
-    window = glfwCreateWindow(400, 300, "gym", nullptr, nullptr);
+    window = glfwCreateWindow(480, 300, "gym", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         THROW_("failed to create window");
@@ -178,8 +190,14 @@ void Env::render()
     mjv_defaultScene(&scn);
     mjv_makeScene(m, &scn, 2000);
     mjr_defaultContext(&con);
-    mjr_makeContext(m, &con, mjFONTSCALE_150);
+    mjr_makeContext(m, &con, mjFONTSCALE_50);
     align_scale();
+    mjv_defaultFigure(&figscore);
+    strcpy(figscore.yformat, "%.0f");
+    figscore.figurergba[3] = 0.5f;
+    figscore.gridsize[0] = 3;
+    figscore.gridsize[1] = 5;
+    mjr_changeFont(50, &con);
 
     glfwSetKeyCallback(window, glfw_cb_keyboard);
     glfwSetCursorPosCallback(window, glfw_cb_mouse_move);
@@ -191,10 +209,29 @@ void Env::render()
             std::lock_guard guard(mtx);
             glfwPollEvents();
             mjv_updateScene(m, d, &opt, NULL, &cam, mjCAT_ALL, &scn);
+            if (scores.size() > 0) {
+                figscore.linepnt[0] = mjMIN(mjMAXLINEPNT, scores.size());
+                int beg = mjMAX(0, (int64_t)scores.size() - mjMAXLINEPNT);
+                double sc_min = std::numeric_limits<double>::max();
+                for (int i = 0; i < figscore.linepnt[0]; ++i) {
+                    double sc = scores.at(i + beg);
+                    sc_min = std::min(sc_min, sc);
+                    figscore.linedata[0][2 * i] = i + beg + 1;
+                    figscore.linedata[0][2 * i + 1] = sc;
+                }
+                figscore.range[0][0] = beg;
+                figscore.range[0][1] = 0;
+                figscore.range[1][0] = sc_min;
+                figscore.range[1][1] = 0;
+            }
         }
         mjrRect viewport = {0, 0, 0, 0};
         glfwGetFramebufferSize(window, &viewport.width, &viewport.height);
         mjr_render(viewport, &scn, &con);
+        if (scores.size() > 0) {
+            mjrRect figview = {0, 0, viewport.width / 3, viewport.height / 3};
+            mjr_figure(figview, &figscore, &con);
+        }
         glfwSwapBuffers(window);
     }
 

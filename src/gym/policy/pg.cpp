@@ -1,9 +1,4 @@
 #include "pg.h"
-#include <pybind11/embed.h>
-#include <pybind11/stl.h>
-
-namespace py = pybind11;
-using namespace py::literals;
 
 namespace policy
 {
@@ -39,7 +34,6 @@ void PG::train()
         std::getchar();
         should_abort = true;
     });
-    std::vector<double> score_avgs;
     for (int i = 1; i <= hp.max_iters && !should_abort; ++i) {
         double score = 0;
         std::vector<double> scores;
@@ -64,15 +58,10 @@ void PG::train()
             }
         }
         double score_avg = std::reduce(scores.begin(), scores.end()) / scores.size();
-        score_avgs.push_back(score_avg);
+        env.insert_scores({score_avg});
         LOG(INFO) << fmt::format("[{:6d}]  score: {:9.3f} / {}", i, score_avg, scores.size());
         learn(torch::cat(observes), torch::cat(actions), torch::cat(rewards), torch::cat(alives));
     }
-    py::scoped_interpreter guard{};
-    py::module_ plt = py::module_::import("matplotlib.pyplot");
-    plt.attr("title")("Average Score");
-    plt.attr("plot")(score_avgs, "b");
-    plt.attr("show")("block"_a = true);
     monitor.join();
     LOG(INFO) << "training over";
 }

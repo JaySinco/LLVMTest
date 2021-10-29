@@ -22,4 +22,4 @@ add_executable(${CURRENT_DIR_NAME}-testing
     testing.cpp
 )
 target_precompile_headers(${CURRENT_DIR_NAME}-testing PRIVATE prec.h)
-target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch python3)
+target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch)
