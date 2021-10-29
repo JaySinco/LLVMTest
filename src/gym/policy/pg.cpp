@@ -66,8 +66,7 @@ void PG::train()
         double score_avg = std::reduce(scores.begin(), scores.end()) / scores.size();
         score_avgs.push_back(score_avg);
         LOG(INFO) << fmt::format("[{:6d}]  score: {:9.3f} / {}", i, score_avg, scores.size());
-        learn_from_experience(torch::cat(observes), torch::cat(actions), torch::cat(rewards),
-                              torch::cat(alives));
+        learn(torch::cat(observes), torch::cat(actions), torch::cat(rewards), torch::cat(alives));
     }
     py::scoped_interpreter guard{};
     py::module_ plt = py::module_::import("matplotlib.pyplot");
@@ -107,8 +106,8 @@ torch::Tensor PG::log_prob(torch::Tensor action, torch::Tensor mu)
     return density.sum(1, true);
 }
 
-void PG::learn_from_experience(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
-                               torch::Tensor alive)
+void PG::learn(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
+               torch::Tensor alive)
 {
     auto returns = calc_returns(reward, alive);
     auto dataset = TensorDataset{torch::cat({observe, action}, 1), returns}.map(
@@ -128,7 +127,7 @@ void PG::learn_from_experience(torch::Tensor observe, torch::Tensor action, torc
             opt.step();
         }
     }
-};
+}
 
 }  // namespace pg
 }  // namespace policy

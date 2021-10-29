@@ -39,8 +39,8 @@ public:
 private:
     torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive);
     torch::Tensor log_prob(torch::Tensor action, torch::Tensor mu);
-    void learn_from_experience(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
-                               torch::Tensor alive);
+    void learn(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
+               torch::Tensor alive);
 
     Actor actor;
     torch::optim::Adam opt;

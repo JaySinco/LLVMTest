@@ -18,9 +18,9 @@ struct TensorDataset: public torch::data::Dataset<TensorDataset>
 class Policy
 {
 public:
-    Policy(env::Env &env): env(env){};
+    Policy(env::Env &env): env(env) {}
     virtual ~Policy() {}
-    virtual void train(){};
+    virtual void train() {}
     virtual void eval(bool keep_going = false);
     virtual torch::Tensor get_action(torch::Tensor observe) = 0;
 

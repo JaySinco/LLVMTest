@@ -165,7 +165,7 @@ void Env::render()
     }
     glfwWindowHint(GLFW_SAMPLES, 4);
     vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
-    window = glfwCreateWindow(400, 300, "robotics", nullptr, nullptr);
+    window = glfwCreateWindow(400, 300, "gym", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         THROW_("failed to create window");

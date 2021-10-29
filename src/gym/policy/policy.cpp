@@ -14,4 +14,5 @@ void Policy::eval(bool keep_going)
         }
     });
 }
+
 }  // namespace policy
