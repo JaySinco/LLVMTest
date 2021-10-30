@@ -1,3 +1,5 @@
+*.ini
+
 /bin
 /out
 /deps/*/bin
