@@ -1,4 +1,5 @@
 *.ini
+*log.txt
 
 /bin
 /out

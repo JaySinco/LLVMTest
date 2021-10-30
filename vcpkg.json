@@ -16,6 +16,7 @@
                 "glfw-binding"
             ]
         },
+        "implot",
         {
             "name": "opencv4",
             "default-features": true,

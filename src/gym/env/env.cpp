@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "implot.h"
 
 namespace env
 {
@@ -10,6 +11,9 @@ static Env *this_;
 
 static void glfw_cb_keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
 {
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
     if (act == GLFW_PRESS && key == GLFW_KEY_BACKSPACE) {
         mj_resetData(this_->m, this_->d);
         mj_forward(this_->m, this_->d);
@@ -18,6 +22,9 @@ static void glfw_cb_keyboard(GLFWwindow *window, int key, int scancode, int act,
 
 static void glfw_cb_mouse_button(GLFWwindow *window, int button, int act, int mods)
 {
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
     glfwGetCursorPos(window, &this_->lastx, &this_->lasty);
     this_->button_left = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
     this_->button_middle = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
@@ -26,6 +33,10 @@ static void glfw_cb_mouse_button(GLFWwindow *window, int button, int act, int mo
 
 static void glfw_cb_mouse_move(GLFWwindow *window, double xpos, double ypos)
 {
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
+
     if (!this_->button_left && !this_->button_middle && !this_->button_right) {
         return;
     }
@@ -175,22 +186,27 @@ void Env::align_scale()
 void Env::render()
 {
     TRY_;
-    if (!glfwInit()) {
-        THROW_("failed to init glfw");
-    }
+    glfwInit();
     glfwWindowHint(GLFW_SAMPLES, 4);
     vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
-    window = glfwCreateWindow(480, 300, "gym", nullptr, nullptr);
+    window = glfwCreateWindow(800, 500, "gym", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         THROW_("failed to create window");
     }
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
+    glfwSetKeyCallback(window, glfw_cb_keyboard);
+    glfwSetCursorPosCallback(window, glfw_cb_mouse_move);
+    glfwSetMouseButtonCallback(window, glfw_cb_mouse_button);
+    glfwSetScrollCallback(window, glfw_cb_scroll);
 
+    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
-    (void)io;
+    io.IniFilename = nullptr;
+    io.Fonts->AddFontFromFileTTF((__DIRNAME__ / "cascadia-code.ttf").string().c_str(), 13.0);
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
@@ -209,77 +225,45 @@ void Env::render()
     figscore.gridsize[1] = 5;
     mjr_changeFont(50, &con);
 
-    glfwSetKeyCallback(window, glfw_cb_keyboard);
-    glfwSetCursorPosCallback(window, glfw_cb_mouse_move);
-    glfwSetMouseButtonCallback(window, glfw_cb_mouse_button);
-    glfwSetScrollCallback(window, glfw_cb_scroll);
-
     while (!glfwWindowShouldClose(window) && !ui_exit_request) {
         {
             std::lock_guard guard(mtx);
             glfwPollEvents();
             mjv_updateScene(m, d, &opt, NULL, &cam, mjCAT_ALL, &scn);
-            if (scores.size() > 0) {
-                figscore.linepnt[0] = mjMIN(mjMAXLINEPNT, scores.size());
-                int beg = mjMAX(0, (int64_t)scores.size() - mjMAXLINEPNT);
-                double sc_min = std::numeric_limits<double>::max();
-                for (int i = 0; i < figscore.linepnt[0]; ++i) {
-                    double sc = scores.at(i + beg);
-                    sc_min = std::min(sc_min, sc);
-                    figscore.linedata[0][2 * i] = i + beg + 1;
-                    figscore.linedata[0][2 * i + 1] = sc;
-                }
-                figscore.range[0][0] = beg;
-                figscore.range[0][1] = 0;
-                figscore.range[1][0] = sc_min;
-                figscore.range[1][1] = 0;
-            }
         }
         mjrRect viewport = {0, 0, 0, 0};
         glfwGetFramebufferSize(window, &viewport.width, &viewport.height);
         mjr_render(viewport, &scn, &con);
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin(
-                "Hello, world!");  // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");  // Display some text (you can use a format
-            // strings too)
-            bool show_demo_window = true;
-            bool show_another_window = false;
-            ImGui::Checkbox("Demo Window",
-                            &show_demo_window);  // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-            ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-            ImGui::SliderFloat("float", &f, 0.0f,
-                               1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color",
-                              (float *)&clear_color);  // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return
-                                          // true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                        1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        if (scores.size() > 0) {
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            ImGui::SetNextWindowPos(ImVec2(0, viewport.height / 3 * 1.92));
+            ImGui::Begin("statistics", nullptr,
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+            ImPlot::BeginPlot("data", nullptr, nullptr,
+                              ImVec2(viewport.width / 3, viewport.height / 3), ImPlotFlags_NoTitle,
+                              ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+            ImPlot::PlotLine("score", scores.data(), scores.size());
+            ImPlot::EndPlot();
             ImGui::End();
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
     }
 
     mjv_freeScene(&scn);
     mjr_freeContext(&con);
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
     glfwTerminate();
     CATCH_;
 
