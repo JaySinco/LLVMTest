@@ -31,9 +31,11 @@ void PG::train()
 {
     std::atomic<bool> should_abort = false;
     std::thread monitor([&] {
+        std::cout << "press enter to end training..." << std::flush;
         std::getchar();
         should_abort = true;
     });
+    env.reset(true);
     for (int i = 1; i <= hp.max_iters && !should_abort; ++i) {
         double score = 0;
         std::vector<double> scores;
@@ -57,9 +59,7 @@ void PG::train()
                 env.reset();
             }
         }
-        double score_avg = std::reduce(scores.begin(), scores.end()) / scores.size();
-        env.insert_scores({score_avg});
-        LOG(INFO) << fmt::format("[{:6d}]  score: {:9.3f} / {}", i, score_avg, scores.size());
+        env.report({scores.size(), std::reduce(scores.begin(), scores.end()) / scores.size()});
         learn(torch::cat(observes), torch::cat(actions), torch::cat(rewards), torch::cat(alives));
     }
     monitor.join();

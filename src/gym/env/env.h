@@ -10,6 +10,12 @@
 
 namespace env
 {
+struct Progress
+{
+    size_t tries;
+    double score_avg;
+};
+
 class Env
 {
 public:
@@ -19,10 +25,9 @@ public:
     virtual int ob_space() const;
     virtual torch::Tensor get_observe();
     virtual bool step(torch::Tensor action, double &reward) = 0;
-    void reset();
+    void report(const Progress &data);
+    void reset(bool clear_progress = false);
     void ui_sync(std::function<void()> step_func);
-    void insert_scores(std::initializer_list<double> data);
-    void clear_scores();
 
 protected:
     double dt() const;
@@ -60,7 +65,7 @@ private:
     std::atomic<bool> ui_exit_request = false;
     std::atomic<bool> ui_has_exited = false;
     GLFWwindow *window = nullptr;
-    std::vector<double> scores;
+    std::vector<Progress> progress_data;
 };
 
 }  // namespace env

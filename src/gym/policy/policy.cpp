@@ -4,9 +4,9 @@ namespace policy
 {
 void Policy::eval(bool keep_going)
 {
+    env.reset(true);
     env.ui_sync([&]() {
         double reward;
-        env.clear_scores();
         auto ob = env.get_observe();
         auto action = get_action(ob);
         bool done = env.step(action, reward);

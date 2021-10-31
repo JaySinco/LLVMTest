@@ -3,20 +3,6 @@
     "name": "prototyping",
     "version-string": "0.1.0",
     "dependencies": [
-        "fmt",
-        "gflags",
-        "glog",
-        "nlohmann-json",
-        "boost-algorithm",
-        "glfw3",
-        {
-            "name": "imgui",
-            "features": [
-                "opengl3-binding",
-                "glfw-binding"
-            ]
-        },
-        "implot",
         {
             "name": "opencv4",
             "default-features": true,
@@ -24,6 +10,20 @@
                 "world"
             ]
         },
+        {
+            "name": "imgui",
+            "features": [
+                "opengl3-binding",
+                "glfw-binding"
+            ]
+        },
+        "fmt",
+        "gflags",
+        "glog",
+        "nlohmann-json",
+        "boost-algorithm",
+        "glfw3",
+        "implot",
         "libtorch-ce",
         "python3-ce",
         "pybind11-ce",

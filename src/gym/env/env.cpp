@@ -128,9 +128,18 @@ void Env::do_step(torch::Tensor action)
     }
 }
 
-void Env::reset()
+void Env::report(const Progress &data)
 {
     std::lock_guard guard(mtx);
+    progress_data.push_back(data);
+}
+
+void Env::reset(bool clear_progress)
+{
+    std::lock_guard guard(mtx);
+    if (clear_progress) {
+        progress_data.clear();
+    }
     mj_resetData(m, d);
     mj_forward(m, d);
 }
@@ -158,18 +167,6 @@ void Env::ui_sync(std::function<void()> step_func)
             }
         }
     }
-}
-
-void Env::insert_scores(std::initializer_list<double> data)
-{
-    std::lock_guard guard(mtx);
-    scores.insert(scores.end(), data.begin(), data.end());
-}
-
-void Env::clear_scores()
-{
-    std::lock_guard guard(mtx);
-    scores.clear();
 }
 
 bool Env::ui_exited() const { return !show_ui || (show_ui && ui_has_exited); }
@@ -226,26 +223,40 @@ void Env::render()
     mjr_changeFont(50, &con);
 
     while (!glfwWindowShouldClose(window) && !ui_exit_request) {
-        {
-            std::lock_guard guard(mtx);
-            glfwPollEvents();
-            mjv_updateScene(m, d, &opt, NULL, &cam, mjCAT_ALL, &scn);
-        }
+        std::unique_lock lock(mtx);
+        glfwPollEvents();
+        mjv_updateScene(m, d, &opt, NULL, &cam, mjCAT_ALL, &scn);
+        lock.unlock();
         mjrRect viewport = {0, 0, 0, 0};
         glfwGetFramebufferSize(window, &viewport.width, &viewport.height);
         mjr_render(viewport, &scn, &con);
 
-        if (scores.size() > 0) {
+        if (progress_data.size() > 0) {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             ImGui::SetNextWindowPos(ImVec2(0, viewport.height / 3 * 1.92));
-            ImGui::Begin("statistics", nullptr,
+            ImGui::Begin("plot", nullptr,
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
-            ImPlot::BeginPlot("data", nullptr, nullptr,
+            ImPlot::BeginPlot("progress", nullptr, nullptr,
                               ImVec2(viewport.width / 3, viewport.height / 3), ImPlotFlags_NoTitle,
                               ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
-            ImPlot::PlotLine("score", scores.data(), scores.size());
+
+            lock.lock();
+            auto tries_cb = [](void *data, int idx) {
+                return ImPlotPoint{
+                    static_cast<double>(idx),
+                    static_cast<double>(
+                        reinterpret_cast<std::vector<Progress> *>(data)->at(idx).tries)};
+            };
+            ImPlot::PlotLineG("tries", tries_cb, &progress_data, progress_data.size());
+            auto score_cb = [](void *data, int idx) {
+                return ImPlotPoint{
+                    static_cast<double>(idx),
+                    reinterpret_cast<std::vector<Progress> *>(data)->at(idx).score_avg};
+            };
+            ImPlot::PlotLineG("score", score_cb, &progress_data, progress_data.size());
+            lock.unlock();
             ImPlot::EndPlot();
             ImGui::End();
             ImGui::Render();
