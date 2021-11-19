@@ -1,283 +1,220 @@
-/** C 2011 grammar built from the C11 Spec */
 lexer grammar lexers;
 
 options {
     language=Cpp;
 }
 
-Auto:     'auto';
-Break:    'break';
-Case:     'case';
-Char:     'char';
-Const:    'const';
-Continue: 'continue';
-Default:  'default';
-Do:       'do';
-Double:   'double';
-Else:     'else';
-Enum:     'enum';
-Extern:   'extern';
-Float:    'float';
-For:      'for';
-Goto:     'goto';
-If:       'if';
-Inline:   'inline';
-Int:      'int';
-Long:     'long';
-Register: 'register';
-Restrict: 'restrict';
-Return:   'return';
-Short:    'short';
-Signed:   'signed';
-Sizeof:   'sizeof';
-Static:   'static';
-Struct:   'struct';
-Switch:   'switch';
-Typedef:  'typedef';
-Union:    'union';
-Unsigned: 'unsigned';
-Void:     'void';
-Volatile: 'volatile';
-While:    'while';
+MultiLineComment:  '/*' .*? '*/'             -> channel(HIDDEN);
+SingleLineComment: '//' ~[\r\n\u2028\u2029]* -> channel(HIDDEN);
 
-Alignas:      '_Alignas';
-Alignof:      '_Alignof';
-Atomic:       '_Atomic';
-Bool:         '_Bool';
-Complex:      '_Complex';
-Generic:      '_Generic';
-Imaginary:    '_Imaginary';
-Noreturn:     '_Noreturn';
-StaticAssert: '_Static_assert';
-ThreadLocal:  '_Thread_local';
+OpenBracket:                '[';
+CloseBracket:               ']';
+OpenParen:                  '(';
+CloseParen:                 ')';
+OpenBrace:                  '{';
+CloseBrace:                 '}';
+SemiColon:                  ';';
+Comma:                      ',';
+Assign:                     '=';
+QuestionMark:               '?';
+Colon:                      ':';
+Ellipsis:                   '...';
+Dot:                        '.';
+PlusPlus:                   '++';
+MinusMinus:                 '--';
+Plus:                       '+';
+Minus:                      '-';
+BitNot:                     '~';
+Not:                        '!';
+Multiply:                   '*';
+Divide:                     '/';
+Modulus:                    '%';
+Power:                      '**';
+Hashtag:                    '#';
+RightShiftArithmetic:       '>>';
+LeftShiftArithmetic:        '<<';
+RightShiftLogical:          '>>>';
+LessThan:                   '<';
+MoreThan:                   '>';
+LessThanEquals:             '<=';
+GreaterThanEquals:          '>=';
+Equals_:                    '==';
+NotEquals:                  '!=';
+IdentityEquals:             '===';
+IdentityNotEquals:          '!==';
+BitAnd:                     '&';
+BitXOr:                     '^';
+BitOr:                      '|';
+And:                        '&&';
+Or:                         '||';
+MultiplyAssign:             '*=';
+DivideAssign:               '/=';
+ModulusAssign:              '%=';
+PlusAssign:                 '+=';
+MinusAssign:                '-=';
+LeftShiftArithmeticAssign:  '<<=';
+RightShiftArithmeticAssign: '>>=';
+RightShiftLogicalAssign:    '>>>=';
+BitAndAssign:               '&=';
+BitXorAssign:               '^=';
+BitOrAssign:                '|=';
+PowerAssign:                '**=';
+ARROW:                      '=>';
 
-Extension:       '__extension__';
-BuiltinVaArg:    '__builtin_va_arg';
-BuiltinOffsetof: '__builtin_offsetof';
-M128:            '__m128';
-M128d:           '__m128d';
-M128i:           '__m128i';
-Typeof:          '__typeof__';
-Inline_:         '__inline__';
-Stdcall:         '__stdcall';
-Declspec:        '__declspec';
-Asm:             '__asm';
-Attribute:       '__attribute__';
-Asm_:            '__asm__';
-Volatile_:       '__volatile__';
+/// Null Literals
 
-LeftParen:    '(';
-RightParen:   ')';
-LeftBracket:  '[';
-RightBracket: ']';
-LeftBrace:    '{';
-RightBrace:   '}';
+NullLiteral: 'null';
 
-Less:         '<';
-LessEqual:    '<=';
-Greater:      '>';
-GreaterEqual: '>=';
-LeftShift:    '<<';
-RightShift:   '>>';
+/// Boolean Literals
 
-Plus:       '+';
-PlusPlus:   '++';
-Minus:      '-';
-MinusMinus: '--';
-Star:       '*';
-Div:        '/';
-Mod:        '%';
+BooleanLiteral: 'true' | 'false';
 
-And:    '&';
-Or:     '|';
-AndAnd: '&&';
-OrOr:   '||';
-Caret:  '^';
-Not:    '!';
-Tilde:  '~';
+/// Numeric Literals
 
-Question: '?';
-Colon:    ':';
-Semi:     ';';
-Comma:    ',';
-
-Assign: '=';
-// '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
-StarAssign:       '*=';
-DivAssign:        '/=';
-ModAssign:        '%=';
-PlusAssign:       '+=';
-MinusAssign:      '-=';
-LeftShiftAssign:  '<<=';
-RightShiftAssign: '>>=';
-AndAssign:        '&=';
-XorAssign:        '^=';
-OrAssign:         '|=';
-
-Equal:    '==';
-NotEqual: '!=';
-
-Arrow:    '->';
-Dot:      '.';
-Ellipsis: '...';
-
-Identifier: IdentifierNondigit ( IdentifierNondigit | Digit)*;
-
-fragment IdentifierNondigit:
-    Nondigit
-    | UniversalCharacterName
-    //|   // other implementation-defined characters...
+DecimalLiteral:
+    DecimalIntegerLiteral '.' [0-9] [0-9_]* ExponentPart?
+    | '.' [0-9] [0-9_]* ExponentPart?
+    | DecimalIntegerLiteral ExponentPart?
     ;
 
-fragment Nondigit: [a-zA-Z_];
+/// Numeric Literals
 
-fragment Digit: [0-9];
+HexIntegerLiteral:    '0' [xX] [0-9a-fA-F] HexDigit*;
+OctalIntegerLiteral:  '0' [oO] [0-7] [_0-7]*;
+BinaryIntegerLiteral: '0' [bB] [01] [_01]*;
 
-fragment UniversalCharacterName: '\\u' HexQuad | '\\U' HexQuad HexQuad;
+BigHexIntegerLiteral:     '0' [xX] [0-9a-fA-F] HexDigit* 'n';
+BigOctalIntegerLiteral:   '0' [oO] [0-7] [_0-7]* 'n';
+BigBinaryIntegerLiteral:  '0' [bB] [01] [_01]* 'n';
+BigDecimalIntegerLiteral: DecimalIntegerLiteral 'n';
 
-fragment HexQuad:
-    HexadecimalDigit HexadecimalDigit HexadecimalDigit HexadecimalDigit
+/// Keywords
+
+Break:      'break';
+Do:         'do';
+Instanceof: 'instanceof';
+Typeof:     'typeof';
+Case:       'case';
+Else:       'else';
+New:        'new';
+Var:        'var';
+Catch:      'catch';
+Finally:    'finally';
+Return:     'return';
+Void:       'void';
+Continue:   'continue';
+For:        'for';
+Switch:     'switch';
+While:      'while';
+Debugger:   'debugger';
+Function_:  'function';
+This:       'this';
+With:       'with';
+Default:    'default';
+If:         'if';
+Throw:      'throw';
+Delete:     'delete';
+In:         'in';
+Try:        'try';
+As:         'as';
+From:       'from';
+
+/// Future Reserved Words
+
+Class:   'class';
+Enum:    'enum';
+Extends: 'extends';
+Super:   'super';
+Const:   'const';
+Export:  'export';
+Import:  'import';
+Async:   'async';
+Await:   'await';
+
+/// The following tokens are also considered to be FutureReservedWords / when parsing strict mode
+
+Implements: 'implements';
+Let:        'let';
+Private:    'private';
+Public:     'public';
+Interface:  'interface';
+Package:    'package';
+Protected:  'protected';
+Static:     'static';
+Yield:      'yield';
+
+/// Identifier Names and Identifiers
+
+Identifier: IdentifierStart IdentifierPart*;
+
+/// String Literals
+StringLiteral: (
+        '"' DoubleStringCharacter* '"'
+        | '\'' SingleStringCharacter* '\''
+    )
     ;
 
-Constant:
-    IntegerConstant
-    | FloatingConstant
-    //|   EnumerationConstant
-    | CharacterConstant
-    ;
+WhiteSpaces: [\t\u000B\u000C\u0020\u00A0]+ -> channel(HIDDEN);
 
-fragment IntegerConstant:
-    DecimalConstant IntegerSuffix?
-    | OctalConstant IntegerSuffix?
-    | HexadecimalConstant IntegerSuffix?
-    | BinaryConstant
-    ;
+LineTerminator: [\r\n\u2028\u2029] -> channel(HIDDEN);
 
-fragment BinaryConstant: '0' [bB] [0-1]+;
+// Fragment rules
 
-fragment DecimalConstant: NonzeroDigit Digit*;
-
-fragment OctalConstant: '0' OctalDigit*;
-
-fragment HexadecimalConstant: HexadecimalPrefix HexadecimalDigit+;
-
-fragment HexadecimalPrefix: '0' [xX];
-
-fragment NonzeroDigit: [1-9];
-
-fragment OctalDigit: [0-7];
-
-fragment HexadecimalDigit: [0-9a-fA-F];
-
-fragment IntegerSuffix:
-    UnsignedSuffix LongSuffix?
-    | UnsignedSuffix LongLongSuffix
-    | LongSuffix UnsignedSuffix?
-    | LongLongSuffix UnsignedSuffix?
-    ;
-
-fragment UnsignedSuffix: [uU];
-
-fragment LongSuffix: [lL];
-
-fragment LongLongSuffix: 'll' | 'LL';
-
-fragment FloatingConstant:
-    DecimalFloatingConstant
-    | HexadecimalFloatingConstant
-    ;
-
-fragment DecimalFloatingConstant:
-    FractionalConstant ExponentPart? FloatingSuffix?
-    | DigitSequence ExponentPart FloatingSuffix?
-    ;
-
-fragment HexadecimalFloatingConstant:
-    HexadecimalPrefix (
-        HexadecimalFractionalConstant
-        | HexadecimalDigitSequence
-    ) BinaryExponentPart FloatingSuffix?
-    ;
-
-fragment FractionalConstant:
-    DigitSequence? '.' DigitSequence
-    | DigitSequence '.'
-    ;
-
-fragment ExponentPart: [eE] Sign? DigitSequence;
-
-fragment Sign: [+-];
-
-DigitSequence: Digit+;
-
-fragment HexadecimalFractionalConstant:
-    HexadecimalDigitSequence? '.' HexadecimalDigitSequence
-    | HexadecimalDigitSequence '.'
-    ;
-
-fragment BinaryExponentPart: [pP] Sign? DigitSequence;
-
-fragment HexadecimalDigitSequence: HexadecimalDigit+;
-
-fragment FloatingSuffix: [flFL];
-
-fragment CharacterConstant:
-    '\'' CCharSequence '\''
-    | 'L\'' CCharSequence '\''
-    | 'u\'' CCharSequence '\''
-    | 'U\'' CCharSequence '\''
-    ;
-
-fragment CCharSequence: CChar+;
-
-fragment CChar: ~['\\\r\n] | EscapeSequence;
-fragment EscapeSequence:
-    SimpleEscapeSequence
-    | OctalEscapeSequence
-    | HexadecimalEscapeSequence
-    | UniversalCharacterName
-    ;
-fragment SimpleEscapeSequence:      '\\' ['"?abfnrtv\\];
-fragment OctalEscapeSequence:       '\\' OctalDigit OctalDigit? OctalDigit?;
-fragment HexadecimalEscapeSequence: '\\x' HexadecimalDigit+;
-StringLiteral:                      EncodingPrefix? '"' SCharSequence? '"';
-fragment EncodingPrefix:            'u8' | 'u' | 'U' | 'L';
-fragment SCharSequence:             SChar+;
-fragment SChar:
+fragment DoubleStringCharacter:
     ~["\\\r\n]
-    | EscapeSequence
-    | '\\\n' // Added line
-    | '\\\r\n' // Added line
+    | '\\' EscapeSequence
+    | LineContinuation
     ;
 
-ComplexDefine: '#' Whitespace? 'define' ~[#\r\n]* -> skip;
-
-IncludeDirective:
-    '#' Whitespace? 'include' Whitespace? (
-        ('"' ~[\r\n]* '"')
-        | ('<' ~[\r\n]* '>')
-    ) Whitespace? Newline -> skip
+fragment SingleStringCharacter:
+    ~['\\\r\n]
+    | '\\' EscapeSequence
+    | LineContinuation
     ;
 
-// ignore the following asm blocks:
-/*
- asm { mfspr x, 286; }
- */
-AsmBlock: 'asm' ~'{'* '{' ~'}'* '}' -> skip;
-
-// ignore the lines generated by c preprocessor sample line : '#line 1 "/home/dm/files/dk1.h" 1'
-LineAfterPreprocessing: '#line' Whitespace* ~[\r\n]* -> skip;
-
-LineDirective:
-    '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]* -> skip
+fragment EscapeSequence:
+    CharacterEscapeSequence
+    | '0' // no digit ahead! TODO
+    | HexEscapeSequence
+    | UnicodeEscapeSequence
+    | ExtendedUnicodeEscapeSequence
     ;
 
-PragmaDirective: '#' Whitespace? 'pragma' Whitespace ~[\r\n]* -> skip;
+fragment CharacterEscapeSequence:
+    SingleEscapeCharacter
+    | NonEscapeCharacter
+    ;
 
-Whitespace: [ \t]+ -> skip;
+fragment HexEscapeSequence: 'x' HexDigit HexDigit;
 
-Newline: ( '\r' '\n'? | '\n') -> skip;
+fragment UnicodeEscapeSequence:
+    'u' HexDigit HexDigit HexDigit HexDigit
+    | 'u' '{' HexDigit HexDigit+ '}'
+    ;
 
-BlockComment: '/*' .*? '*/' -> skip;
+fragment ExtendedUnicodeEscapeSequence: 'u' '{' HexDigit+ '}';
 
-LineComment: '//' ~[\r\n]* -> skip;
+fragment SingleEscapeCharacter: ['"\\bfnrtv];
+
+fragment NonEscapeCharacter: ~['"\\bfnrtv0-9xu\r\n];
+
+fragment EscapeCharacter: SingleEscapeCharacter | [0-9] | [xu];
+
+fragment LineContinuation: '\\' [\r\n\u2028\u2029];
+
+fragment HexDigit: [_0-9a-fA-F];
+
+fragment DecimalIntegerLiteral: '0' | [1-9] [0-9_]*;
+
+fragment ExponentPart: [eE] [+-]? [0-9_]+;
+
+fragment IdentifierPart:
+    IdentifierStart
+    | [\p{Mn}]
+    | [\p{Nd}]
+    | [\p{Pc}]
+    | '\u200C'
+    | '\u200D'
+    ;
+
+fragment IdentifierStart: [\p{L}] | [$_] | '\\' UnicodeEscapeSequence;

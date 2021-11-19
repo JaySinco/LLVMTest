@@ -12,8 +12,8 @@ class ErrorListener: public antlr4::BaseErrorListener
     {
         std::string location(4 + charPositionInLine, ' ');
         location += "^";
-        throw std::runtime_error(
-            fmt::format("{}\nline {}:{} {}", location, line, charPositionInLine, msg));
+        std::cout << fmt::format("{}\nline {}:{} {}\n", location, line, charPositionInLine, msg)
+                  << std::endl;
     }
 };
 
@@ -29,7 +29,7 @@ bool eval(const std::string &code)
         parser::parsers parsing(&tokens);
         parsing.removeErrorListeners();
         parsing.addErrorListener(&lerr);
-        auto tree = parsing.expression();
+        auto tree = parsing.singleExpression();
         std::cout << tree->toStringTree(&parsing, true) << std::endl;
         return true;
     } catch (std::exception &e) {

@@ -33,7 +33,7 @@
     "antlr4.generation": {
         "mode": "external",
         "language": "Cpp",
-        "visitors": false,
+        "visitors": true,
         "listeners": false,
         "outputDir": ".antlr",
         "package": "parser",

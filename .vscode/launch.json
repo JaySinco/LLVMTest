@@ -22,7 +22,7 @@
             "request": "launch",
             "input": "src/parser/input.txt",
             "grammar": "src/parser/parsers.g4",
-            "startRule": "expression",
+            "startRule": "singleExpression",
             "printParseTree": true,
             "visualParseTree": true
         }
