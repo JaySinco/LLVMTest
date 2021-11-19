@@ -29,7 +29,7 @@ bool eval(const std::string &code)
         parser::parsers parsing(&tokens);
         parsing.removeErrorListeners();
         parsing.addErrorListener(&lerr);
-        auto tree = parsing.program();
+        auto tree = parsing.expression();
         std::cout << tree->toStringTree(&parsing, true) << std::endl;
         return true;
     } catch (std::exception &e) {
@@ -49,9 +49,6 @@ int main(int argc, char **argv)
         boost::trim_right(line);
         if (line.size() <= 0) {
             continue;
-        }
-        if (line.back() != ';') {
-            line.push_back(';');
         }
         eval(line);
     }
