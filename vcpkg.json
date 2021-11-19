@@ -24,6 +24,7 @@
         "boost-algorithm",
         "glfw3",
         "implot",
+        "antlr4-ce",
         "libtorch-ce",
         "python3-ce",
         "pybind11-ce",
