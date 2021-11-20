@@ -103,7 +103,8 @@ replxx::Replxx::completions_t hook_completion(const std::string &context, int &c
                                               const replxx::Replxx &rx)
 {
     replxx::Replxx::completions_t completions;
-    antlr4::ANTLRInputStream ais(rx.get_state().text());
+    std::string input = rx.get_state().text();
+    antlr4::ANTLRInputStream ais(input);
     parser::lexers lexer(&ais);
     lexer.removeErrorListeners();
     ErrorListener lerr(true);
@@ -113,7 +114,11 @@ replxx::Replxx::completions_t hook_completion(const std::string &context, int &c
     parsing.removeErrorListeners();
     parsing.addErrorListener(&lerr);
     auto tree = parsing.singleExpression();
-    if (int pos = rx.get_state().cursor_position(); pos != 0) {
+    int pos = rx.get_state().cursor_position();
+    while (pos > 0 && input.at(pos - 1) == ' ') {
+        --pos;
+    }
+    if (pos > 0) {
         if (auto caret = getTreeFromPos(tree, pos - 1, 1)) {
             if (auto pl = completion(&parsing, *caret)) {
                 completions.push_back(*pl);
