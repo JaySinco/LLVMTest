@@ -16,4 +16,5 @@ target_include_directories(parser-testing PRIVATE
 
 target_link_libraries(parser-testing utils
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/antlr4-runtime.lib
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/replxx.lib
 )
