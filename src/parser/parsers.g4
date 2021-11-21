@@ -8,7 +8,7 @@ options {
 singleExpression:
     singleExpression '[' singleExpression ']'                         # MemberIndexExpression
     | singleExpression '.' identifierName                             # MemberDotExpression
-    | singleExpression '(' elementList ')'                            # ArgumentsExpression
+    | singleExpression '(' expressionSequence? ')'                    # ArgumentsExpression
     | '+' singleExpression                                            # UnaryPlusExpression
     | '-' singleExpression                                            # UnaryMinusExpression
     | '~' singleExpression                                            # BitNotExpression
@@ -27,20 +27,18 @@ singleExpression:
     | singleExpression '?' singleExpression ':' singleExpression      # TernaryExpression
     | Identifier                                                      # IdentifierExpression
     | literal                                                         # LiteralExpression
-    | '[' elementList ']'                                             # ArrayLiteralExpression
+    | '[' expressionSequence? ']'                                     # ArrayLiteralExpression
     | objectLiteral                                                   # ObjectLiteralExpression
     | '(' singleExpression ')'                                        # ParenthesizedExpression
     ;
 
-elementList: (singleExpression (',' singleExpression)* ','?)?;
+expressionSequence: singleExpression (',' singleExpression)*;
 
 propertyAssignment: propertyName ':' singleExpression;
 
 propertyName: identifierName | StringLiteral | numericLiteral;
 
-objectLiteral:
-    '{' (propertyAssignment (',' propertyAssignment)* ','?)? '}'
-    ;
+objectLiteral: '{' (propertyAssignment (',' propertyAssignment)*)? '}';
 
 literal:
     NullLiteral

@@ -84,7 +84,7 @@ std::optional<antlr4::tree::ParseTree *> getTreeFromPos(antlr4::tree::ParseTree 
     }
 }
 
-int indexOf(antlr4::tree::TerminalNode *comma, parser::parsers::ElementListContext *parent)
+int indexOf(antlr4::tree::TerminalNode *comma, parser::parsers::ExpressionSequenceContext *parent)
 {
     int count = 0;
     for (auto child: parent->children) {
@@ -115,13 +115,13 @@ std::optional<std::string> completion(antlr4::Parser *parser, antlr4::tree::Pars
                 break;
 
             case parser::lexers::Comma:
-                if (auto elemList =
-                        dynamic_cast<parser::parsers::ElementListContext *>(node->parent)) {
+                if (auto exprSeq =
+                        dynamic_cast<parser::parsers::ExpressionSequenceContext *>(node->parent)) {
                     if (auto argsExpr = dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(
-                            elemList->parent)) {
+                            exprSeq->parent)) {
                         return fmt::format(
                             "<Arguments> completion based on {}th arg of func => \n{}",
-                            indexOf(node, elemList) + 1,
+                            indexOf(node, exprSeq) + 1,
                             argsExpr->singleExpression()->toStringTree(parser, true));
                     }
                 }
