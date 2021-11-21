@@ -6,9 +6,9 @@ options {
 }
 
 singleExpression:
-    singleExpression '[' expressionSequence ']'                       # MemberIndexExpression
+    singleExpression '[' singleExpression ']'                         # MemberIndexExpression
     | singleExpression '.' identifierName                             # MemberDotExpression
-    | singleExpression arguments                                      # ArgumentsExpression
+    | singleExpression '(' elementList ')'                            # ArgumentsExpression
     | '+' singleExpression                                            # UnaryPlusExpression
     | '-' singleExpression                                            # UnaryMinusExpression
     | '~' singleExpression                                            # BitNotExpression
@@ -27,29 +27,16 @@ singleExpression:
     | singleExpression '?' singleExpression ':' singleExpression      # TernaryExpression
     | Identifier                                                      # IdentifierExpression
     | literal                                                         # LiteralExpression
-    | arrayLiteral                                                    # ArrayLiteralExpression
+    | '[' elementList ']'                                             # ArrayLiteralExpression
     | objectLiteral                                                   # ObjectLiteralExpression
-    | '(' expressionSequence ')'                                      # ParenthesizedExpression
+    | '(' singleExpression ')'                                        # ParenthesizedExpression
     ;
 
-expressionSequence: singleExpression (',' singleExpression)*;
-
-arrayLiteral: ('[' elementList ']');
-
-elementList: ','* singleExpression? (','+ singleExpression)* ','*;
+elementList: (singleExpression (',' singleExpression)* ','?)?;
 
 propertyAssignment: propertyName ':' singleExpression;
 
-propertyName:
-    identifierName
-    | StringLiteral
-    | numericLiteral
-    | '[' singleExpression ']'
-    ;
-
-arguments: '(' (argument (',' argument)* ','?)? ')';
-
-argument: Ellipsis? (singleExpression | Identifier);
+propertyName: identifierName | StringLiteral | numericLiteral;
 
 objectLiteral:
     '{' (propertyAssignment (',' propertyAssignment)* ','?)? '}'

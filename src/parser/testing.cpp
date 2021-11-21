@@ -84,16 +84,58 @@ std::optional<antlr4::tree::ParseTree *> getTreeFromPos(antlr4::tree::ParseTree 
     }
 }
 
+int indexOf(antlr4::tree::TerminalNode *comma, parser::parsers::ElementListContext *parent)
+{
+    int count = 0;
+    for (auto child: parent->children) {
+        if (auto node = dynamic_cast<antlr4::tree::TerminalNode *>(child)) {
+            if (node->getSymbol()->getType() == parser::lexers::Comma) {
+                ++count;
+            }
+        }
+        if (child == comma) {
+            break;
+        }
+    }
+    return count;
+}
+
 std::optional<std::string> completion(antlr4::Parser *parser, antlr4::tree::ParseTree *caret)
 {
     if (auto node = dynamic_cast<antlr4::tree::TerminalNode *>(caret)) {
         auto type = node->getSymbol()->getType();
-        if (type == parser::lexers::Dot) {
-            if (auto ctx =
-                    dynamic_cast<parser::parsers::MemberDotExpressionContext *>(node->parent)) {
-                return fmt::format("<MemberDot> completion based on typeof => \n{}",
-                                   ctx->singleExpression()->toStringTree(parser, true));
-            }
+        switch (type) {
+            case parser::lexers::Dot:
+                if (auto memberDotExpr =
+                        dynamic_cast<parser::parsers::MemberDotExpressionContext *>(node->parent)) {
+                    return fmt::format(
+                        "<MemberDot> completion based on => \n{}",
+                        memberDotExpr->singleExpression()->toStringTree(parser, true));
+                }
+                break;
+
+            case parser::lexers::Comma:
+                if (auto elemList =
+                        dynamic_cast<parser::parsers::ElementListContext *>(node->parent)) {
+                    if (auto argsExpr = dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(
+                            elemList->parent)) {
+                        return fmt::format(
+                            "<Arguments> completion based on {}th arg of func => \n{}",
+                            indexOf(node, elemList) + 1,
+                            argsExpr->singleExpression()->toStringTree(parser, true));
+                    }
+                }
+                break;
+
+            case parser::lexers::OpenParen:
+                if (auto argsExpr =
+                        dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(node->parent)) {
+                    return fmt::format("<Arguments> completion based on 1st arg of func => \n{}",
+                                       argsExpr->singleExpression()->toStringTree(parser, true));
+                }
+
+            default:
+                break;
         }
     }
     return {};
