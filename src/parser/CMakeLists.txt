@@ -2,6 +2,7 @@ file(GLOB_RECURSE CALC_GENCPP_SRC .antlr/*.cpp)
 
 add_executable(parser-testing
     ${CALC_GENCPP_SRC}
+    type.cpp
     testing.cpp
 )
 

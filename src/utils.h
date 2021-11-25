@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
+#include <nonstd/expected.hpp>
 #include <filesystem>
 #include <vector>
 #define __DIRNAME__ std::filesystem::path(__FILE__).parent_path()

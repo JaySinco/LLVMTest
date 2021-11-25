@@ -1,7 +1,5 @@
-#include "../utils.h"
-#include ".antlr/lexers.h"
-#include ".antlr/parsers.h"
-#include "replxx.hxx"
+#include "./type.h"
+#include <replxx.hxx>
 #include <optional>
 
 class ErrorListener: public antlr4::BaseErrorListener
@@ -38,7 +36,12 @@ bool eval(const std::string &code)
         parsing.removeErrorListeners();
         parsing.addErrorListener(&lerr);
         auto tree = parsing.singleExpression();
-        std::cout << tree->toStringTree(&parsing, true) << std::endl;
+        // std::cout << tree->toStringTree(&parsing, true) << std::endl;
+        if (auto type = type::infer(tree)) {
+            std::cout << "(" << (*type)->toString() << ")" << std::endl;
+        } else {
+            std::cout << type.error() << std::endl;
+        }
         return true;
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;

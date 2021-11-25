@@ -22,6 +22,7 @@
         "glog",
         "nlohmann-json",
         "boost-algorithm",
+        "expected-lite",
         "glfw3",
         "implot",
         "replxx-ce",
