@@ -1,15 +1,5 @@
 #include "./type.h"
 #include <sstream>
-#include <boost/algorithm/string.hpp>
-#define INVALID_EXPR(expr) \
-    nonstd::make_unexpected(fmt::format("invalid expr: {}", expr->getText()));
-
-#define CHECK_EXPR(expr) \
-    if (!expr) return INVALID_EXPR(expr);
-
-#define CHECK_SUBEXPR(expr, sub) \
-    auto sub = expr->sub();      \
-    if (!sub) return INVALID_EXPR(expr);
 
 namespace type
 {
@@ -19,78 +9,94 @@ std::shared_ptr<Number> number = std::make_shared<Number>();
 std::shared_ptr<Boolean> boolean = std::make_shared<Boolean>();
 std::shared_ptr<String> string = std::make_shared<String>();
 
-std::string Array::toString() { return fmt::format("array<{}>", this->internal->toString()); }
+std::string Array::toString() const { return fmt::format("array<{}>", this->internal->toString()); }
 
-std::string Object::toString() { return fmt::format("object<{}>", this->internal->toString()); }
+bool Array::isConvertible(const Type &rhs) const
+{
+    if (auto arr = dynamic_cast<const Array *>(&rhs)) {
+        return this->internal->isConvertible(*arr->internal);
+    }
+    return false;
+}
 
-std::string Struct::toString()
+std::string Object::toString() const
+{
+    return fmt::format("object<{}>", this->internal->toString());
+}
+
+bool Object::isConvertible(const Type &rhs) const
+{
+    if (auto obj = dynamic_cast<const Object *>(&rhs)) {
+        return this->internal->isConvertible(*obj->internal);
+    } else if (auto stru = dynamic_cast<const Struct *>(&rhs)) {
+        for (const auto &[k, v]: stru->fields) {
+            if (!this->internal->isConvertible(*v)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+std::string Struct::toString() const
 {
     std::ostringstream ss;
-    ss << "struct " << this->name << "{ ";
-    for (const auto &[k, v]: this->internal) {
+    ss << "struct{ ";
+    for (const auto &[k, v]: this->fields) {
         ss << k << ": " << v->toString() << "; ";
     }
     ss << "}";
     return ss.str();
 }
 
-nonstd::expected<std::shared_ptr<Type>, std::string> infer(
-    parser::parsers::LiteralExpressionContext *expr)
+bool Struct::isConvertible(const Type &rhs) const
 {
-    auto lit = expr->literal();
-    if (!lit) {
-        return INVALID_EXPR(expr);
+    if (auto stru = dynamic_cast<const Struct *>(&rhs)) {
+        if (this->fields.size() != stru->fields.size()) {
+            return false;
+        }
+        for (const auto &[k, v]: stru->fields) {
+            auto it = this->fields.find(k);
+            if (it == this->fields.end() || !it->second->isConvertible(*v)) {
+                return false;
+            }
+        }
+        return true;
     }
-    if (lit->NullLiteral()) {
-        return null;
-    } else if (lit->BooleanLiteral()) {
-        return boolean;
-    } else if (lit->StringLiteral()) {
-        return string;
-    } else if (lit->numericLiteral() || lit->bigintLiteral()) {
-        return number;
-    } else {
-        return INVALID_EXPR(expr);
-    }
+    return false;
 }
 
-nonstd::expected<std::shared_ptr<Type>, std::string> infer(
-    parser::parsers::ObjectLiteralExpressionContext *expr)
+std::string Function::toString() const
 {
-    auto objLit = expr->objectLiteral();
-    if (!objLit) {
-        return INVALID_EXPR(expr);
+    std::ostringstream ss;
+    ss << "(";
+    bool first = true;
+    for (const auto &v: this->args) {
+        ss << (first ? "" : ", ") << v->toString();
+        first = false;
     }
-    std::map<std::string, std::shared_ptr<Type>> internalType;
-    for (const auto &prop: objLit->propertyAssignment()) {
-        CHECK_EXPR(prop);
-        CHECK_SUBEXPR(prop, propertyName);
-        std::string name = propertyName->getText();
-        if (auto strLit = propertyName->StringLiteral()) {
-            boost::trim_if(name, boost::is_any_of("\""));
-        }
-        auto type = infer(prop->singleExpression());
-        if (!type) {
-            return type.get_unexpected();
-        }
-        internalType[name] = *type;
-    }
-    auto type = std::make_shared<Struct>();
-    type->internal = std::move(internalType);
-    return type;
+    ss << ") => " << this->ret->toString();
+    return ss.str();
 }
 
-nonstd::expected<std::shared_ptr<Type>, std::string> infer(
-    parser::parsers::SingleExpressionContext *expr)
+bool Function::isConvertible(const Type &rhs) const
 {
-    if (auto litExpr = dynamic_cast<parser::parsers::LiteralExpressionContext *>(expr)) {
-        return infer(litExpr);
-    } else if (auto objLitExpr =
-                   dynamic_cast<parser::parsers::ObjectLiteralExpressionContext *>(expr)) {
-        return infer(objLitExpr);
-    } else {
-        return INVALID_EXPR(expr);
+    if (auto func = dynamic_cast<const Function *>(&rhs)) {
+        if (this->args.size() != func->args.size()) {
+            return false;
+        }
+        for (int i = 0; i < this->args.size(); ++i) {
+            if (!this->args.at(i)->isConvertible(*func->args.at(i))) {
+                return false;
+            }
+        }
+        if (!this->ret->isConvertible(*func->ret)) {
+            return false;
+        }
+        return true;
     }
+    return false;
 }
 
 }  // namespace type

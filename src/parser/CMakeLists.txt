@@ -3,6 +3,8 @@ file(GLOB_RECURSE CALC_GENCPP_SRC .antlr/*.cpp)
 add_executable(parser-testing
     ${CALC_GENCPP_SRC}
     type.cpp
+    expr.cpp
+    hint.cpp
     testing.cpp
 )
 

@@ -1,4 +1,4 @@
-#include "./type.h"
+#include "./hint.h"
 #include <replxx.hxx>
 #include <optional>
 
@@ -11,11 +11,8 @@ public:
                      size_t charPositionInLine, const std::string &msg,
                      std::exception_ptr e) override
     {
-        std::string location(4 + charPositionInLine, ' ');
-        location += "^";
         if (!allowFail) {
-            throw std::runtime_error(
-                fmt::format("{}\nline {}:{} {}\n", location, line, charPositionInLine, msg));
+            throw type::Error{line, charPositionInLine, msg};
         }
     }
 
@@ -23,7 +20,7 @@ private:
     bool allowFail;
 };
 
-bool eval(const std::string &code)
+bool eval(const std::string &code, scope::Scope &scope)
 {
     try {
         antlr4::ANTLRInputStream ais(code);
@@ -36,118 +33,24 @@ bool eval(const std::string &code)
         parsing.removeErrorListeners();
         parsing.addErrorListener(&lerr);
         auto tree = parsing.singleExpression();
-        // std::cout << tree->toStringTree(&parsing, true) << std::endl;
-        if (auto type = type::infer(tree)) {
-            std::cout << "(" << (*type)->toString() << ")" << std::endl;
+        if (auto prop = expr::infer(tree, scope)) {
+            std::cout << "(" << (*prop).type->toString() << ((*prop).lvalue ? " &" : "") << ")"
+                      << std::endl;
         } else {
-            std::cout << type.error() << std::endl;
+            throw prop.error();
         }
         return true;
-    } catch (std::exception &e) {
-        std::cerr << e.what() << std::endl;
+    } catch (type::Error &e) {
+        std::string spaces(4 + e.charPosInLine, ' ');
+        std::cerr << fmt::format("{}^\n{}:{} {}\n", spaces, e.line, e.charPosInLine, e.msg);
         return false;
     }
 }
 
-std::optional<antlr4::tree::ParseTree *> getTreeFromPos(antlr4::tree::ParseTree *root,
-                                                        size_t col /* 0..n-1 */,
-                                                        size_t row /* 1..n   */)
+replxx::Replxx::hints_t hook_hint(std::string const &context, int &contextLen,
+                                  replxx::Replxx::Color &color, const replxx::Replxx &rx)
 {
-    if (auto node = dynamic_cast<antlr4::tree::TerminalNode *>(root)) {
-        auto tok = node->getSymbol();
-        if (tok->getLine() != row) {
-            return {};
-        }
-        if (auto last = tok->getCharPositionInLine() + tok->getStopIndex() - tok->getStartIndex();
-            tok->getCharPositionInLine() <= col && last >= col) {
-            return node;
-        }
-        return {};
-    } else {
-        auto ctx = dynamic_cast<antlr4::ParserRuleContext *>(root);
-        auto start = ctx->getStart();
-        auto stop = ctx->getStop();
-        if (start == nullptr || stop == nullptr) {
-            return {};
-        }
-        if (start->getLine() > row ||
-            (start->getLine() == row && col < start->getCharPositionInLine())) {
-            return {};
-        }
-        auto last = stop->getCharPositionInLine() + stop->getStopIndex() - stop->getStartIndex();
-        if (stop->getLine() < row || (stop->getLine() == row && last < col)) {
-            return {};
-        }
-        for (auto child: ctx->children) {
-            if (auto target = getTreeFromPos(child, col, row)) {
-                return target;
-            }
-        }
-        return ctx;
-    }
-}
-
-int indexOf(antlr4::tree::TerminalNode *comma, parser::parsers::ExpressionSequenceContext *parent)
-{
-    int count = 0;
-    for (auto child: parent->children) {
-        if (auto node = dynamic_cast<antlr4::tree::TerminalNode *>(child)) {
-            if (node->getSymbol()->getType() == parser::lexers::Comma) {
-                ++count;
-            }
-        }
-        if (child == comma) {
-            break;
-        }
-    }
-    return count;
-}
-
-std::optional<std::string> completion(antlr4::Parser *parser, antlr4::tree::ParseTree *caret)
-{
-    if (auto node = dynamic_cast<antlr4::tree::TerminalNode *>(caret)) {
-        auto type = node->getSymbol()->getType();
-        switch (type) {
-            case parser::lexers::Dot:
-                if (auto memberDotExpr =
-                        dynamic_cast<parser::parsers::MemberDotExpressionContext *>(node->parent)) {
-                    return fmt::format(
-                        "<MemberDot> completion based on => \n{}",
-                        memberDotExpr->singleExpression()->toStringTree(parser, true));
-                }
-                break;
-
-            case parser::lexers::Comma:
-                if (auto exprSeq =
-                        dynamic_cast<parser::parsers::ExpressionSequenceContext *>(node->parent)) {
-                    if (auto argsExpr = dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(
-                            exprSeq->parent)) {
-                        return fmt::format(
-                            "<Arguments> completion based on {}th arg of func => \n{}",
-                            indexOf(node, exprSeq) + 1,
-                            argsExpr->singleExpression()->toStringTree(parser, true));
-                    }
-                }
-                break;
-
-            case parser::lexers::OpenParen:
-                if (auto argsExpr =
-                        dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(node->parent)) {
-                    return fmt::format("<Arguments> completion based on 1st arg of func => \n{}",
-                                       argsExpr->singleExpression()->toStringTree(parser, true));
-                }
-
-            default:
-                break;
-        }
-    }
-    return {};
-}
-
-replxx::Replxx::completions_t hook_completion(const std::string &context, int &contextLen,
-                                              const replxx::Replxx &rx)
-{
-    replxx::Replxx::completions_t completions;
+    replxx::Replxx::hints_t hints;
     std::string input = rx.get_state().text();
     antlr4::ANTLRInputStream ais(input);
     parser::lexers lexer(&ais);
@@ -164,21 +67,23 @@ replxx::Replxx::completions_t hook_completion(const std::string &context, int &c
         --pos;
     }
     if (pos > 0) {
-        if (auto caret = getTreeFromPos(tree, pos - 1, 1)) {
-            if (auto pl = completion(&parsing, *caret)) {
-                completions.push_back(*pl);
-                completions.push_back("");
+        if (auto caret = hint::getTreeFromPos(tree, pos - 1, 1)) {
+            if (auto pl = hint::completion(&parsing, *caret)) {
+                hints.push_back(*pl);
+                hints.push_back("");
             }
         }
     }
-    return completions;
+    return hints;
 }
 
 int main(int argc, char **argv)
 {
     using namespace std::placeholders;
     replxx::Replxx rx;
-    rx.set_completion_callback(std::bind(&hook_completion, _1, _2, std::cref(rx)));
+    rx.set_max_hint_rows(5);
+    rx.set_hint_callback(std::bind(&hook_hint, _1, _2, _3, std::cref(rx)));
+    scope::LinearScope scope;
 
     while (true) {
         const char *text = nullptr;
@@ -194,7 +99,7 @@ int main(int argc, char **argv)
             continue;
         }
         rx.history_add(line);
-        eval(line);
+        eval(line, scope);
     }
     return 0;
 }
