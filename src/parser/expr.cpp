@@ -43,9 +43,7 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::ArrayLiteralExpre
 {
     auto exprSeq = expr->expressionSequence();
     if (!exprSeq || exprSeq->singleExpression().size() <= 0) {
-        auto type = std::make_shared<type::Array>();
-        type->internal = type::any;
-        return Property{type, false};
+        return Property{std::make_shared<type::Array>(type::any), false};
     }
     auto exprList = exprSeq->singleExpression();
     auto type0 = infer(exprList.at(0), scope);
@@ -66,9 +64,7 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::ArrayLiteralExpre
             }
         }
     }
-    auto type = std::make_shared<type::Array>();
-    type->internal = merged;
-    return Property{type, false};
+    return Property{std::make_shared<type::Array>(merged), false};
 }
 
 nonstd::expected<Property, type::Error> infer(parser::parsers::ObjectLiteralExpressionContext *expr,
@@ -92,9 +88,7 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::ObjectLiteralExpr
         }
         fields[name] = (*type).type;
     }
-    auto type = std::make_shared<type::Struct>();
-    type->fields = std::move(fields);
-    return Property{type, false};
+    return Property{std::make_shared<type::Struct>(std::move(fields)), false};
 }
 
 nonstd::expected<Property, type::Error> infer(parser::parsers::SingleExpressionContext *expr,

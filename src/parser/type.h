@@ -77,6 +77,7 @@ extern std::shared_ptr<String> string;
 
 struct Array: Type
 {
+    Array(TypePtr internal): internal(internal) {}
     std::string toString() const override;
     bool isConvertible(const Type &rhs) const override;
 
@@ -85,6 +86,7 @@ struct Array: Type
 
 struct Object: Type
 {
+    Object(TypePtr internal): internal(internal) {}
     std::string toString() const override;
     bool isConvertible(const Type &rhs) const override;
 
@@ -93,6 +95,8 @@ struct Object: Type
 
 struct Struct: Type
 {
+    Struct(const std::map<std::string, TypePtr> &fields): fields(fields) {}
+    Struct(std::map<std::string, TypePtr> &&fields): fields(std::move(fields)) {}
     std::string toString() const override;
     bool isConvertible(const Type &rhs) const override;
 
@@ -101,6 +105,8 @@ struct Struct: Type
 
 struct Function: Type
 {
+    Function(const std::vector<TypePtr> &args, TypePtr ret): args(args), ret(ret) {}
+    Function(std::vector<TypePtr> &&args, TypePtr ret): args(std::move(args)), ret(ret) {}
     std::string toString() const override;
     bool isConvertible(const Type &rhs) const override;
 

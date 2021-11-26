@@ -55,40 +55,79 @@ int indexOf(antlr4::tree::TerminalNode *comma, parser::parsers::ExpressionSequen
     return count;
 }
 
-Hints completion(antlr4::Parser *parser, antlr4::tree::ParseTree *caret)
+Hints completeExpr(const scope::Scope &scope)
+{
+    Hints hints;
+    for (const auto &[k, v]: scope.getAllVar()) {
+        hints.push_back(Hint{k, v->toString()});
+    }
+    return hints;
+}
+
+Hints completeAfterDot(antlr4::tree::ParseTree *parent, const scope::Scope &scope)
+{
+    if (auto memberDotExpr = dynamic_cast<parser::parsers::MemberDotExpressionContext *>(parent)) {
+        if (auto expr = memberDotExpr->singleExpression()) {
+            if (auto type = expr::infer(expr, scope)) {
+                if (auto stru = dynamic_cast<type::Struct *>(type->type.get())) {
+                    Hints hints;
+                    for (const auto &[k, v]: stru->fields) {
+                        hints.push_back(Hint{k, v->toString()});
+                    }
+                    return hints;
+                }
+            }
+        }
+    }
+    return {};
+}
+
+Hints completeAfterComma(antlr4::tree::ParseTree *parent, const scope::Scope &scope)
+{
+    if (auto exprSeq = dynamic_cast<parser::parsers::ExpressionSequenceContext *>(parent)) {
+        if (auto argsExpr =
+                dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(exprSeq->parent)) {
+            if (auto type = expr::infer(argsExpr->singleExpression(), scope)) {
+                if (auto func = dynamic_cast<type::Function *>(type->type.get())) {
+                    Hints hints;
+                    hints.push_back(Hint{"_", func->toString()});
+                    auto vars = completeExpr(scope);
+                    hints.insert(hints.end(), vars.begin(), vars.end());
+                    return hints;
+                }
+            }
+        }
+    }
+    return {};
+}
+
+Hints completeAfterOpenParen(antlr4::tree::ParseTree *parent, const scope::Scope &scope)
+{
+    if (auto argsExpr = dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(parent)) {
+        if (auto type = expr::infer(argsExpr->singleExpression(), scope)) {
+            if (auto func = dynamic_cast<type::Function *>(type->type.get())) {
+                Hints hints;
+                hints.push_back(Hint{"_", func->toString()});
+                auto vars = completeExpr(scope);
+                hints.insert(hints.end(), vars.begin(), vars.end());
+                return hints;
+            }
+        }
+    }
+    return {};
+}
+
+Hints completion(antlr4::Parser *parser, antlr4::tree::ParseTree *caret, const scope::Scope &scope)
 {
     if (auto node = dynamic_cast<antlr4::tree::TerminalNode *>(caret)) {
         auto type = node->getSymbol()->getType();
         switch (type) {
             case parser::lexers::Dot:
-                if (auto memberDotExpr =
-                        dynamic_cast<parser::parsers::MemberDotExpressionContext *>(node->parent)) {
-                    return fmt::format(
-                        "<MemberDot> completion based on => \n{}",
-                        memberDotExpr->singleExpression()->toStringTree(parser, true));
-                }
-                break;
-
+                return completeAfterDot(node->parent, scope);
             case parser::lexers::Comma:
-                if (auto exprSeq =
-                        dynamic_cast<parser::parsers::ExpressionSequenceContext *>(node->parent)) {
-                    if (auto argsExpr = dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(
-                            exprSeq->parent)) {
-                        return fmt::format(
-                            "<Arguments> completion based on {}th arg of func => \n{}",
-                            indexOf(node, exprSeq) + 1,
-                            argsExpr->singleExpression()->toStringTree(parser, true));
-                    }
-                }
-                break;
-
+                return completeAfterComma(node->parent, scope);
             case parser::lexers::OpenParen:
-                if (auto argsExpr =
-                        dynamic_cast<parser::parsers::ArgumentsExpressionContext *>(node->parent)) {
-                    return fmt::format("<Arguments> completion based on 1st arg of func => \n{}",
-                                       argsExpr->singleExpression()->toStringTree(parser, true));
-                }
-
+                return completeAfterOpenParen(node->parent, scope);
             default:
                 break;
         }

@@ -48,42 +48,46 @@ bool eval(const std::string &code, scope::Scope &scope)
 }
 
 replxx::Replxx::hints_t hook_hint(std::string const &context, int &contextLen,
-                                  replxx::Replxx::Color &color, const replxx::Replxx &rx)
+                                  replxx::Replxx::Color &color, const replxx::Replxx &rx,
+                                  scope::Scope &scope)
 {
-    replxx::Replxx::hints_t hints;
+    hint::Hints hints;
     std::string input = rx.get_state().text();
-    antlr4::ANTLRInputStream ais(input);
-    parser::lexers lexer(&ais);
-    lexer.removeErrorListeners();
-    ErrorListener lerr(true);
-    lexer.addErrorListener(&lerr);
-    antlr4::CommonTokenStream tokens(&lexer);
-    parser::parsers parsing(&tokens);
-    parsing.removeErrorListeners();
-    parsing.addErrorListener(&lerr);
-    auto tree = parsing.program();
     int pos = rx.get_state().cursor_position();
     while (pos > 0 && input.at(pos - 1) == ' ') {
         --pos;
     }
     if (pos > 0) {
+        antlr4::ANTLRInputStream ais(input);
+        parser::lexers lexer(&ais);
+        lexer.removeErrorListeners();
+        ErrorListener lerr(true);
+        lexer.addErrorListener(&lerr);
+        antlr4::CommonTokenStream tokens(&lexer);
+        parser::parsers parsing(&tokens);
+        parsing.removeErrorListeners();
+        parsing.addErrorListener(&lerr);
+        auto tree = parsing.program();
         if (auto caret = hint::getTreeFromPos(tree, pos - 1, 1)) {
-            auto hs = hint::completion(&parsing, *caret);
-            for (const auto &h: hs) {
-                hints.push_back(fmt::format("{:10s} {}", h.text, h.note));
-            }
+            hints = hint::completion(&parsing, *caret, scope);
         }
+    } else {
+        hints = hint::completeExpr(scope);
     }
-    return hints;
+    replxx::Replxx::hints_t hs;
+    for (const auto &h: hints) {
+        hs.push_back(fmt::format("{:5s} {}", h.text, h.note));
+    }
+    return hs;
 }
 
 int main(int argc, char **argv)
 {
     using namespace std::placeholders;
     replxx::Replxx rx;
-    rx.set_max_hint_rows(5);
-    rx.set_hint_callback(std::bind(&hook_hint, _1, _2, _3, std::cref(rx)));
+    rx.set_max_hint_rows(8);
     scope::LinearScope scope;
+    rx.set_hint_callback(std::bind(&hook_hint, _1, _2, _3, std::cref(rx), std::ref(scope)));
 
     while (true) {
         const char *text = nullptr;
