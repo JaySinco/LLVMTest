@@ -5,6 +5,8 @@ options {
     language=Cpp;
 }
 
+program: singleExpression EOF;
+
 singleExpression:
     singleExpression '[' singleExpression ']'                         # MemberIndexExpression
     | singleExpression '.' identifierName                             # MemberDotExpression

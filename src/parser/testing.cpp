@@ -32,7 +32,7 @@ bool eval(const std::string &code, scope::Scope &scope)
         parser::parsers parsing(&tokens);
         parsing.removeErrorListeners();
         parsing.addErrorListener(&lerr);
-        auto tree = parsing.singleExpression();
+        auto tree = parsing.program()->singleExpression();
         if (auto prop = expr::infer(tree, scope)) {
             std::cout << "(" << (*prop).type->toString() << ((*prop).lvalue ? " &" : "") << ")"
                       << std::endl;
@@ -61,7 +61,7 @@ replxx::Replxx::hints_t hook_hint(std::string const &context, int &contextLen,
     parser::parsers parsing(&tokens);
     parsing.removeErrorListeners();
     parsing.addErrorListener(&lerr);
-    auto tree = parsing.singleExpression();
+    auto tree = parsing.program();
     int pos = rx.get_state().cursor_position();
     while (pos > 0 && input.at(pos - 1) == ' ') {
         --pos;
