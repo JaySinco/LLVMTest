@@ -47,9 +47,8 @@ bool eval(const std::string &code, scope::Scope &scope)
     }
 }
 
-replxx::Replxx::hints_t hook_hint(std::string const &context, int &contextLen,
-                                  replxx::Replxx::Color &color, const replxx::Replxx &rx,
-                                  scope::Scope &scope)
+replxx::Replxx::completions_t hook_completion(const std::string &context, int &contextLen,
+                                              const replxx::Replxx &rx, scope::Scope &scope)
 {
     hint::Hints hints;
     std::string input = rx.get_state().text();
@@ -74,20 +73,28 @@ replxx::Replxx::hints_t hook_hint(std::string const &context, int &contextLen,
     } else {
         hints = hint::completeExpr(scope);
     }
-    replxx::Replxx::hints_t hs;
+    size_t fixed = 0;
     for (const auto &h: hints) {
-        hs.push_back(fmt::format("{:5s} {}", h.text, h.note));
+        fixed = std::max(h.text.size(), fixed);
     }
-    return hs;
+    std::ostringstream ss;
+    for (const auto &h: hints) {
+        ss << fmt::format("{:{}s}   {}\n", h.text, fixed, h.note);
+    }
+    replxx::Replxx::completions_t comps;
+    if (hints.size() > 0) {
+        comps.push_back({ss.str(), replxx::Replxx::Color::GRAY});
+        comps.push_back("");
+    }
+    return comps;
 }
 
 int main(int argc, char **argv)
 {
     using namespace std::placeholders;
     replxx::Replxx rx;
-    rx.set_max_hint_rows(8);
     scope::LinearScope scope;
-    rx.set_hint_callback(std::bind(&hook_hint, _1, _2, _3, std::cref(rx), std::ref(scope)));
+    rx.set_completion_callback(std::bind(&hook_completion, _1, _2, std::cref(rx), std::ref(scope)));
 
     while (true) {
         const char *text = nullptr;

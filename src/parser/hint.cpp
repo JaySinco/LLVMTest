@@ -91,12 +91,25 @@ Hints completeAfterComma(antlr4::tree::ParseTree *parent, const scope::Scope &sc
                 if (auto func = dynamic_cast<type::Function *>(type->type.get())) {
                     Hints hints;
                     hints.push_back(Hint{"_", func->toString()});
-                    auto vars = completeExpr(scope);
-                    hints.insert(hints.end(), vars.begin(), vars.end());
+                    auto hs = completeExpr(scope);
+                    hints.insert(hints.end(), hs.begin(), hs.end());
                     return hints;
                 }
             }
+        } else {
+            return completeExpr(scope);
         }
+    }
+    return {};
+}
+
+Hints completeAfterColon(antlr4::tree::ParseTree *parent, const scope::Scope &scope)
+{
+    if (auto ternaryExpr = dynamic_cast<parser::parsers::TernaryExpressionContext *>(parent)) {
+        return completeExpr(scope);
+    } else if (auto propAssign =
+                   dynamic_cast<parser::parsers::PropertyAssignmentContext *>(parent)) {
+        return completeExpr(scope);
     }
     return {};
 }
@@ -113,6 +126,21 @@ Hints completeAfterOpenParen(antlr4::tree::ParseTree *parent, const scope::Scope
                 return hints;
             }
         }
+    } else if (auto parenExpr =
+                   dynamic_cast<parser::parsers::ParenthesizedExpressionContext *>(parent)) {
+        return completeExpr(scope);
+    }
+    return {};
+}
+
+Hints completeAfterOpenBracket(antlr4::tree::ParseTree *parent, const scope::Scope &scope)
+{
+    if (auto memberIdxExpr =
+            dynamic_cast<parser::parsers::MemberIndexExpressionContext *>(parent)) {
+        return completeExpr(scope);
+    } else if (auto arrLitExpr =
+                   dynamic_cast<parser::parsers::ArrayLiteralExpressionContext *>(parent)) {
+        return completeExpr(scope);
     }
     return {};
 }
@@ -128,6 +156,10 @@ Hints completion(antlr4::Parser *parser, antlr4::tree::ParseTree *caret, const s
                 return completeAfterComma(node->parent, scope);
             case parser::lexers::OpenParen:
                 return completeAfterOpenParen(node->parent, scope);
+            case parser::lexers::Colon:
+                return completeAfterColon(node->parent, scope);
+            case parser::lexers::OpenBracket:
+                return completeAfterOpenBracket(node->parent, scope);
             default:
                 break;
         }

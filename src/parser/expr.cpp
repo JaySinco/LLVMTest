@@ -1,21 +1,64 @@
 #include "./expr.h"
 #include <boost/algorithm/string.hpp>
+
 #define CHECK_EXPR(expr) \
-    if (!expr) return invalid_expr(expr);
+    if (!expr) return make_error(expr, "invalid expr");
 
 #define CHECK_SUBEXPR(expr, sub) \
     auto sub = expr->sub();      \
-    if (!sub) return invalid_expr(expr);
+    if (!sub) return make_error(expr, "invalid expr");
 
 namespace expr
 {
-nonstd::expected_lite::unexpected_type<type::Error> invalid_expr(antlr4::ParserRuleContext *expr)
+nonstd::expected_lite::unexpected_type<type::Error> make_error(antlr4::ParserRuleContext *expr,
+                                                               const std::string &desc)
 {
     auto start = expr->getStart();
     auto line = start->getLine();
     auto charPosInLine = start->getCharPositionInLine();
-    type::Error err = {line, charPosInLine, fmt::format("invalid expr: {}", expr->getText())};
+    type::Error err = {line, charPosInLine, fmt::format("{}: {}", desc, expr->getText())};
     return nonstd::make_unexpected(err);
+}
+
+nonstd::expected_lite::unexpected_type<type::Error> make_error(antlr4::tree::TerminalNode *node,
+                                                               const std::string &desc)
+{
+    auto start = node->getSymbol();
+    auto line = start->getLine();
+    auto charPosInLine = start->getCharPositionInLine();
+    type::Error err = {line, charPosInLine, desc};
+    return nonstd::make_unexpected(err);
+}
+
+nonstd::expected<Property, type::Error> infer(parser::parsers::MemberDotExpressionContext *expr,
+                                              const scope::Scope &scope)
+{
+    CHECK_SUBEXPR(expr, singleExpression);
+    auto type = infer(singleExpression, scope);
+    if (!type) {
+        return type.get_unexpected();
+    }
+    if (auto stru = dynamic_cast<type::Struct *>(type->type.get())) {
+        CHECK_SUBEXPR(expr, identifierName);
+        std::string member = identifierName->getText();
+        auto it = stru->fields.find(member);
+        if (it == stru->fields.end()) {
+            return make_error(identifierName, "member not exist");
+        }
+        return Property{it->second, type->lvalue};
+    } else {
+        return make_error(
+            expr->Dot(), fmt::format("type '{}' don't support member dot", type->type->toString()));
+    }
+}
+
+nonstd::expected<Property, type::Error> infer(parser::parsers::IdentifierExpressionContext *expr,
+                                              const scope::Scope &scope)
+{
+    if (auto type = scope.getVar(expr->getText())) {
+        return Property{*type, true};
+    }
+    return make_error(expr, "identifier not found");
 }
 
 nonstd::expected<Property, type::Error> infer(parser::parsers::LiteralExpressionContext *expr,
@@ -23,7 +66,7 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::LiteralExpression
 {
     auto lit = expr->literal();
     if (!lit) {
-        return invalid_expr(expr);
+        return make_error(expr, "invalid expr");
     }
     if (lit->NullLiteral()) {
         return Property{type::null, false};
@@ -34,7 +77,7 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::LiteralExpression
     } else if (lit->numericLiteral() || lit->bigintLiteral()) {
         return Property{type::number, false};
     } else {
-        return invalid_expr(expr);
+        return make_error(expr, "unknown literal");
     }
 }
 
@@ -72,7 +115,7 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::ObjectLiteralExpr
 {
     auto objLit = expr->objectLiteral();
     if (!objLit) {
-        return invalid_expr(expr);
+        return make_error(expr, "invalid expr");
     }
     std::map<std::string, type::TypePtr> fields;
     for (const auto &prop: objLit->propertyAssignment()) {
@@ -91,10 +134,25 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::ObjectLiteralExpr
     return Property{std::make_shared<type::Struct>(std::move(fields)), false};
 }
 
+nonstd::expected<Property, type::Error> infer(parser::parsers::ParenthesizedExpressionContext *expr,
+                                              const scope::Scope &scope)
+{
+    CHECK_SUBEXPR(expr, singleExpression);
+    auto type = infer(singleExpression, scope);
+    if (!type) {
+        return type.get_unexpected();
+    }
+    return Property{(*type).type, false};
+}
+
 nonstd::expected<Property, type::Error> infer(parser::parsers::SingleExpressionContext *expr,
                                               const scope::Scope &scope)
 {
-    if (auto litExpr = dynamic_cast<parser::parsers::LiteralExpressionContext *>(expr)) {
+    if (auto memberDotExpr = dynamic_cast<parser::parsers::MemberDotExpressionContext *>(expr)) {
+        return infer(memberDotExpr, scope);
+    } else if (auto idExpr = dynamic_cast<parser::parsers::IdentifierExpressionContext *>(expr)) {
+        return infer(idExpr, scope);
+    } else if (auto litExpr = dynamic_cast<parser::parsers::LiteralExpressionContext *>(expr)) {
         return infer(litExpr, scope);
     } else if (auto arrLitExpr =
                    dynamic_cast<parser::parsers::ArrayLiteralExpressionContext *>(expr)) {
@@ -102,8 +160,11 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::SingleExpressionC
     } else if (auto objLitExpr =
                    dynamic_cast<parser::parsers::ObjectLiteralExpressionContext *>(expr)) {
         return infer(objLitExpr, scope);
+    } else if (auto parenExpr =
+                   dynamic_cast<parser::parsers::ParenthesizedExpressionContext *>(expr)) {
+        return infer(parenExpr, scope);
     } else {
-        return invalid_expr(expr);
+        return make_error(expr, "unknown expr");
     }
 }
 

@@ -27,7 +27,7 @@ public:
         vars.emplace("m", std::make_shared<type::Struct>(std::map<std::string, type::TypePtr>{
                               {"age", type::number},
                               {"succ", type::boolean},
-                              {"address", type::string},
+                              {"addr", type::string},
                           }));
         vars.emplace("fn",
                      std::make_shared<type::Function>(
