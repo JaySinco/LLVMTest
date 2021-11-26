@@ -47,8 +47,8 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::MemberDotExpressi
         }
         return Property{it->second, type->lvalue};
     } else {
-        return make_error(
-            expr->Dot(), fmt::format("type '{}' don't support member dot", type->type->toString()));
+        return make_error(expr->Dot(),
+                          fmt::format("type '{}' not support member dot", type->type->toString()));
     }
 }
 
@@ -123,7 +123,7 @@ nonstd::expected<Property, type::Error> infer(parser::parsers::ObjectLiteralExpr
         CHECK_SUBEXPR(prop, propertyName);
         std::string name = propertyName->getText();
         if (auto strLit = propertyName->StringLiteral()) {
-            boost::trim_if(name, boost::is_any_of("\""));
+            name = name.substr(1, name.size() - 2);
         }
         auto type = infer(prop->singleExpression(), scope);
         if (!type) {
