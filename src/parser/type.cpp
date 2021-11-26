@@ -53,12 +53,9 @@ std::string Struct::toString() const
 bool Struct::isConvertible(const Type &rhs) const
 {
     if (auto stru = dynamic_cast<const Struct *>(&rhs)) {
-        if (this->fields.size() != stru->fields.size()) {
-            return false;
-        }
-        for (const auto &[k, v]: stru->fields) {
-            auto it = this->fields.find(k);
-            if (it == this->fields.end() || !it->second->isConvertible(*v)) {
+        for (const auto &[k, v]: this->fields) {
+            auto it = stru->fields.find(k);
+            if (it == stru->fields.end() || !v->isConvertible(*it->second)) {
                 return false;
             }
         }
