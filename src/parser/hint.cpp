@@ -55,7 +55,7 @@ int indexOf(antlr4::tree::TerminalNode *comma, parser::parsers::ExpressionSequen
     return count;
 }
 
-std::optional<std::string> completion(antlr4::Parser *parser, antlr4::tree::ParseTree *caret)
+Hints completion(antlr4::Parser *parser, antlr4::tree::ParseTree *caret)
 {
     if (auto node = dynamic_cast<antlr4::tree::TerminalNode *>(caret)) {
         auto type = node->getSymbol()->getType();

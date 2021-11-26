@@ -68,9 +68,9 @@ replxx::Replxx::hints_t hook_hint(std::string const &context, int &contextLen,
     }
     if (pos > 0) {
         if (auto caret = hint::getTreeFromPos(tree, pos - 1, 1)) {
-            if (auto pl = hint::completion(&parsing, *caret)) {
-                hints.push_back(*pl);
-                hints.push_back("");
+            auto hs = hint::completion(&parsing, *caret);
+            for (const auto &h: hs) {
+                hints.push_back(fmt::format("{:10s} {}", h.text, h.note));
             }
         }
     }
