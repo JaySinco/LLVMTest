@@ -12,7 +12,7 @@ namespace py = pybind11;
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
 public:
-    FashionMnistDataset(const std::wstring &dataRoot, bool train = true)
+    explicit FashionMnistDataset(const std::wstring &dataRoot, bool train = true)
     {
         std::wstring imagesPath =
             dataRoot + (train ? L"train-images-idx3-ubyte" : L"t10k-images-idx3-ubyte");

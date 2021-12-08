@@ -6,7 +6,7 @@ namespace policy
 class Inaction: public Policy
 {
 public:
-    Inaction(env::Env &env): Policy(env) {}
+    explicit Inaction(env::Env &env): Policy(env) {}
 
     torch::Tensor get_action(torch::Tensor observe) override
     {

@@ -18,12 +18,17 @@ namespace utils
 {
 struct error: public std::exception
 {
-    error(const std::string &s): std::exception(s.c_str()){};
+    explicit error(const std::string &s): std::exception(s.c_str()){};
 };
+
+template <typename T>
+using expected = nonstd::expected<T, error>;
+
+nonstd::unexpected_type<error> make_unexpected(const std::string &s);
 
 std::wstring getExeDir();
 
-std::pair<bool, std::string> readFile(const std::wstring &path);
+expected<std::string> readFile(const std::wstring &path);
 
 std::string ws2s(const std::wstring &ws, bool u8_instead_of_ansi = false);
 std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi = false);

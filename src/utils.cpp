@@ -32,15 +32,20 @@ std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi)
     return ws;
 }
 
-std::pair<bool, std::string> readFile(const std::wstring &path)
+nonstd::unexpected_type<error> make_unexpected(const std::string &s)
+{
+    return nonstd::unexpected_type<error>(s);
+}
+
+expected<std::string> readFile(const std::wstring &path)
 {
     std::ifstream in_file(path);
     if (!in_file) {
-        return {false, ""};
+        return make_unexpected("failed to open file");
     }
     std::stringstream ss;
     ss << in_file.rdbuf();
-    return {true, ss.str()};
+    return ss.str();
 }
 
 std::wstring getExeDir()

@@ -4,13 +4,6 @@
     "version-string": "0.1.0",
     "dependencies": [
         {
-            "name": "opencv4",
-            "default-features": true,
-            "features": [
-                "world"
-            ]
-        },
-        {
             "name": "imgui",
             "features": [
                 "opengl3-binding",
@@ -25,8 +18,6 @@
         "expected-lite",
         "glfw3",
         "implot",
-        "replxx-ce",
-        "antlr4-ce",
         "libtorch-ce",
         "python3-ce",
         "pybind11-ce",
