@@ -12,6 +12,7 @@ SpaceBeforeCtorInitializerColon: false
 SpaceBeforeRangeBasedForLoopColon: false
 SpaceBeforeInheritanceColon: false
 PointerAlignment: Left
+# QualifierAlignment: Right
 BraceWrapping:
   AfterClass: true
   AfterControlStatement: false
