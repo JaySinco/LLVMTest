@@ -30,8 +30,8 @@ const double syncmisalign = 0.1;   // maximum time mis-alignment before re-sync
 const double refreshfactor = 0.7;  // fraction of refresh available for simulation
 
 // model and data
-mjModel *m = NULL;
-mjData *d = NULL;
+mjModel* m = NULL;
+mjData* d = NULL;
 char filename[1000] = "";
 
 // abstract visualization
@@ -50,7 +50,7 @@ GLFWvidmode vmode;
 int windowpos[2];
 int windowsize[2];
 mjrContext con;
-GLFWwindow *window = NULL;
+GLFWwindow* window = NULL;
 mjuiState uistate;
 mjUI ui0, ui1;
 
@@ -498,7 +498,7 @@ void sensorshow(mjrRect rect)
 }
 
 // prepare info text
-void infotext(char *title, char *content, double interval)
+void infotext(char* title, char* content, double interval)
 {
     char tmp[20];
 
@@ -538,7 +538,7 @@ void infotext(char *title, char *content, double interval)
 }
 
 // sprintf forwarding, to avoid compiler warning in x-macro
-void printfield(char *str, void *ptr) { sprintf(str, "%g", *(mjtNum *)ptr); }
+void printfield(char* str, void* ptr) { sprintf(str, "%g", *(mjtNum*)ptr); }
 
 // update watch
 void watch(void)
@@ -908,7 +908,7 @@ void updatesettings(void)
 }
 
 // drop file callback
-void drop(GLFWwindow *window, int count, const char **paths)
+void drop(GLFWwindow* window, int count, const char** paths)
 {
     // make sure list is non-empty
     if (count > 0) {
@@ -928,7 +928,7 @@ void loadmodel(void)
 
     // load and compile
     char error[500] = "";
-    mjModel *mnew = 0;
+    mjModel* mnew = 0;
     if (strlen(filename) > 4 && !strcmp(filename + strlen(filename) - 4, ".mjb")) {
         mnew = mj_loadModel(filename, NULL);
         if (!mnew) strcpy(error, "could not load binary model");
@@ -990,7 +990,7 @@ void loadmodel(void)
 //--------------------------------- UI hooks (for uitools.c) ----------------------------
 
 // determine enable/disable item state given category
-int uiPredicate(int category, void *userdata)
+int uiPredicate(int category, void* userdata)
 {
     switch (category) {
         case 2:  // require model
@@ -1008,9 +1008,9 @@ int uiPredicate(int category, void *userdata)
 }
 
 // set window layout
-void uiLayout(mjuiState *state)
+void uiLayout(mjuiState* state)
 {
-    mjrRect *rect = state->rect;
+    mjrRect* rect = state->rect;
 
     // set number of rectangles
     state->nrect = 4;
@@ -1040,7 +1040,7 @@ void uiLayout(mjuiState *state)
 }
 
 // handle UI event
-void uiEvent(mjuiState *state)
+void uiEvent(mjuiState* state)
 {
     int i;
     char err[200];
@@ -1049,7 +1049,7 @@ void uiEvent(mjuiState *state)
     if ((state->dragrect == ui0.rectid) ||
         (state->dragrect == 0 && state->mouserect == ui0.rectid) || state->type == mjEVENT_KEY) {
         // process UI event
-        mjuiItem *it = mjui_event(&ui0, state, &con);
+        mjuiItem* it = mjui_event(&ui0, state, &con);
 
         // file section
         if (it && it->sectionid == SECT_FILE) {
@@ -1240,7 +1240,7 @@ void uiEvent(mjuiState *state)
     if ((state->dragrect == ui1.rectid) ||
         (state->dragrect == 0 && state->mouserect == ui1.rectid) || state->type == mjEVENT_KEY) {
         // process UI event
-        mjuiItem *it = mjui_event(&ui1, state, &con);
+        mjuiItem* it = mjui_event(&ui1, state, &con);
 
         // control section
         if (it && it->sectionid == SECT_CONTROL) {
@@ -1494,7 +1494,7 @@ void prepare(void)
 }
 
 // render im main thread (while simulating in background thread)
-void render(GLFWwindow *window)
+void render(GLFWwindow* window)
 {
     // get 3D rectangle and reduced for profiler
     mjrRect rect = uistate.rect[3];
@@ -1719,7 +1719,7 @@ void init(void)
 }
 
 // run event loop
-int main(int argc, const char **argv)
+int main(int argc, const char** argv)
 {
     // initialize everything
     init();

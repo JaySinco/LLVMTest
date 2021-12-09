@@ -24,13 +24,13 @@ extern "C" {
 #endif
 
 // User-supplied callback function types.
-typedef void (*uiEventFn)(mjuiState *state);
-typedef void (*uiLayoutFn)(mjuiState *state);
+typedef void (*uiEventFn)(mjuiState* state);
+typedef void (*uiLayoutFn)(mjuiState* state);
 
 // Container for GLFW window pointer.
 struct _uiUserPointer
 {
-    mjuiState *state;
+    mjuiState* state;
     uiEventFn uiEvent;
     uiLayoutFn uiLayout;
     double buffer2window;
@@ -38,16 +38,16 @@ struct _uiUserPointer
 typedef struct _uiUserPointer uiUserPointer;
 
 // Set internal and user-supplied UI callbacks in GLFW window.
-void uiSetCallback(GLFWwindow *wnd, mjuiState *state, uiEventFn uiEvent, uiLayoutFn uiLayout);
+void uiSetCallback(GLFWwindow* wnd, mjuiState* state, uiEventFn uiEvent, uiLayoutFn uiLayout);
 
 // Clear UI callbacks in GLFW window.
-void uiClearCallback(GLFWwindow *wnd);
+void uiClearCallback(GLFWwindow* wnd);
 
 // Compute suitable font scale.
-int uiFontScale(GLFWwindow *wnd);
+int uiFontScale(GLFWwindow* wnd);
 
 // Modify UI structure.
-void uiModify(GLFWwindow *wnd, mjUI *ui, mjuiState *state, mjrContext *con);
+void uiModify(GLFWwindow* wnd, mjUI* ui, mjuiState* state, mjrContext* con);
 
 #if defined(__cplusplus)
 }

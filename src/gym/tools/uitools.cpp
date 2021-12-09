@@ -19,11 +19,11 @@
 //-------------------------------- Internal GLFW callbacks ------------------------------
 
 // update state
-static void uiUpdateState(GLFWwindow *wnd)
+static void uiUpdateState(GLFWwindow* wnd)
 {
     // extract data from user pointer
-    uiUserPointer *ptr = (uiUserPointer *)glfwGetWindowUserPointer(wnd);
-    mjuiState *state = ptr->state;
+    uiUserPointer* ptr = (uiUserPointer*)glfwGetWindowUserPointer(wnd);
+    mjuiState* state = ptr->state;
 
     // mouse buttons
     state->left = (glfwGetMouseButton(wnd, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
@@ -66,14 +66,14 @@ static void uiUpdateState(GLFWwindow *wnd)
 }
 
 // keyboard
-static void uiKeyboard(GLFWwindow *wnd, int key, int scancode, int act, int mods)
+static void uiKeyboard(GLFWwindow* wnd, int key, int scancode, int act, int mods)
 {
     // release: nothing to do
     if (act == GLFW_RELEASE) return;
 
     // extract data from user pointer
-    uiUserPointer *ptr = (uiUserPointer *)glfwGetWindowUserPointer(wnd);
-    mjuiState *state = ptr->state;
+    uiUserPointer* ptr = (uiUserPointer*)glfwGetWindowUserPointer(wnd);
+    mjuiState* state = ptr->state;
 
     // update state
     uiUpdateState(wnd);
@@ -88,11 +88,11 @@ static void uiKeyboard(GLFWwindow *wnd, int key, int scancode, int act, int mods
 }
 
 // mouse button
-static void uiMouseButton(GLFWwindow *wnd, int button, int act, int mods)
+static void uiMouseButton(GLFWwindow* wnd, int button, int act, int mods)
 {
     // extract data from user pointer
-    uiUserPointer *ptr = (uiUserPointer *)glfwGetWindowUserPointer(wnd);
-    mjuiState *state = ptr->state;
+    uiUserPointer* ptr = (uiUserPointer*)glfwGetWindowUserPointer(wnd);
+    mjuiState* state = ptr->state;
 
     // update state
     uiUpdateState(wnd);
@@ -149,11 +149,11 @@ static void uiMouseButton(GLFWwindow *wnd, int button, int act, int mods)
 }
 
 // mouse move
-static void uiMouseMove(GLFWwindow *wnd, double xpos, double ypos)
+static void uiMouseMove(GLFWwindow* wnd, double xpos, double ypos)
 {
     // extract data from user pointer
-    uiUserPointer *ptr = (uiUserPointer *)glfwGetWindowUserPointer(wnd);
-    mjuiState *state = ptr->state;
+    uiUserPointer* ptr = (uiUserPointer*)glfwGetWindowUserPointer(wnd);
+    mjuiState* state = ptr->state;
 
     // no buttons down: nothing to do
     if (!state->left && !state->right && !state->middle) return;
@@ -169,11 +169,11 @@ static void uiMouseMove(GLFWwindow *wnd, double xpos, double ypos)
 }
 
 // scroll
-static void uiScroll(GLFWwindow *wnd, double xoffset, double yoffset)
+static void uiScroll(GLFWwindow* wnd, double xoffset, double yoffset)
 {
     // extract data from user pointer
-    uiUserPointer *ptr = (uiUserPointer *)glfwGetWindowUserPointer(wnd);
-    mjuiState *state = ptr->state;
+    uiUserPointer* ptr = (uiUserPointer*)glfwGetWindowUserPointer(wnd);
+    mjuiState* state = ptr->state;
 
     // update state
     uiUpdateState(wnd);
@@ -188,11 +188,11 @@ static void uiScroll(GLFWwindow *wnd, double xoffset, double yoffset)
 }
 
 // resize
-static void uiResize(GLFWwindow *wnd, int width, int height)
+static void uiResize(GLFWwindow* wnd, int width, int height)
 {
     // extract data from user pointer
-    uiUserPointer *ptr = (uiUserPointer *)glfwGetWindowUserPointer(wnd);
-    mjuiState *state = ptr->state;
+    uiUserPointer* ptr = (uiUserPointer*)glfwGetWindowUserPointer(wnd);
+    mjuiState* state = ptr->state;
 
     // set layout
     ptr->uiLayout(state);
@@ -214,7 +214,7 @@ static void uiResize(GLFWwindow *wnd, int width, int height)
 //----------------------------------- Public API ----------------------------------------
 
 // Compute suitable font scale.
-int uiFontScale(GLFWwindow *wnd)
+int uiFontScale(GLFWwindow* wnd)
 {
     // compute framebuffer-to-window ratio
     int width_win, width_buf, height;
@@ -243,10 +243,10 @@ int uiFontScale(GLFWwindow *wnd)
 }
 
 // Set internal and user-supplied UI callbacks in GLFW window.
-void uiSetCallback(GLFWwindow *wnd, mjuiState *state, uiEventFn uiEvent, uiLayoutFn uiLayout)
+void uiSetCallback(GLFWwindow* wnd, mjuiState* state, uiEventFn uiEvent, uiLayoutFn uiLayout)
 {
     // make container with user-supplied objects and set window pointer
-    uiUserPointer *ptr = (uiUserPointer *)mju_malloc(sizeof(uiUserPointer));
+    uiUserPointer* ptr = (uiUserPointer*)mju_malloc(sizeof(uiUserPointer));
     ptr->state = state;
     ptr->uiEvent = uiEvent;
     ptr->uiLayout = uiLayout;
@@ -267,7 +267,7 @@ void uiSetCallback(GLFWwindow *wnd, mjuiState *state, uiEventFn uiEvent, uiLayou
 }
 
 // Clear UI callbacks in GLFW window.
-void uiClearCallback(GLFWwindow *wnd)
+void uiClearCallback(GLFWwindow* wnd)
 {
     // clear container
     if (glfwGetWindowUserPointer(wnd)) {
@@ -284,7 +284,7 @@ void uiClearCallback(GLFWwindow *wnd)
 }
 
 // Modify UI structure.
-void uiModify(GLFWwindow *wnd, mjUI *ui, mjuiState *state, mjrContext *con)
+void uiModify(GLFWwindow* wnd, mjUI* ui, mjuiState* state, mjrContext* con)
 {
     mjui_resize(ui, con);
     mjr_addAux(ui->auxid, ui->width, ui->maxheight, ui->spacing.samples, con);

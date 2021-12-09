@@ -5,7 +5,7 @@
             "name": "Debug exe",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/parser-testing.exe",
+            "program": "${workspaceFolder}/bin/testing.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
@@ -16,15 +16,15 @@
                 "trace": true
             }
         },
-        {
-            "name": "Debug ANTLR4 grammar",
-            "type": "antlr-debug",
-            "request": "launch",
-            "input": "src/parser/input.txt",
-            "grammar": "src/parser/parsers.g4",
-            "startRule": "singleExpression",
-            "printParseTree": true,
-            "visualParseTree": true
-        }
+        // {
+        //     "name": "Debug ANTLR4 grammar",
+        //     "type": "antlr-debug",
+        //     "request": "launch",
+        //     "input": "src/parser/input.txt",
+        //     "grammar": "src/parser/parsers.g4",
+        //     "startRule": "singleExpression",
+        //     "printParseTree": true,
+        //     "visualParseTree": true
+        // }
     ]
 }

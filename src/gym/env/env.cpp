@@ -7,9 +7,9 @@
 
 namespace env
 {
-static Env *this_;
+static Env* this_;
 
-static void glfw_cb_keyboard(GLFWwindow *window, int key, int scancode, int act, int mods)
+static void glfw_cb_keyboard(GLFWwindow* window, int key, int scancode, int act, int mods)
 {
     if (ImGui::GetIO().WantCaptureKeyboard) {
         return;
@@ -20,7 +20,7 @@ static void glfw_cb_keyboard(GLFWwindow *window, int key, int scancode, int act,
     }
 }
 
-static void glfw_cb_mouse_button(GLFWwindow *window, int button, int act, int mods)
+static void glfw_cb_mouse_button(GLFWwindow* window, int button, int act, int mods)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
@@ -31,7 +31,7 @@ static void glfw_cb_mouse_button(GLFWwindow *window, int button, int act, int mo
     this_->button_right = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
 }
 
-static void glfw_cb_mouse_move(GLFWwindow *window, double xpos, double ypos)
+static void glfw_cb_mouse_move(GLFWwindow* window, double xpos, double ypos)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
@@ -63,12 +63,12 @@ static void glfw_cb_mouse_move(GLFWwindow *window, double xpos, double ypos)
     mjv_moveCamera(this_->m, action, dx / height, dy / height, &this_->scn, &this_->cam);
 }
 
-static void glfw_cb_scroll(GLFWwindow *window, double xoffset, double yoffset)
+static void glfw_cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
 {
     mjv_moveCamera(this_->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &this_->scn, &this_->cam);
 }
 
-Env::Env(const std::string &model_path, int frame_skip, bool show_ui)
+Env::Env(const std::string& model_path, int frame_skip, bool show_ui)
     : frame_skip(frame_skip), show_ui(show_ui)
 {
     this_ = this;
@@ -104,11 +104,11 @@ int Env::ob_space() const { return m->nq + m->nv; }
 
 torch::Tensor Env::get_observe()
 {
-    mjtNum *buf = new mjtNum[m->nq + m->nv];
+    mjtNum* buf = new mjtNum[m->nq + m->nv];
     std::memcpy(buf, d->qpos, sizeof(mjtNum) * m->nq);
     std::memcpy(buf + m->nq, d->qvel, sizeof(mjtNum) * m->nv);
     auto ob = torch::from_blob(
-        buf, {1, m->nq + m->nv}, [](void *buf) { delete[](mjtNum *) buf; }, torch::kFloat64);
+        buf, {1, m->nq + m->nv}, [](void* buf) { delete[](mjtNum*) buf; }, torch::kFloat64);
     ob = ob.to(torch::kFloat32);
     return ob;
 }
@@ -128,7 +128,7 @@ void Env::do_step(torch::Tensor action)
     }
 }
 
-void Env::report(const Progress &data)
+void Env::report(const Progress& data)
 {
     std::lock_guard guard(mtx);
     progress_data.push_back(data);
@@ -201,7 +201,7 @@ void Env::render()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImPlot::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
+    ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
     io.Fonts->AddFontFromFileTTF((__DIRNAME__ / "cascadia-code.ttf").string().c_str(), 13.0);
     ImGui::StyleColorsDark();
@@ -243,17 +243,17 @@ void Env::render()
                               ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
 
             lock.lock();
-            auto tries_cb = [](void *data, int idx) {
+            auto tries_cb = [](void* data, int idx) {
                 return ImPlotPoint{
                     static_cast<double>(idx),
                     static_cast<double>(
-                        reinterpret_cast<std::vector<Progress> *>(data)->at(idx).tries)};
+                        reinterpret_cast<std::vector<Progress>*>(data)->at(idx).tries)};
             };
             ImPlot::PlotLineG("tries", tries_cb, &progress_data, progress_data.size());
-            auto score_cb = [](void *data, int idx) {
+            auto score_cb = [](void* data, int idx) {
                 return ImPlotPoint{
                     static_cast<double>(idx),
-                    reinterpret_cast<std::vector<Progress> *>(data)->at(idx).score_avg};
+                    reinterpret_cast<std::vector<Progress>*>(data)->at(idx).score_avg};
             };
             ImPlot::PlotLineG("score", score_cb, &progress_data, progress_data.size());
             lock.unlock();

@@ -12,17 +12,16 @@ public:
 
     torch::Tensor get_observe() override
     {
-        mjtNum *buf = new mjtNum[m->nq - 1 + m->nv];
+        mjtNum* buf = new mjtNum[m->nq - 1 + m->nv];
         std::memcpy(buf, d->qpos + 1, sizeof(mjtNum) * (m->nq - 1));
         std::memcpy(buf + m->nq - 1, d->qvel, sizeof(mjtNum) * m->nv);
         auto ob = torch::from_blob(
-            buf, {1, m->nq - 1 + m->nv}, [](void *buf) { delete[](mjtNum *) buf; },
-            torch::kFloat64);
+            buf, {1, m->nq - 1 + m->nv}, [](void* buf) { delete[](mjtNum*) buf; }, torch::kFloat64);
         ob = ob.to(torch::kFloat32);
         return ob;
     }
 
-    bool step(torch::Tensor action, double &reward) override
+    bool step(torch::Tensor action, double& reward) override
     {
         mjtNum posbefore = d->qpos[0];
         do_step(action);

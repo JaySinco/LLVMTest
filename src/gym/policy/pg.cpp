@@ -19,7 +19,7 @@ torch::Tensor Actor::forward(torch::Tensor x)
     return mu;
 }
 
-PG::PG(env::Env &env, const HyperParams &hp)
+PG::PG(env::Env& env, const HyperParams& hp)
     : Policy(env),
       actor(env.ob_space(), env.act_space(), hp.hidden),
       opt(actor.parameters(), hp.lr),
@@ -106,7 +106,7 @@ void PG::learn(torch::Tensor observe, torch::Tensor action, torch::Tensor reward
 
     actor.train();
     for (int e = 0; e < hp.epochs; ++e) {
-        for (auto &batch: *loader) {
+        for (auto& batch: *loader) {
             auto ob = batch.data.slice(1, 0, observe.size(1));
             auto act = batch.data.slice(1, observe.size(1));
             auto mu = actor.forward(ob);

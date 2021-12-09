@@ -6,7 +6,7 @@
 
 namespace utils
 {
-std::string ws2s(const std::wstring &ws, bool u8_instead_of_ansi)
+std::string ws2s(const std::wstring& ws, bool u8_instead_of_ansi)
 {
     UINT page = u8_instead_of_ansi ? CP_UTF8 : CP_ACP;
     int len = WideCharToMultiByte(page, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
@@ -19,7 +19,7 @@ std::string ws2s(const std::wstring &ws, bool u8_instead_of_ansi)
     return s;
 }
 
-std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi)
+std::wstring s2ws(const std::string& s, bool u8_instead_of_ansi)
 {
     UINT page = u8_instead_of_ansi ? CP_UTF8 : CP_ACP;
     int len = MultiByteToWideChar(page, 0, s.c_str(), -1, nullptr, 0);
@@ -32,12 +32,12 @@ std::wstring s2ws(const std::string &s, bool u8_instead_of_ansi)
     return ws;
 }
 
-nonstd::unexpected_type<error> make_unexpected(const std::string &s)
+nonstd::unexpected_type<error> make_unexpected(const std::string& s)
 {
     return nonstd::unexpected_type<error>(s);
 }
 
-expected<std::string> readFile(const std::wstring &path)
+expected<std::string> readFile(const std::wstring& path)
 {
     std::ifstream in_file(path);
     if (!in_file) {
@@ -63,7 +63,7 @@ static const std::string base64_chars =
 
 static inline bool is_base64(BYTE c) { return (isalnum(c) || (c == '+') || (c == '/')); }
 
-std::string base64_encode(const unsigned char *buf, unsigned int bufLen)
+std::string base64_encode(const unsigned char* buf, unsigned int bufLen)
 {
     std::string ret;
     int i = 0;
@@ -100,7 +100,7 @@ std::string base64_encode(const unsigned char *buf, unsigned int bufLen)
     return ret;
 }
 
-std::vector<unsigned char> base64_decode(const std::string &encoded_string)
+std::vector<unsigned char> base64_decode(const std::string& encoded_string)
 {
     int in_len = encoded_string.size();
     int i = 0;

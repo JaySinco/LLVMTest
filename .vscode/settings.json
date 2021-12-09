@@ -20,6 +20,7 @@
         "deps": true,
     },
     "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.clang_format_path": "clang-format.exe",
     "C_Cpp.default.includePath": [
         "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include",
         "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/python3",

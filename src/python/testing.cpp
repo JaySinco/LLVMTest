@@ -7,7 +7,7 @@
 namespace py = pybind11;
 using namespace py::literals;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     py::scoped_interpreter guard{};
     py::module_ plt = py::module_::import("matplotlib.pyplot");
     std::vector<float> buf = {8, 11, 1, 5, 6, 7};
-    auto capsule = py::capsule(buf.data(), [](void *v) {});
+    auto capsule = py::capsule(buf.data(), [](void* v) {});
     py::array_t<float> arr({3, 2}, {sizeof(float) * 2, sizeof(float)}, buf.data(), capsule);
     py::print(arr);
     plt.attr("subplot")(1, 2, 1);

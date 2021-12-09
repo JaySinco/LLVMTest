@@ -12,7 +12,7 @@ namespace py = pybind11;
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
 public:
-    explicit FashionMnistDataset(const std::wstring &dataRoot, bool train = true)
+    explicit FashionMnistDataset(const std::wstring& dataRoot, bool train = true)
     {
         std::wstring imagesPath =
             dataRoot + (train ? L"train-images-idx3-ubyte" : L"t10k-images-idx3-ubyte");
@@ -39,7 +39,7 @@ public:
         this->show(indexList);
     }
 
-    void show(const std::vector<size_t> &indexList, int ncols = 5)
+    void show(const std::vector<size_t>& indexList, int ncols = 5)
     {
         py::scoped_interpreter guard{};
         py::module_ plt = py::module_::import("matplotlib.pyplot");
@@ -47,10 +47,10 @@ public:
             size_t index = indexList[i];
             auto sample = this->data[index][0];
             sample = sample.to(torch::kCPU);
-            auto capsule = py::capsule(sample.data_ptr(), [](void *v) {});
+            auto capsule = py::capsule(sample.data_ptr(), [](void* v) {});
             py::array_t<uint8_t> arr({sample.size(0), sample.size(1)},
                                      {sizeof(uint8_t) * sample.size(1), sizeof(uint8_t)},
-                                     static_cast<const uint8_t *>(sample.data_ptr()), capsule);
+                                     static_cast<const uint8_t*>(sample.data_ptr()), capsule);
             int nrows = std::ceil(indexList.size() / float(ncols));
             auto ax = plt.attr("subplot")(nrows, ncols, i + 1);
             int label = this->target[index].item<int>();
@@ -76,13 +76,13 @@ private:
         return ((int32_t)c1 << 24) + ((int32_t)c2 << 16) + ((int32_t)c3 << 8) + c4;
     }
 
-    void readImages(const std::wstring &path)
+    void readImages(const std::wstring& path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);
         int32_t header[4] = {0};
         for (int i = 0; i < 4; ++i) {
-            file.read((char *)&header[i], sizeof(int32_t));
+            file.read((char*)&header[i], sizeof(int32_t));
             header[i] = reverseInt(header[i]);
         }
         int32_t images = header[1];
@@ -93,30 +93,30 @@ private:
         size_t numel = images * rows * cols;
         auto buf = new unsigned char[numel]{0};
         for (int32_t i = 0; i < images; ++i) {
-            file.read((char *)&buf[i * rows * cols], sizeof(unsigned char) * rows * cols);
+            file.read((char*)&buf[i * rows * cols], sizeof(unsigned char) * rows * cols);
         }
         this->data = torch::from_blob(
-            buf, {images, 1, rows, cols}, [](void *buf) { delete[](unsigned char *) buf; },
+            buf, {images, 1, rows, cols}, [](void* buf) { delete[](unsigned char*) buf; },
             torch::kUInt8);
     }
 
-    void readLabels(const std::wstring &path)
+    void readLabels(const std::wstring& path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);
         int32_t header[2] = {0};
         for (int i = 0; i < 2; ++i) {
-            file.read((char *)&header[i], sizeof(int32_t));
+            file.read((char*)&header[i], sizeof(int32_t));
             header[i] = reverseInt(header[i]);
         }
         int32_t items = header[1];
         std::cout << fmt::format("Read {} labels from {}\n", items, utils::ws2s(path));
         auto buf = new unsigned char[items]{0};
         for (int32_t i = 0; i < items; ++i) {
-            file.read((char *)&buf[i], sizeof(unsigned char));
+            file.read((char*)&buf[i], sizeof(unsigned char));
         }
         torch::Tensor labels = torch::from_blob(
-            buf, {items}, [](void *buf) { delete[](unsigned char *) buf; }, torch::kUInt8);
+            buf, {items}, [](void* buf) { delete[](unsigned char*) buf; }, torch::kUInt8);
         this->target = labels.to(torch::kLong);
     }
 
@@ -170,12 +170,12 @@ struct Net: torch::nn::Module
 };
 
 template <typename DataLoader>
-void train(int32_t epoch, Net &model, torch::Device device, DataLoader &data_loader,
-           torch::optim::Optimizer &optimizer, size_t dataset_size)
+void train(int32_t epoch, Net& model, torch::Device device, DataLoader& data_loader,
+           torch::optim::Optimizer& optimizer, size_t dataset_size)
 {
     model.train();
     size_t batch_idx = 0;
-    for (auto &batch: data_loader) {
+    for (auto& batch: data_loader) {
         auto data = batch.data.to(device), targets = batch.target.to(device);
         optimizer.zero_grad();
         auto output = model.forward(data);
@@ -193,13 +193,13 @@ void train(int32_t epoch, Net &model, torch::Device device, DataLoader &data_loa
 }
 
 template <typename DataLoader>
-void test(Net &model, torch::Device device, DataLoader &data_loader, size_t dataset_size)
+void test(Net& model, torch::Device device, DataLoader& data_loader, size_t dataset_size)
 {
     torch::NoGradGuard no_grad;
     model.eval();
     double test_loss = 0;
     int32_t correct = 0;
-    for (const auto &batch: data_loader) {
+    for (const auto& batch: data_loader) {
         auto data = batch.data.to(device), targets = batch.target.to(device);
         auto output = model.forward(data);
         test_loss +=
@@ -264,7 +264,7 @@ void fashion_mnist()
     outArch.save_to(saved_model_path);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;

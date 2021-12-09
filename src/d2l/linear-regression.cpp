@@ -40,7 +40,7 @@ void linear_regression()
     auto optimizer = torch::optim::SGD(net->parameters(), lr);
 
     for (int i = 0; i < nEpoch; ++i) {
-        for (auto &batch: *loader) {
+        for (auto& batch: *loader) {
             auto l = loss->forward(net->forward(batch.data), batch.target);
             optimizer.zero_grad();
             l.backward();
@@ -54,7 +54,7 @@ void linear_regression()
     std::cout << "b =" << layer0->bias.data() << std::endl;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
