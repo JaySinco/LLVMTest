@@ -1,5 +1,5 @@
-#include "../utils.h"
 #include "prec.h"
+#include "../utils.h"
 #include <fstream>
 #include <random>
 #include <filesystem>

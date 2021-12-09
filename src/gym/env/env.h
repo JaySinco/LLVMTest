@@ -1,6 +1,6 @@
 #pragma once
-#include "../../utils.h"
 #include "../prec.h"
+#include "../../utils.h"
 #include "mujoco/mujoco.h"
 #include "GLFW/glfw3.h"
 #include <string>

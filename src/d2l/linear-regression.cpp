@@ -1,5 +1,5 @@
-#include "../utils.h"
 #include "prec.h"
+#include "../utils.h"
 
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {
