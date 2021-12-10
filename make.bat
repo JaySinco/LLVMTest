@@ -19,9 +19,9 @@ IF NOT EXIST %OUTDIR% (MKDIR %OUTDIR%)
 PUSHD %OUTDIR%
 cmake -G Ninja ^
     -DVCPKG_ROOT_DIR=%~dp0deps\vcpkg ^
-    -DCMAKE_C_COMPILER="clang-cl" ^
-    -DCMAKE_CXX_COMPILER="clang-cl" ^
-    -DCMAKE_LINKER="lld-link" ^
+    -DCMAKE_C_COMPILER="C:/Program Files/LLVM/bin/clang-cl.exe" ^
+    -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang-cl.exe" ^
+    -DCMAKE_LINKER="C:/Program Files/LLVM/bin/lld-link.exe" ^
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%~dp0%BINDIR%\ ^
     -DCMAKE_BUILD_TYPE=Debug ^
     ..

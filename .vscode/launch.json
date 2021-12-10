@@ -15,16 +15,6 @@
                 "moduleLoad": true,
                 "trace": true
             }
-        },
-        // {
-        //     "name": "Debug ANTLR4 grammar",
-        //     "type": "antlr-debug",
-        //     "request": "launch",
-        //     "input": "src/parser/input.txt",
-        //     "grammar": "src/parser/parsers.g4",
-        //     "startRule": "singleExpression",
-        //     "printParseTree": true,
-        //     "visualParseTree": true
-        // }
+        }
     ]
 }
