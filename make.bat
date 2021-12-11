@@ -13,7 +13,7 @@ PUSHD C:\Program Files (x86)\Microsoft Visual Studio\2019\Community
 CALL VC\Auxiliary\Build\vcvars64.bat
 POPD
 
-@REM FOR /R %~dp0src %%f IN (*.h *.cpp) DO (clang-format.exe -i %%f)
+@REM FOR /R %~dp0src %%f IN (*.h *.cpp) DO ("C:/Program Files/LLVM/bin/clang-format.exe" -i %%f)
 
 IF NOT EXIST %OUTDIR% (MKDIR %OUTDIR%)
 PUSHD %OUTDIR%
