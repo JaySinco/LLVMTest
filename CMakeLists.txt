@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
 
-set(VCPKG_MANIFEST_MODE OFF)
 set(VCPKG_APPLOCAL_DEPS ON)
 set(VCPKG_VERBOSE ON)
 set(VCPKG_HOST_TRIPLET "x64-windows")

@@ -1,32 +1,46 @@
-@ECHO OFF
+@echo off
+goto run
+:usage
+echo.usage: %~nx0 [flags] [target]
+echo.
+echo.Available flags:
+echo.  -h  display this help message
+echo.  -d  delete cmake cache file
+echo.  -m  enable vcpkg manifest mode
+echo.
+goto end
 
-SET OUTDIR=out
-SET BINDIR=bin
-SET LLVMBIN=C:/Program Files/LLVM/bin
+:run
+set DIR=%~dp0
+set OUTDIR=out
+set BINDIR=bin
+set LLVMBIN=C:/Program Files/LLVM/bin
+set CMAKECACHE=%OUTDIR%\CMakeCache.txt
+set MANIFEST=off
 
-IF "%1" == "clean" (
-    IF EXIST %OUTDIR% (RMDIR /S/Q %OUTDIR%)
-    IF EXIST %BINDIR% (RMDIR /S/Q %BINDIR%)
-    GOTO end
-)
+:flags
+if "%~1"=="-h" goto usage
+if "%~1"=="-d" if exist %CMAKECACHE% del /q/s %CMAKECACHE% & shift & goto flags
+if "%~1"=="-m" (set MANIFEST=on) & shift & goto flags
 
-PUSHD C:\Program Files (x86)\Microsoft Visual Studio\2019\Community
-CALL VC\Auxiliary\Build\vcvars64.bat
-POPD
+pushd C:\Program Files (x86)\Microsoft Visual Studio\2019\Community
+call VC\Auxiliary\Build\vcvars64.bat
+popd
 
-FOR /R %~dp0src %%f IN (*.h *.cpp) DO ("%LLVMBIN%/clang-format.exe" -i %%f)
+for /r %DIR%src %%f in (*.h *.cpp) do "%LLVMBIN%/clang-format.exe" -i %%f
 
-IF NOT EXIST %OUTDIR% (MKDIR %OUTDIR%)
-PUSHD %OUTDIR%
+if not exist %OUTDIR% mkdir %OUTDIR%
+pushd %OUTDIR%
 cmake -G Ninja ^
-    -DVCPKG_ROOT_DIR=%~dp0deps\vcpkg ^
+    -DVCPKG_ROOT_DIR=%DIR%deps\vcpkg ^
+    -DVCPKG_MANIFEST_MODE=%MANIFEST% ^
     -DCMAKE_C_COMPILER="%LLVMBIN%/clang-cl.exe" ^
     -DCMAKE_CXX_COMPILER="%LLVMBIN%/clang-cl.exe" ^
     -DCMAKE_LINKER="%LLVMBIN%/lld-link.exe" ^
-    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%~dp0%BINDIR%\ ^
+    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%DIR%%BINDIR%\ ^
     -DCMAKE_BUILD_TYPE=Debug ^
     ..
-IF %ERRORLEVEL% == 0 (ninja %1)
-POPD
+if %ERRORLEVEL% == 0 (ninja %1)
+popd
 
 :end
