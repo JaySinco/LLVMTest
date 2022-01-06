@@ -10,10 +10,7 @@
                 "glfw-binding"
             ]
         },
-        {
-            "name": "python3-ce",
-            "version>=": "3.8.10#1"
-        },
+        "python3-ce",
         "fmt",
         "gflags",
         "glog",
@@ -24,7 +21,8 @@
         "implot",
         "libtorch-ce",
         "pybind11-ce",
-        "mujoco-ce"
+        "mujoco-ce",
+        "libxl-ce"
     ],
-    "builtin-baseline": "98dd7a15ea183c3b6a6554da2329f4421cef9f71"
+    "builtin-baseline": "1df6e8011c990e69f83ddbeeef2929528ae15a65"
 }

@@ -35,7 +35,7 @@ cmake -G Ninja ^
     -DCMAKE_C_COMPILER="%llvmbin%/clang-cl.exe" ^
     -DCMAKE_CXX_COMPILER="%llvmbin%/clang-cl.exe" ^
     -DCMAKE_LINKER="%llvmbin%/lld-link.exe" ^
-    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%dir%%bindir%\ ^
+    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%dir%%bindir% ^
     -DCMAKE_BUILD_TYPE=Debug ^
     ..
 if %errorlevel% == 0 (ninja %1)
