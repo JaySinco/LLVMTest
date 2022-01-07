@@ -15,7 +15,7 @@ set(PYTHON_TARGET_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CURRENT_DIR_NAME})
 if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     execute_process(
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/extras/python3/
+            ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/etc/python3/
             ${PYTHON_TARGET_DIR}/
         COMMAND_ERROR_IS_FATAL ANY
     )
