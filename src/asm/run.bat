@@ -5,7 +5,7 @@ set out=%~dp0out
 set vhd=%out%\vm.vhd
 set vhdsize=64
 set mkvhd=%out%\create_vhd.txt
-set bxrc=%~dp0bochsrc.bxrc
+set bxrc=%~dp0vm.bxrc
 
 if not exist %out% mkdir %out%
 if not exist %vhd% (
