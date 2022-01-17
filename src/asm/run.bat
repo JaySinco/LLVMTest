@@ -1,6 +1,17 @@
 @echo off
 
-if not exist %~dp0out mkdir %~dp0out
-nasm -f bin -o %~dp0out\test.bin %~dp0test.asm
-fvw -r %~dp0out\test.bin -w %~dp0vm\vm.vhd -a 0
-bochsdbg.exe -q -f %~dp0bochsrc.bxrc
+set src=boot
+set out=%~dp0out
+set vhd=%out%\vm.vhd
+set vhdsize=64
+set mkvhd=%out%\create_vhd.txt
+set bxrc=%~dp0bochsrc.bxrc
+
+if not exist %out% mkdir %out%
+if not exist %vhd% (
+    echo create vdisk file=%vhd% maximum=%vhdsize% > %mkvhd%
+    diskpart /s %mkvhd%
+)
+nasm -f bin -o %out%\%src%.bin %~dp0%src%.asm && ^
+%~dp0..\..\bin\fixed-vhd-writer.exe -r %out%\%src%.bin -w %vhd% -a 0 && ^
+bochsdbg.exe -q -f %bxrc%
