@@ -7,7 +7,7 @@ vgaromimage: file="$BXSHARE/VGABIOS-lgpl-latest"
 
 # hard disk
 ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
-ata0-master: type=disk, path="./src/asm/out/vm.vhd", cylinders=963, heads=8, spt=17
+ata0-master: type=disk, mode=vpc, path="./src/asm/out/vm.vhd", cylinders=963, heads=8, spt=17
 
 # choose the boot disk.
 boot: disk
