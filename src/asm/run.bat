@@ -14,4 +14,4 @@ if not exist %vhd% (
 )
 nasm -f bin -o %out%\%src%.bin %~dp0%src%.asm && ^
 %~dp0..\..\bin\fixed-vhd-writer.exe -r %out%\%src%.bin -w %vhd% -a 0 && ^
-bochsdbg.exe -q -f %bxrc%
+bochs.exe -q -f %bxrc%
