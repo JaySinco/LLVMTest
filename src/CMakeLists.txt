@@ -15,11 +15,10 @@ target_link_libraries(utils PUBLIC
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/glog.lib
 )
 
-add_executable(testing testing.cpp)
+add_executable(testing testing.cpp t.asm)
 
 target_link_libraries(testing utils)
 
 add_subdirectory(python)
 add_subdirectory(d2l)
 add_subdirectory(gym)
-add_subdirectory(asm)
