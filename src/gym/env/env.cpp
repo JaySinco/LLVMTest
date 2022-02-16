@@ -216,7 +216,7 @@ void Env::render()
     mjr_makeContext(m, &con, mjFONTSCALE_50);
     align_scale();
     mjv_defaultFigure(&figscore);
-    strcpy(figscore.yformat, "%.0f");
+    strcpy_s(figscore.yformat, "%.0f");
     figscore.figurergba[3] = 0.5f;
     figscore.gridsize[0] = 3;
     figscore.gridsize[1] = 5;
