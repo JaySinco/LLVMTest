@@ -1,6 +1,3 @@
-set(TORCH_ROOT_DIR ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/etc/libtorch/)
-find_package(Torch REQUIRED PATHS ${TORCH_ROOT_DIR}/share/cmake/)
-
 add_library(utils utils.cpp)
 
 target_compile_options(utils PUBLIC -Wno-ignored-attributes)
@@ -16,7 +13,6 @@ target_link_libraries(utils PUBLIC
 )
 
 add_executable(testing testing.cpp t.asm)
-
 target_link_libraries(testing utils)
 
 add_subdirectory(python)

@@ -8,7 +8,9 @@ target_link_libraries(mujoco INTERFACE
 )
 
 add_executable(simulate tools/uitools.cpp tools/simulate.cpp)
+
 target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
+
 target_link_libraries(simulate utils mujoco)
 
 add_executable(${CURRENT_DIR_NAME}-testing
@@ -17,7 +19,9 @@ add_executable(${CURRENT_DIR_NAME}-testing
     policy/pg.cpp
     testing.cpp
 )
+
 target_precompile_headers(${CURRENT_DIR_NAME}-testing PRIVATE prec.h)
+
 target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch opengl32.lib
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/imgui.lib
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/implot.lib
