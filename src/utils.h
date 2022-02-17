@@ -27,6 +27,15 @@ using expected = nonstd::expected<T, error>;
 
 nonstd::unexpected_type<error> make_unexpected(const std::string& s);
 
+template <class... Ts>
+struct overloaded: Ts...
+{
+    using Ts::operator()...;
+};
+
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
 std::wstring getExeDir();
 
 expected<std::string> readFile(const std::wstring& path);
