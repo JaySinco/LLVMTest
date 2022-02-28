@@ -15,6 +15,5 @@ target_link_libraries(utils PUBLIC
 add_executable(testing testing.cpp)
 target_link_libraries(testing utils)
 
-add_subdirectory(python)
-add_subdirectory(d2l)
+add_subdirectory(py3)
 add_subdirectory(gym)
