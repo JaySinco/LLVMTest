@@ -5,6 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include",
                 "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/python3",
+                "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/qt5",
                 "${workspaceFolder}/deps/vcpkg/installed/x64-windows/etc/libtorch/include/",
                 "${workspaceFolder}/deps/vcpkg/installed/x64-windows/etc/libtorch/include/torch/csrc/api/include/"
             ],
