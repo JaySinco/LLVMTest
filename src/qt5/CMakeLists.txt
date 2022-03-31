@@ -6,6 +6,9 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt5Widgets CONFIG REQUIRED)
 
-add_executable(${CURRENT_DIR_NAME}-testing testing.cpp)
+add_executable(${CURRENT_DIR_NAME}-testing
+    find-dialog.cpp
+    testing.cpp
+)
 
 target_link_libraries(${CURRENT_DIR_NAME}-testing utils Qt5::Widgets)
