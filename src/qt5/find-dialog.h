@@ -18,7 +18,7 @@ signals:
     void findPrevious(const QString& str, Qt::CaseSensitivity cs);
 
 private slots:
-    void findClicked();
+    void on_findButton_clicked();
     void enableFindButton(const QString& text);
 
 private:

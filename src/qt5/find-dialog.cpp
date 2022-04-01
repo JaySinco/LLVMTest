@@ -43,7 +43,7 @@ FindDialog::FindDialog(QWidget* parent): QDialog(parent)
     setFixedHeight(sizeHint().height());
 }
 
-void FindDialog::findClicked()
+void FindDialog::on_findButton_clicked()
 {
     QString text = lineEdit->text();
     Qt::CaseSensitivity cs = caseCheckBox->isChecked() ? Qt::CaseSensitive : Qt::CaseInsensitive;
