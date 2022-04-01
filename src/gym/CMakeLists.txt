@@ -39,6 +39,8 @@ add_executable(${CURRENT_DIR_NAME}-testing
     testing.cpp
 )
 
+target_compile_options(${CURRENT_DIR_NAME}-testing PRIVATE -Wno-nonportable-include-path)
+
 target_precompile_headers(${CURRENT_DIR_NAME}-testing PRIVATE prec.h)
 
 target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch opengl32.lib
@@ -47,7 +49,7 @@ target_link_libraries(${CURRENT_DIR_NAME}-testing utils mujoco libtorch opengl32
 )
 
 add_executable(simulate testbed/uitools.cpp testbed/simulate.cpp)
-target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
+target_compile_options(simulate PRIVATE -Wno-deprecated-declarations -Wno-nonportable-include-path)
 target_link_libraries(simulate utils mujoco)
 
 add_executable(linear-regression testbed/linear-regression.cpp)
