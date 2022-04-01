@@ -10,6 +10,12 @@
                 "glfw-binding"
             ]
         },
+        {
+            "name": "qt5",
+            "features": [
+                "essentials"
+            ]
+        },
         "fmt",
         "gflags",
         "glog",
@@ -17,7 +23,6 @@
         "boost-algorithm",
         "expected-lite",
         "glfw3",
-        "qt5-base",
         "implot",
         "python3-ce",
         "libtorch-ce",
