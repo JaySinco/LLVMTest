@@ -1,21 +1,11 @@
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-
-add_library(${CURRENT_DIR_NAME} INTERFACE)
-
-target_include_directories(${CURRENT_DIR_NAME} INTERFACE
-    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/python3
-)
-
-target_link_libraries(${CURRENT_DIR_NAME} INTERFACE
-    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/python38.lib
-)
-
 set(PYTHON_TARGET_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CURRENT_DIR_NAME})
+set(TESTING_EXE ${CURRENT_DIR_NAME}-testing)
 
 if(NOT EXISTS ${PYTHON_TARGET_DIR}/python.exe)
     execute_process(
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/etc/python3/
+            ${PROTO_VCPKG_PREFIX}/etc/python3/
             ${PYTHON_TARGET_DIR}/
         COMMAND_ERROR_IS_FATAL ANY
     )
@@ -43,5 +33,5 @@ file(WRITE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/python38._pth
     ".\n"
 )
 
-add_executable(${CURRENT_DIR_NAME}-testing testing.cpp)
-target_link_libraries(${CURRENT_DIR_NAME}-testing utils ${CURRENT_DIR_NAME})
+add_executable(${TESTING_EXE} testing.cpp)
+target_link_libraries(${TESTING_EXE} utils deps_python3)
