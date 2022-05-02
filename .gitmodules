@@ -1,3 +1,0 @@
-[submodule "deps/vcpkg"]
-	path = deps/vcpkg
-	url = git@github.com:JaySinco/vcpkg.git

@@ -1,6 +1,12 @@
 {
+    "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'monospace', monospace",
+    "editor.fontLigatures": false,
+    "editor.fontSize": 15,
+    "editor.fontWeight": "400",
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_path": "C:/Program Files/LLVM/bin/clang-format.exe",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
     "files.exclude": {
         "{bin,out}": true,
         "deps/vcpkg/*": true,
@@ -8,5 +14,5 @@
     "files.watcherExclude": {
         "{bin,out,dpes}": true,
     },
-    "files.trimTrailingWhitespace": true,
+    "files.trimTrailingWhitespace": true
 }
