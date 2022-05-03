@@ -1,21 +1,16 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include",
-                "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/python3",
-                "${workspaceFolder}/deps/vcpkg/installed/x64-windows/include/qt5",
-                "${workspaceFolder}/deps/vcpkg/installed/x64-windows/etc/libtorch/include/",
-                "${workspaceFolder}/deps/vcpkg/installed/x64-windows/etc/libtorch/include/torch/csrc/api/include/",
-                "${workspaceFolder}/out/src/qt5/qt5-testing_autogen/include"
-            ],
-            "defines": [
-                "UNICODE"
+                "${workspaceFolder}/deps/linux/gflags/include",
+                "${workspaceFolder}/deps/linux/glog/include",
+                "${workspaceFolder}/deps/linux/fmt/include",
+                "${workspaceFolder}/deps/linux/expected-lite/include"
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "gcc-x64"
         }
     ],
     "version": 4
