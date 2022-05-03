@@ -1,30 +1,21 @@
 #!/bin/bash
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_ROOT="$(git rev-parse --show-toplevel)"
-DOCKER_IMAGE_TAG=build:v1
+PROJECT_ROOT=$SCRIPT_DIR
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -h|--help)
+            echo
             echo "Usage: build.sh [options]"
             echo
             echo "Options:"
-            echo "  -d, --docker          build docker image"
-            echo "  -r, --run             run docker image"
+            echo "  -m, --mount           mount vbox share folder"
             echo "  -t, --target [...]    target to be built"
             echo "  -h, --help            print command line options (currently set)"
             echo
             exit 0
-            ;;
-        -d|--docker)
-            DOCKER_BUILD=YES
-            shift
-            ;;
-        -r|--run)
-            DOCKER_RUN=YES
-            shift
             ;;
         -t|--target)
             BUILD_TARGET="$2"
@@ -42,12 +33,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ ! -z ${DOCKER_BUILD+x} ]; then
-    docker build -f $PROJECT_ROOT/Dockerfile -t $DOCKER_IMAGE_TAG $PROJECT_ROOT
-    exit 0
-fi
-
-if [ ! -z ${DOCKER_RUN+x} ]; then
-    docker run -it --rm -v $PROJECT_ROOT:/code $DOCKER_IMAGE_TAG
-    exit 0
-fi
+# vbox share folder
+mkdir -p /media/jaysinco/share
+grep -q 'init-vbox-share' /etc/fstab || printf '# init-vbox-share\nshare    /media/jaysinco/share    vboxsf    defaults,uid=1000,gid=1000    0    0\n' >> /etc/fstab

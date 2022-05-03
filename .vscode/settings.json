@@ -1,7 +1,7 @@
 {
     "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'monospace', monospace",
     "editor.fontLigatures": false,
-    "editor.fontSize": 15,
+    "editor.fontSize": 14,
     "editor.fontWeight": "400",
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_path": "C:/Program Files/LLVM/bin/clang-format.exe",
