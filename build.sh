@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 POSITIONAL_ARGS=()
@@ -59,19 +61,17 @@ if [ ! -z ${UMOUNT_VBOX_SHARE+x} ]; then
 fi
 
 if [ ! -z ${BUILD_CLEAN+x} ]; then
-    pushd $PROJECT_ROOT/out
-    make clean
-    popd
+    pushd $PROJECT_ROOT/out && make clean && popd
     exit 0
 fi
 
-pushd $PROJECT_ROOT
-find src -iname *.h -or -iname *.cpp | xargs clang-format -i
-mkdir -p out
-pushd out
-cmake -G "Unix Makefiles" .. \
+pushd $PROJECT_ROOT \
+&& find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
+&& mkdir -p out \
+&& pushd out \
+&& cmake -G "Unix Makefiles" .. \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=debug \
-&& make -j`nproc` $BUILD_TARGET
-popd
-popd
+&& make -j`nproc` $BUILD_TARGET \
+&& popd \
+&& popd
