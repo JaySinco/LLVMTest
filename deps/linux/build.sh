@@ -11,4 +11,8 @@ $SCRIPT_DIR/fmt/build.sh && \
 $SCRIPT_DIR/expected-lite/build.sh && \
 $SCRIPT_DIR/openssl/build.sh && \
 $SCRIPT_DIR/zlib/build.sh && \
+$SCRIPT_DIR/sqlite3/build.sh && \
+$SCRIPT_DIR/libffi/build.sh && \
+$SCRIPT_DIR/python3/build.sh && \
+$SCRIPT_DIR/pybind11/build.sh && \
 echo done!

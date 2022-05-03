@@ -13,20 +13,20 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: build.sh [options]"
             echo
             echo "Options:"
-            echo "  -m, --mount           mount vbox share folder"
-            echo "  -u, --umount          umount vbox share folder"
+            echo "  -i, --init            init host env"
+            echo "  -r, --restore         restore host env"
             echo "  -t, --target [...]    target to be built"
             echo "  -c, --clean           make clean"
             echo "  -h, --help            print command line options (currently set)"
             echo
             exit 0
             ;;
-        -m|--mount)
-            MOUNT_VBOX_SHARE=ON
+        -i|--init)
+            BUILD_INIT=ON
             shift
             ;;
-        -u|--umount)
-            UMOUNT_VBOX_SHARE=ON
+        -r|--restore)
+            BUILD_RESTORE=ON
             shift
             ;;
         -t|--target)
@@ -49,13 +49,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ ! -z ${MOUNT_VBOX_SHARE+x} ]; then
+if [ ! -z ${BUILD_INIT+x} ]; then
+    xhost +local:docker
     mkdir -p $PROJECT_ROOT/deps/src
     sudo mount -t vboxsf -o defaults,uid=$(id -u),gid=$(id -g) share $PROJECT_ROOT/deps/src
     exit 0
 fi
 
-if [ ! -z ${UMOUNT_VBOX_SHARE+x} ]; then
+if [ ! -z ${BUILD_RESTORE+x} ]; then
+    xhost -local:docker
     sudo umount -a -t vboxsf
     exit 0
 fi

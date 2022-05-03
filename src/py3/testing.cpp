@@ -16,6 +16,8 @@ int main(int argc, char** argv)
 
     TRY_;
     py::scoped_interpreter guard{};
+    py::module_ mpl = py::module_::import("matplotlib");
+    mpl.attr("use")("TkAgg");
     py::module_ plt = py::module_::import("matplotlib.pyplot");
     std::vector<float> buf = {8, 11, 1, 5, 6, 7};
     auto capsule = py::capsule(buf.data(), [](void* v) {});

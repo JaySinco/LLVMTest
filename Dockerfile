@@ -21,7 +21,7 @@ RUN apt-get update -y \
     && apt-get update -y
 
 RUN ln -snf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime && echo $CONTAINER_TIMEZONE > /etc/timezone \
-    && apt-get install -y build-essential git cmake clang-format \
+    && apt-get install -y build-essential git cmake clang-format tcl zip tk-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && git config --global user.name jaysinco \

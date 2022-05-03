@@ -6,7 +6,9 @@
                 "${workspaceFolder}/deps/linux/gflags/include",
                 "${workspaceFolder}/deps/linux/glog/include",
                 "${workspaceFolder}/deps/linux/fmt/include",
-                "${workspaceFolder}/deps/linux/expected-lite/include"
+                "${workspaceFolder}/deps/linux/expected-lite/include",
+                "${workspaceFolder}/deps/linux/python3/include/python3.8",
+                "${workspaceFolder}/deps/linux/pybind11/include"
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",

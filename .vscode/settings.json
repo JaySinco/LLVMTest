@@ -8,7 +8,6 @@
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
     "files.exclude": {
-        "{bin,out}": true,
         "deps/linux/**/src/*": true,
     },
     "files.watcherExclude": {
