@@ -18,6 +18,7 @@ pushd $SCRIPT_DIR/src \
 && cmake -G "Unix Makefiles" ../$SOURCE_NAME \
     -DCMAKE_INSTALL_PREFIX=$SCRIPT_DIR \
     -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=OFF \
     -DFMT_TEST=OFF \
 && make -j`nproc` \
 && make install \

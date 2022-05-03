@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 SOURCE_DIR=$PROJECT_ROOT/deps/src
-SOURCE_NAME=gflags-2.2.2
+SOURCE_NAME=zlib-1.2.12
 
 mkdir -p $SCRIPT_DIR/src
 if [ ! -d $SCRIPT_DIR/src/$SOURCE_NAME ]; then
