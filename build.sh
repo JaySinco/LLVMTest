@@ -4,6 +4,7 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+DOCKER_IMAGE_TAG=build:v1
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -13,20 +14,30 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: build.sh [options]"
             echo
             echo "Options:"
-            echo "  -i, --init            init host env"
-            echo "  -r, --restore         restore host env"
-            echo "  -t, --target [...]    target to be built"
-            echo "  -c, --clean           make clean"
-            echo "  -h, --help            print command line options (currently set)"
+            echo "  -b, --docker-build       build docker"
+            echo "  -r, --docker-run         run docker"
+            echo "      --vbox-mount         mount vbox share"
+            echo "      --vbox-umount        unmount vbox share"
+            echo "  -t, --target [...]       target to be built"
+            echo "  -c, --clean              clean target"
+            echo "  -h, --help               print command line options (currently set)"
             echo
             exit 0
             ;;
-        -i|--init)
-            BUILD_INIT=ON
+        -b|--docker-build)
+            DOCKER_BUILD=ON
             shift
             ;;
-        -r|--restore)
-            BUILD_RESTORE=ON
+        -r|--docker-run)
+            DOCKER_RUN=ON
+            shift
+            ;;
+        --vbox-mount)
+            VBOX_MOUNT=ON
+            shift
+            ;;
+        --vbox-umount)
+            VBOX_UNDO_MOUNT=ON
             shift
             ;;
         -t|--target)
@@ -49,20 +60,31 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ ! -z ${BUILD_INIT+x} ]; then
-    xhost +local:docker
-    mkdir -p $PROJECT_ROOT/deps/src
-    sudo mount -t vboxsf -o defaults,uid=$(id -u),gid=$(id -g) share $PROJECT_ROOT/deps/src
+if [ ! -z $DOCKER_BUILD ]; then
+    docker build -f $PROJECT_ROOT/Dockerfile -t $DOCKER_IMAGE_TAG $PROJECT_ROOT/.vscode
     exit 0
-fi
-
-if [ ! -z ${BUILD_RESTORE+x} ]; then
-    xhost -local:docker
+elif [ ! -z $DOCKER_RUN ]; then
+    xhost +local:docker > /dev/null
+    docker run -it --rm \
+        -e DISPLAY \
+        -e XMODIFIERS="@im=fcitx" \
+        -e QT_IM_MODULE="fcitx" \
+        -e GTK_IM_MODULE="fcitx" \
+        -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+        -v /home/$USER/.ssh:/root/.ssh \
+        -v $PROJECT_ROOT:/workspace \
+        $DOCKER_IMAGE_TAG
+    xhost -local:docker > /dev/null
+    exit 0
+elif [ ! -z $VBOX_MOUNT ]; then
+    mkdir -p $PROJECT_ROOT/deps/src
+    sudo mount -t vboxsf -o defaults,uid=$(id -u),gid=$(id -g) \
+        share $PROJECT_ROOT/deps/src
+    exit 0
+elif [ ! -z $VBOX_UNDO_MOUNT ]; then
     sudo umount -a -t vboxsf
     exit 0
-fi
-
-if [ ! -z ${BUILD_CLEAN+x} ]; then
+elif [ ! -z $BUILD_CLEAN ]; then
     pushd $PROJECT_ROOT/out && make clean && popd
     exit 0
 fi
