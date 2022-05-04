@@ -13,8 +13,7 @@ FROM ubuntu:20.04
 # im-config
 # fcitx-config-gtk3
 
-ARG project
-ARG code='code --no-sandbox --user-data-dir /root/.config/vscode'
+ARG PROJECT_DIR
 
 # locale
 # -----------------
@@ -27,8 +26,8 @@ RUN apt-get update -y \
     && printf 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\n' > /etc/apt/sources.list \
     && apt-get update -y \
     && apt-get install -y tzdata language-pack-zh-hans \
-    && ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
-    && echo ${TZ} > /etc/timezone \
+    && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
     && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
@@ -38,6 +37,8 @@ ENV LANG=zh_CN.UTF-8 \
 
 # vscode
 # -----------------
+ENV code='code --no-sandbox --user-data-dir /root/.config/vscode'
+
 RUN apt-get update -y \
     && apt-get install -y wget \
     && wget -q -O code_amd64.deb 'https://vscode.cdn.azure.cn/stable/dfd34e8260c270da74b5c2d86d61aee4b6d56977/code_1.66.2-1649664567_amd64.deb' \
@@ -45,12 +46,9 @@ RUN apt-get update -y \
         fonts-firacode ttf-wqy-microhei tk-dev \
     && dpkg -i code_amd64.deb \
     && rm -f code_amd64.deb \
-    && ${code} --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
-    && ${code} --install-extension twxs.cmake \
-    && ${code} --install-extension ms-vscode.cpptools \
     && rm -rf /var/lib/apt/lists/*
 
-# tools
+# app
 # -----------------
 RUN apt-get update -y \
     && apt-get install -y build-essential git cmake clang-format zip tcl \
@@ -58,11 +56,15 @@ RUN apt-get update -y \
 
 # config
 # -----------------
-RUN git config --global user.name jaysinco \
-    && ${code} --install-extension vscode-icons-team.vscode-icons \
+RUN $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
+    && $code --install-extension twxs.cmake \
+    && $code --install-extension ms-vscode.cpptools \
+    && $code --install-extension vscode-icons-team.vscode-icons \
+    && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
-    && git config --global --add safe.directory ${project}
+    && git config --global --add safe.directory $PROJECT_DIR
 
 # entry
 # -----------------
-CMD code --no-sandbox --user-data-dir /root/.config/vscode --wait ${project}
+WORKDIR $PROJECT_DIR
+ENTRYPOINT ["/bin/bash"]

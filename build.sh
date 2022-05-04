@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 DOCKER_IMAGE_TAG=build:v1
-DOCKER_PROJECT=/workspace
+DOCKER_PROJECT_DIR=/workspace
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ ! -z $DOCKER_BUILD ]; then
-    docker build --build-arg project=$DOCKER_PROJECT \
+    docker build --build-arg PROJECT_DIR=$DOCKER_PROJECT_DIR \
         -f $PROJECT_ROOT/Dockerfile \
         -t $DOCKER_IMAGE_TAG \
         $PROJECT_ROOT/.vscode
@@ -75,8 +75,9 @@ elif [ ! -z $DOCKER_RUN ]; then
         -e QT_IM_MODULE="fcitx" \
         -e GTK_IM_MODULE="fcitx" \
         -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+        -v /usr/share/icons:/usr/share/icons:ro \
         -v /home/$USER/.ssh:/root/.ssh:ro \
-        -v $PROJECT_ROOT:$DOCKER_PROJECT \
+        -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR \
         $DOCKER_IMAGE_TAG
     xhost -local:docker > /dev/null
     exit 0
