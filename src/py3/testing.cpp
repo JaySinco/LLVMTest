@@ -15,7 +15,10 @@ int main(int argc, char** argv)
     google::InitGoogleLogging(argv[0]);
 
     TRY_;
-    py::scoped_interpreter guard{};
+    py::scoped_interpreter guard;
+    PySys_SetPath(L"" DEPS_PYTHON_SYS_PATH);
+    py::module sys = py::module::import("sys");
+    py::print(sys.attr("path"));
     py::module_ mpl = py::module_::import("matplotlib");
     mpl.attr("use")("TkAgg");
     py::module_ plt = py::module_::import("matplotlib.pyplot");
