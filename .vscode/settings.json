@@ -1,4 +1,6 @@
 {
+    "workbench.startupEditor": "newUntitledFile",
+    "workbench.iconTheme": "vscode-icons",
     "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'monospace', monospace",
     "editor.fontLigatures": false,
     "editor.fontSize": 14,
@@ -13,4 +15,8 @@
     "files.watcherExclude": {
         "{bin,out,dpes}": true,
     },
+    "extensions.ignoreRecommendations": true,
+    "C_Cpp.autoAddFileAssociations": false,
+    "vsicons.dontShowNewVersionMessage": true,
+    "git.confirmSync": false,
 }
