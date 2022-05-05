@@ -6,34 +6,33 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 DOCKER_IMAGE_TAG=build:v1
 DOCKER_PROJECT_DIR=/workspace
-POSITIONAL_ARGS=()
+BUILD_TARGETS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -h|--help)
             echo
-            echo "Usage: build.sh [options]"
+            echo "Usage: build.sh [options] [targets]"
             echo
             echo "Options:"
-            echo "  -b, --docker-build       build docker"
-            echo "  -r, --docker-run         run docker"
-            echo "      --vbox-mount         mount vbox share"
-            echo "      --vbox-umount        unmount vbox share"
-            echo "  -c, --clean              clean target"
-            echo "      --ui                 edit qt5 ui files"
-            echo "  -t, --target [...]       target to be built"
-            echo "  -h, --help               print command line options (currently set)"
+            echo "  -b, --build              build image from dockerfile"
+            echo "  -r, --run                run dev container"
+            echo "      --mount              mount vbox share"
+            echo "      --umount             unmount vbox share"
+            echo "      --edit-ui            edit qt5 ui files"
+            echo "  -c, --clean              clean targets built"
+            echo "  -h, --help               print command line options"
             echo
             exit 0
             ;;
-        -b|--docker-build)
+        -b|--build)
             docker build --build-arg PROJECT_DIR=$DOCKER_PROJECT_DIR \
                 -f $PROJECT_ROOT/Dockerfile \
                 -t $DOCKER_IMAGE_TAG \
                 $PROJECT_ROOT/.vscode
             exit 0
             ;;
-        -r|--docker-run)
+        -r|--run)
             xhost +local:docker > /dev/null
             docker run -it --rm \
                 -e DISPLAY \
@@ -49,36 +48,31 @@ while [[ $# -gt 0 ]]; do
             xhost -local:docker > /dev/null
             exit 0
             ;;
-        --vbox-mount)
+        --mount)
             mkdir -p $PROJECT_ROOT/deps/src
             sudo mount -t vboxsf -o defaults,uid=$(id -u),gid=$(id -g) \
                 share $PROJECT_ROOT/deps/src
             exit 0
             ;;
-        --vbox-umount)
+        --umount)
             sudo umount -a -t vboxsf
+            exit 0
+            ;;
+        --edit-ui)
+            $PROJECT_ROOT/deps/linux/qt5/bin/designer \
+                $PROJECT_ROOT/src/qt5/go-to-cell-dialog.ui
             exit 0
             ;;
         -c|--clean)
             pushd $PROJECT_ROOT/out && make clean && popd
             exit 0
             ;;
-        --ui)
-            $PROJECT_ROOT/deps/linux/qt5/bin/designer \
-                $PROJECT_ROOT/src/qt5/go-to-cell-dialog.ui
-            exit 0
-            ;;
-        -t|--target)
-            BUILD_TARGET="$2"
-            shift
-            shift
-            ;;
         -*|--*)
             echo "Unknown option: $1"
             exit 1
             ;;
         *)
-            POSITIONAL_ARGS+=("$1")
+            BUILD_TARGETS+=("$1")
             shift
             ;;
     esac
@@ -91,6 +85,6 @@ pushd $PROJECT_ROOT \
 && cmake -G "Unix Makefiles" .. \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=debug \
-&& make -j`nproc` $BUILD_TARGET \
+&& make -j`nproc` ${BUILD_TARGETS[*]} \
 && popd \
 && popd

@@ -56,7 +56,7 @@ RUN apt-get update -y \
 # -----------------
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
-    && apt-get install -y build-essential git cmake clang-format zip \
+    && apt-get install -y build-essential gdb git cmake clang-format zip \
         tcl libxcb-xinerama0-dev \
     && rm -rf /var/lib/apt/lists/*
 
