@@ -15,4 +15,5 @@ $SCRIPT_DIR/sqlite3/build.sh && \
 $SCRIPT_DIR/libffi/build.sh && \
 $SCRIPT_DIR/python3/build.sh && \
 $SCRIPT_DIR/pybind11/build.sh && \
+$SCRIPT_DIR/qt5/build.sh && \
 echo done!

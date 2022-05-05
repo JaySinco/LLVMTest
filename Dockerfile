@@ -52,7 +52,7 @@ RUN apt-get update -y \
     && $code --install-extension vscode-icons-team.vscode-icons \
     && rm -rf /var/lib/apt/lists/*
 
-# app
+# devtools
 # -----------------
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \

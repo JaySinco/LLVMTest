@@ -22,3 +22,17 @@ pushd $SCRIPT_DIR/src/$QT_BASE_NAME \
 && make -j`nproc` \
 && make install \
 && popd
+
+# qttools
+# ----------------------
+QT_TOOLS_NAME=qttools-everywhere-src-5.15.3
+
+if [ ! -d $SCRIPT_DIR/src/$QT_TOOLS_NAME ]; then
+    tar -xf $SOURCE_DIR/qttools-everywhere-opensource-src-5.15.3.tar.xz -C $SCRIPT_DIR/src/
+fi
+
+pushd $SCRIPT_DIR/src/$QT_TOOLS_NAME \
+&& $SCRIPT_DIR/bin/qmake \
+&& make -j`nproc` \
+&& make install \
+&& popd
