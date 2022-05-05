@@ -2,14 +2,14 @@ FROM ubuntu:20.04
 
 # docker
 # -----------------
-# apt install -y docker.io
+# apt-get install -y docker.io
 # usermod -aG docker $USER
 # printf '{"registry-mirrors":["https://docker.mirrors.ustc.edu.cn/"]}' > /etc/docker/daemon.json
 # systemctl daemon-reload && systemctl restart docker
 
 # google-pinyin
 # -----------------
-# apt install fictx fcitx-googlepinyin
+# apt-get install -y fictx fcitx-googlepinyin
 # im-config
 # fcitx-config-gtk3
 
@@ -23,7 +23,7 @@ ENV TZ=Asia/Shanghai \
 RUN apt-get update -y \
     && apt-get install -y ca-certificates \
     && cp /etc/apt/sources.list /etc/apt/sources.list.bak \
-    && printf 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\n# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\n' > /etc/apt/sources.list \
+    && printf 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\n' > /etc/apt/sources.list \
     && apt-get update -y \
     && apt-get install -y tzdata language-pack-zh-hans \
     && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
@@ -46,21 +46,23 @@ RUN apt-get update -y \
         fonts-firacode ttf-wqy-microhei tk-dev \
     && dpkg -i code_amd64.deb \
     && rm -f code_amd64.deb \
+    && $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
+    && $code --install-extension twxs.cmake \
+    && $code --install-extension ms-vscode.cpptools \
+    && $code --install-extension vscode-icons-team.vscode-icons \
     && rm -rf /var/lib/apt/lists/*
 
 # app
 # -----------------
 RUN apt-get update -y \
-    && apt-get install -y build-essential git cmake clang-format zip tcl \
+    && apt-get build-dep -y qt5-default \
+    && apt-get install -y build-essential git cmake clang-format zip \
+        tcl libxcb-xinerama0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # config
 # -----------------
-RUN $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
-    && $code --install-extension twxs.cmake \
-    && $code --install-extension ms-vscode.cpptools \
-    && $code --install-extension vscode-icons-team.vscode-icons \
-    && git config --global user.name jaysinco \
+RUN git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
     && git config --global --add safe.directory $PROJECT_DIR
 

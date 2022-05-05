@@ -7,3 +7,7 @@ share
 etc
 3rdparty
 docs
+doc
+examples
+mkspecs
+plugins

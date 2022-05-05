@@ -78,6 +78,7 @@ elif [ ! -z $DOCKER_RUN ]; then
         -v /usr/share/icons:/usr/share/icons:ro \
         -v /home/$USER/.ssh:/root/.ssh:ro \
         -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR \
+        --device=/dev/dri:/dev/dri \
         $DOCKER_IMAGE_TAG
     xhost -local:docker > /dev/null
     exit 0
