@@ -16,31 +16,38 @@ target_include_directories(deps_expected-lite INTERFACE ${DEPS_PREFIX}/expected-
 add_library(deps_python3 INTERFACE)
 target_include_directories(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/include/python3.8)
 target_link_libraries(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/lib/libpython3.8.a dl util)
+string(CONCAT DEPS_PYTHON_SYS_PATH
+    "${DEPS_PREFIX}/python3/lib/python38.zip:"
+    "${DEPS_PREFIX}/python3/lib/python3.8:"
+    "${DEPS_PREFIX}/python3/lib/python3.8/lib-dynload:"
+    "${DEPS_PREFIX}/python3/lib/python3.8/site-packages"
+)
+target_compile_definitions(deps_python3 INTERFACE
+    DEPS_PYTHON_SYS_PATH="\"\"${DEPS_PYTHON_SYS_PATH}\"\""
+)
 
 add_library(deps_pybind11 INTERFACE)
 target_include_directories(deps_pybind11 INTERFACE ${DEPS_PREFIX}/pybind11/include)
 target_link_libraries(deps_pybind11 INTERFACE deps_python3)
 
+add_library(deps_glfw INTERFACE)
+target_include_directories(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/include)
+target_link_libraries(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/lib/libglfw3.a dl X11)
 
-# add_library(deps_torch INTERFACE)
-# target_include_directories(deps_torch INTERFACE
-#     ${DEPS_PREFIX}/etc/libtorch/include/
-#     ${DEPS_PREFIX}/etc/libtorch/include/torch/csrc/api/include/
-# )
-# target_link_libraries(deps_torch INTERFACE
-#     "-INCLUDE:?warp_size@cuda@at@@YAHXZ"
-#     "-INCLUDE:?searchsorted_cuda@native@at@@YA?AVTensor@2@AEBV32@0_N1@Z"
-#     ${DEPS_PREFIX}/etc/libtorch/lib/c10.lib
-#     ${DEPS_PREFIX}/etc/libtorch/lib/torch_cpu.lib
-#     ${DEPS_PREFIX}/etc/libtorch/lib/torch_cuda_cpp.lib
-#     ${DEPS_PREFIX}/etc/libtorch/lib/torch_cuda_cu.lib
-# )
+add_library(deps_mujoco INTERFACE)
+target_include_directories(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/include)
+target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/libmujoco.so deps_glfw)
 
-# add_library(deps_mujoco INTERFACE)
-# target_link_libraries(deps_mujoco INTERFACE deps_header_only
-#     ${DEPS_PREFIX}/lib/mujoco210.lib
-#     ${DEPS_PREFIX}/lib/glfw3dll.lib
-# )
+add_library(deps_torch INTERFACE)
+target_include_directories(deps_torch INTERFACE
+    ${DEPS_PREFIX}/torch/include/
+    ${DEPS_PREFIX}/torch/include/torch/csrc/api/include/
+)
+target_link_libraries(deps_torch INTERFACE
+    ${DEPS_PREFIX}/torch/lib/libc10.so
+    ${DEPS_PREFIX}/torch/lib/libgomp-75eea7e8.so.1
+    ${DEPS_PREFIX}/torch/lib/libtorch_cpu.so
+)
 
 # add_library(deps_imgui INTERFACE)
 # target_link_libraries(deps_imgui INTERFACE deps_header_only

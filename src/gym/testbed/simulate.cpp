@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "../../utils.h"
-#include "mujoco/mjxmacro.h"
+#include "mjxmacro.h"
 #include "uitools.h"
 #include "stdio.h"
 #include "string.h"

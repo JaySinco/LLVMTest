@@ -4,6 +4,7 @@
 #include <codecvt>
 #include <unistd.h>
 #include <limits.h>
+#include <libgen.h>
 
 namespace utils
 {
@@ -37,9 +38,9 @@ expected<std::string> readFile(const std::string& path)
 
 std::string getExeDir()
 {
-    char cwd[PATH_MAX] = {0};
-    getcwd(cwd, sizeof(cwd));
-    return cwd;
+    char cep[PATH_MAX] = {0};
+    readlink("/proc/self/exe", cep, PATH_MAX);
+    return dirname(cep);
 }
 
 static const std::string base64_chars =

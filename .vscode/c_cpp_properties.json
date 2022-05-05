@@ -6,6 +6,7 @@
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64",
             "defines": [
+                "DEPS_PREFIX=\"\"",
                 "DEPS_PYTHON_SYS_PATH=\"\""
             ],
             "includePath": [
@@ -16,6 +17,10 @@
                 "${workspaceFolder}/deps/linux/python3/include/python3.8",
                 "${workspaceFolder}/deps/linux/pybind11/include",
                 "${workspaceFolder}/deps/linux/qt5/include",
+                "${workspaceFolder}/deps/linux/glfw/include",
+                "${workspaceFolder}/deps/linux/mujoco/include",
+                "${workspaceFolder}/deps/linux/torch/include",
+                "${workspaceFolder}/deps/linux/torch/include/torch/csrc/api/include",
                 "${workspaceFolder}/out/src/qt5/qt5-testing_autogen/include"
             ]
         }

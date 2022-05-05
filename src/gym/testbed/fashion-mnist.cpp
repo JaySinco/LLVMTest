@@ -12,12 +12,12 @@ namespace py = pybind11;
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
 public:
-    explicit FashionMnistDataset(const std::wstring& dataRoot, bool train = true)
+    explicit FashionMnistDataset(const std::string& dataRoot, bool train = true)
     {
-        std::wstring imagesPath =
-            dataRoot + (train ? L"train-images-idx3-ubyte" : L"t10k-images-idx3-ubyte");
-        std::wstring labelsPath =
-            dataRoot + (train ? L"train-labels-idx1-ubyte" : L"t10k-labels-idx1-ubyte");
+        std::string imagesPath =
+            dataRoot + (train ? "train-images-idx3-ubyte" : "t10k-images-idx3-ubyte");
+        std::string labelsPath =
+            dataRoot + (train ? "train-labels-idx1-ubyte" : "t10k-labels-idx1-ubyte");
 
         this->readImages(imagesPath);
         this->readLabels(labelsPath);
@@ -42,6 +42,7 @@ public:
     void show(const std::vector<size_t>& indexList, int ncols = 5)
     {
         py::scoped_interpreter guard{};
+        PySys_SetPath(L"" DEPS_PYTHON_SYS_PATH);
         py::module_ plt = py::module_::import("matplotlib.pyplot");
         for (int i = 0; i < indexList.size(); ++i) {
             size_t index = indexList[i];
@@ -76,7 +77,7 @@ private:
         return ((int32_t)c1 << 24) + ((int32_t)c2 << 16) + ((int32_t)c3 << 8) + c4;
     }
 
-    void readImages(const std::wstring& path)
+    void readImages(const std::string& path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);
@@ -88,8 +89,7 @@ private:
         int32_t images = header[1];
         int32_t rows = header[2];
         int32_t cols = header[3];
-        std::cout << fmt::format("Read {}x{}x{} images from {}\n", images, rows, cols,
-                                 utils::ws2s(path));
+        std::cout << fmt::format("Read {}x{}x{} images from {}\n", images, rows, cols, path);
         size_t numel = images * rows * cols;
         auto buf = new unsigned char[numel]{0};
         for (int32_t i = 0; i < images; ++i) {
@@ -100,7 +100,7 @@ private:
             torch::kUInt8);
     }
 
-    void readLabels(const std::wstring& path)
+    void readLabels(const std::string& path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);
@@ -110,7 +110,7 @@ private:
             header[i] = reverseInt(header[i]);
         }
         int32_t items = header[1];
-        std::cout << fmt::format("Read {} labels from {}\n", items, utils::ws2s(path));
+        std::cout << fmt::format("Read {} labels from {}\n", items, path);
         auto buf = new unsigned char[items]{0};
         for (int32_t i = 0; i < items; ++i) {
             file.read((char*)&buf[i], sizeof(unsigned char));
@@ -215,7 +215,7 @@ void test(Net& model, torch::Device device, DataLoader& data_loader, size_t data
 
 void fashion_mnist()
 {
-    const std::wstring kDataRoot = (__DIRNAME__ / "../dataset/fashion-mnist/").wstring();
+    const std::string kDataRoot = DEPS_PREFIX "/dataset/lib/";
     FashionMnistDataset train_mnist(kDataRoot);
     FashionMnistDataset test_mnist(kDataRoot, false);
     train_mnist.show_rand(15);
@@ -230,7 +230,7 @@ void fashion_mnist()
     }
     torch::Device device(device_type);
 
-    auto saved_model_path = utils::ws2s(utils::getExeDir() + L"\\fashion-mnist.model.pt");
+    auto saved_model_path = utils::getExeDir() + "/fashion-mnist.model.pt";
     Net model;
     model.to(device);
     if (std::filesystem::exists(saved_model_path)) {
