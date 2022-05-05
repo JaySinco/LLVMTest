@@ -62,9 +62,13 @@ RUN apt-get update -y \
 
 # config
 # -----------------
+ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root
+
 RUN git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
-    && git config --global --add safe.directory $PROJECT_DIR
+    && git config --global --add safe.directory $PROJECT_DIR \
+    && mkdir -p $XDG_RUNTIME_DIR \
+    && chmod 700 $XDG_RUNTIME_DIR
 
 # entry
 # -----------------
