@@ -10,7 +10,7 @@
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
     "files.exclude": {
-        "deps/linux/*/*/*/*": true,
+        "deps/*/*/*/*/*": true,
     },
     "files.watcherExclude": {
         "{bin,out,dpes}": true,

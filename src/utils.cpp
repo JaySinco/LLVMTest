@@ -1,23 +1,53 @@
-#include "utils.h"
-#include <fstream>
-#include <sstream>
-#include <codecvt>
+#ifdef __linux__
 #include <unistd.h>
 #include <limits.h>
 #include <libgen.h>
+#include <codecvt>
+#define max std::max
+#elif _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+#include "utils.h"
+#include <fstream>
+#include <sstream>
 
 namespace utils
 {
-std::string ws2s(const std::wstring& ws)
+std::string ws2s(const std::wstring& ws, bool u8_or_ansi)
 {
+#ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.to_bytes(ws);
+#elif _WIN32
+    UINT page = u8_or_ansi ? CP_ACP : CP_UTF8;
+    int len = WideCharToMultiByte(page, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    if (len <= 0) return "";
+    auto buf = new char[len]{0};
+    if (buf == nullptr) return "";
+    WideCharToMultiByte(page, 0, ws.c_str(), -1, buf, len, nullptr, nullptr);
+    std::string s = buf;
+    delete[] buf;
+    return s;
+#endif
 }
 
-std::wstring s2ws(const std::string& s)
+std::wstring s2ws(const std::string& s, bool u8_or_ansi)
 {
+#ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.from_bytes(s);
+#elif _WIN32
+    UINT page = u8_or_ansi ? CP_ACP : CP_UTF8;
+    int len = MultiByteToWideChar(page, 0, s.c_str(), -1, nullptr, 0);
+    if (len <= 0) return L"";
+    auto buf = new wchar_t[len]{0};
+    if (buf == nullptr) return L"";
+    MultiByteToWideChar(page, 0, s.c_str(), -1, buf, len);
+    std::wstring ws = buf;
+    delete[] buf;
+    return ws;
+#endif
 }
 
 nonstd::unexpected_type<error> make_unexpected(const std::string& s)
@@ -25,9 +55,13 @@ nonstd::unexpected_type<error> make_unexpected(const std::string& s)
     return nonstd::unexpected_type<error>(s);
 }
 
-expected<std::string> readFile(const std::string& path)
+expected<std::string> readFile(const std::wstring& path)
 {
+#ifdef __linux__
+    std::ifstream in_file(ws2s(path));
+#elif _WIN32
     std::ifstream in_file(path);
+#endif
     if (!in_file) {
         return make_unexpected("failed to open file");
     }
@@ -36,11 +70,18 @@ expected<std::string> readFile(const std::string& path)
     return ss.str();
 }
 
-std::string getExeDir()
+std::wstring getExeDir()
 {
+#ifdef __linux__
     char cep[PATH_MAX] = {0};
     readlink("/proc/self/exe", cep, PATH_MAX);
-    return dirname(cep);
+    return s2ws(dirname(cep));
+#elif _WIN32
+    wchar_t buf[MAX_PATH + 1] = {0};
+    GetModuleFileNameW(NULL, buf, MAX_PATH);
+    (wcsrchr(buf, L'\\'))[0] = 0;
+    return buf;
+#endif
 }
 
 static const std::string base64_chars =
@@ -156,7 +197,7 @@ public:
             doLogStep(s1, s2, s1n, s2n, record, steps);
             int count = 1;
             const char* templ = "{:<3d} {:{}s}";
-            int sep = std::max(s1n, s2n) + 2;
+            int sep = max(s1n, s2n) + 2;
             std::cout << fmt::format(templ, count++, s1, sep);
             for (auto& s: steps) {
                 std::cout << s.desc << std::endl << fmt::format(templ, count++, s.s, sep);

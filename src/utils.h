@@ -36,12 +36,12 @@ struct overloaded: Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-std::string getExeDir();
+std::wstring getExeDir();
 
-expected<std::string> readFile(const std::string& path);
+expected<std::string> readFile(const std::wstring& path);
 
-std::string ws2s(const std::wstring& ws);
-std::wstring s2ws(const std::string& s);
+std::string ws2s(const std::wstring& ws, bool u8_or_ansi = false);
+std::wstring s2ws(const std::string& s, bool u8_or_ansi = false);
 
 std::string base64_encode(const unsigned char* buf, unsigned int bufLen);
 std::vector<unsigned char> base64_decode(const std::string& encoded_string);

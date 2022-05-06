@@ -86,8 +86,10 @@ done
 
 if [ $PLATFORM = "linux" ]; then
     BUILD_GENERATOR="Unix Makefiles"
+    BUILD_PROGRAM="make"
 elif [ $PLATFORM = "win32" ]; then
     BUILD_GENERATOR="Ninja"
+    BUILD_PROGRAM="ninja"
     source $PROJECT_ROOT/vcvars64.sh
 fi
 
@@ -95,9 +97,10 @@ pushd $PROJECT_ROOT \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
 && mkdir -p out \
 && pushd out \
-&& cmake -G $BUILD_GENERATOR .. \
+&& cmake -G "$BUILD_GENERATOR" .. \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=debug \
-&& cmake --build . --parallel `nproc` --target ${BUILD_TARGETS[*]} \
+    -DTARGET_OS=$PLATFORM \
+&& $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]} \
 && popd \
 && popd
