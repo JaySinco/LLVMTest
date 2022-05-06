@@ -1,6 +1,33 @@
 {
     "configurations": [
         {
+            "name": "Win32",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64",
+            "defines": [
+                "UNICODE",
+                "DEPS_PREFIX=\"\"",
+                "DEPS_PYTHON_SYS_PATH=\"\""
+            ],
+            "includePath": [
+                "${workspaceFolder}/deps/win32/gflags/include",
+                "${workspaceFolder}/deps/win32/glog/include",
+                "${workspaceFolder}/deps/win32/fmt/include",
+                "${workspaceFolder}/deps/win32/expected-lite/include",
+                "${workspaceFolder}/deps/win32/python3/include/python3.8",
+                "${workspaceFolder}/deps/win32/pybind11/include",
+                "${workspaceFolder}/deps/win32/qt5/include",
+                "${workspaceFolder}/deps/win32/glfw/include",
+                "${workspaceFolder}/deps/win32/mujoco/include",
+                "${workspaceFolder}/deps/win32/torch/include",
+                "${workspaceFolder}/deps/win32/torch/include/torch/csrc/api/include",
+                "${workspaceFolder}/deps/win32/imgui/include",
+                "${workspaceFolder}/deps/win32/implot/include",
+                "${workspaceFolder}/out/src/qt5/qt5-testing_autogen/include"
+            ]
+        },
+        {
             "name": "Linux",
             "cStandard": "c17",
             "cppStandard": "c++17",

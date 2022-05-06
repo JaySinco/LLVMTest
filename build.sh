@@ -2,6 +2,12 @@
 
 set -e
 
+case "$OSTYPE" in
+    linux*)   PLATFORM=linux ;;
+    msys*)    PLATFORM=win32 ;;
+esac
+echo "platform: $PLATFORM"
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 DOCKER_IMAGE_TAG=build:v1
@@ -78,13 +84,20 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if [ $PLATFORM = "linux" ]; then
+    BUILD_GENERATOR="Unix Makefiles"
+elif [ $PLATFORM = "win32" ]; then
+    BUILD_GENERATOR="Ninja"
+    source $PROJECT_ROOT/vcvars64.sh
+fi
+
 pushd $PROJECT_ROOT \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
 && mkdir -p out \
 && pushd out \
-&& cmake -G "Unix Makefiles" .. \
+&& cmake -G $BUILD_GENERATOR .. \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=debug \
-&& make -j`nproc` ${BUILD_TARGETS[*]} \
+&& cmake --build . --parallel `nproc` --target ${BUILD_TARGETS[*]} \
 && popd \
 && popd
