@@ -7,3 +7,4 @@
 *.tgz filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 *.tar.xz filter=lfs diff=lfs merge=lfs -text
+win32/python3/get-pip.py filter=lfs diff=lfs merge=lfs -text

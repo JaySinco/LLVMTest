@@ -8,5 +8,5 @@ int main(int argc, char** argv)
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
 
-    LOG(INFO) << "hello, world";
+    LOG(INFO) << "dis(hello, world) = " << utils::word_distance("hello", "world", true);
 }

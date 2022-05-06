@@ -101,6 +101,4 @@ pushd $PROJECT_ROOT \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=debug \
     -DTARGET_OS=$PLATFORM \
-&& $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]} \
-&& popd \
-&& popd
+&& $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]}

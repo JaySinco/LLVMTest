@@ -1,7 +1,7 @@
 {
     "workbench.startupEditor": "newUntitledFile",
     "workbench.iconTheme": "vscode-icons",
-    "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'monospace', monospace",
+    "editor.fontFamily": "'Fira Code'",
     "editor.fontLigatures": false,
     "editor.fontSize": 14,
     "editor.fontWeight": "400",
@@ -15,6 +15,11 @@
     "files.watcherExclude": {
         "{bin,out,dpes}": true,
     },
+    "terminal.integrated.fontFamily": "'Cascadia Code'",
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "scm.inputFontFamily": "editor",
+    "debug.console.fontFamily": "'Cascadia Code'",
+    "explorer.confirmDelete": false,
     "extensions.ignoreRecommendations": true,
     "C_Cpp.autoAddFileAssociations": false,
     "vsicons.dontShowNewVersionMessage": true,

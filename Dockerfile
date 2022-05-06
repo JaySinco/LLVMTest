@@ -44,7 +44,7 @@ RUN apt-get update -y \
     && apt-get install -y wget \
     && wget -q -O code_amd64.deb 'https://vscode.cdn.azure.cn/stable/dfd34e8260c270da74b5c2d86d61aee4b6d56977/code_1.66.2-1649664567_amd64.deb' \
     && apt-get install -y libnss3 gnupg libxkbfile1 libsecret-1-0 libgtk-3-0 libxss1 libgbm1 libasound2 \
-        fonts-firacode ttf-wqy-microhei tk-dev \
+        fonts-firacode fonts-cascadia-code ttf-wqy-microhei tk-dev \
     && dpkg -i code_amd64.deb \
     && rm -f code_amd64.deb \
     && $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
@@ -57,7 +57,7 @@ RUN apt-get update -y \
 # -----------------
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
-    && apt-get install -y build-essential gdb git cmake clang-format zip \
+    && apt-get install -y build-essential gdb git git-lfs cmake clang-format zip \
         tcl libxcb-xinerama0-dev \
     && rm -rf /var/lib/apt/lists/*
 

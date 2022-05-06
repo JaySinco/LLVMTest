@@ -14,13 +14,13 @@
 
 namespace utils
 {
-std::string ws2s(const std::wstring& ws, bool u8_or_ansi)
+std::string ws2s(const std::wstring& ws, bool utf8)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.to_bytes(ws);
 #elif _WIN32
-    UINT page = u8_or_ansi ? CP_ACP : CP_UTF8;
+    UINT page = utf8 ? CP_UTF8 : CP_ACP;
     int len = WideCharToMultiByte(page, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
     if (len <= 0) return "";
     auto buf = new char[len]{0};
@@ -32,13 +32,13 @@ std::string ws2s(const std::wstring& ws, bool u8_or_ansi)
 #endif
 }
 
-std::wstring s2ws(const std::string& s, bool u8_or_ansi)
+std::wstring s2ws(const std::string& s, bool utf8)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.from_bytes(s);
 #elif _WIN32
-    UINT page = u8_or_ansi ? CP_ACP : CP_UTF8;
+    UINT page = utf8 ? CP_UTF8 : CP_ACP;
     int len = MultiByteToWideChar(page, 0, s.c_str(), -1, nullptr, 0);
     if (len <= 0) return L"";
     auto buf = new wchar_t[len]{0};
