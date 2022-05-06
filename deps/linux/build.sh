@@ -20,4 +20,6 @@ $SCRIPT_DIR/qt5/build.sh && \
 $SCRIPT_DIR/glfw/build.sh && \
 $SCRIPT_DIR/mujoco/build.sh && \
 $SCRIPT_DIR/torch/build.sh && \
+$SCRIPT_DIR/imgui/build.sh && \
+$SCRIPT_DIR/implot/build.sh && \
 echo done!

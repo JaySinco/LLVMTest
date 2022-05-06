@@ -11,6 +11,7 @@ FROM ubuntu:20.04
 # -----------------
 # apt-get install -y fictx fcitx-googlepinyin
 # im-config
+# reboot
 # fcitx-config-gtk3
 
 ARG PROJECT_DIR
@@ -62,9 +63,11 @@ RUN apt-get update -y \
 
 # config
 # -----------------
-ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root
+ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
+    LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib
 
-RUN git config --global user.name jaysinco \
+RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
+    && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
     && git config --global --add safe.directory $PROJECT_DIR \
     && mkdir -p $XDG_RUNTIME_DIR \

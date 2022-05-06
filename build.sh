@@ -42,7 +42,7 @@ while [[ $# -gt 0 ]]; do
                 -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
                 -v /usr/share/icons:/usr/share/icons:ro \
                 -v /home/$USER/.ssh:/root/.ssh:ro \
-                -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR \
+                -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR:rw \
                 --device=/dev/dri:/dev/dri \
                 $DOCKER_IMAGE_TAG
             xhost -local:docker > /dev/null
@@ -50,7 +50,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --mount)
             mkdir -p $PROJECT_ROOT/deps/src
-            sudo mount -t vboxsf -o defaults,uid=$(id -u),gid=$(id -g) \
+            sudo mount -t vboxsf -o ro,uid=$(id -u),gid=$(id -g) \
                 share $PROJECT_ROOT/deps/src
             exit 0
             ;;

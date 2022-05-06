@@ -21,6 +21,8 @@
                 "${workspaceFolder}/deps/linux/mujoco/include",
                 "${workspaceFolder}/deps/linux/torch/include",
                 "${workspaceFolder}/deps/linux/torch/include/torch/csrc/api/include",
+                "${workspaceFolder}/deps/linux/imgui/include",
+                "${workspaceFolder}/deps/linux/implot/include",
                 "${workspaceFolder}/out/src/qt5/qt5-testing_autogen/include"
             ]
         }

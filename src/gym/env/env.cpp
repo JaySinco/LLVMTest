@@ -2,14 +2,14 @@
 #include <functional>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include "imgui_impl_opengl2.h"
 #include "implot.h"
 
 namespace env
 {
 static Env* this_;
 
-static void glfw_cb_keyboard(GLFWwindow* window, int key, int scancode, int act, int mods)
+void glfw_cb_keyboard(GLFWwindow* window, int key, int scancode, int act, int mods)
 {
     if (ImGui::GetIO().WantCaptureKeyboard) {
         return;
@@ -20,7 +20,7 @@ static void glfw_cb_keyboard(GLFWwindow* window, int key, int scancode, int act,
     }
 }
 
-static void glfw_cb_mouse_button(GLFWwindow* window, int button, int act, int mods)
+void glfw_cb_mouse_button(GLFWwindow* window, int button, int act, int mods)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
@@ -31,7 +31,7 @@ static void glfw_cb_mouse_button(GLFWwindow* window, int button, int act, int mo
     this_->button_right = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
 }
 
-static void glfw_cb_mouse_move(GLFWwindow* window, double xpos, double ypos)
+void glfw_cb_mouse_move(GLFWwindow* window, double xpos, double ypos)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
@@ -63,7 +63,7 @@ static void glfw_cb_mouse_move(GLFWwindow* window, double xpos, double ypos)
     mjv_moveCamera(this_->m, action, dx / height, dy / height, &this_->scn, &this_->cam);
 }
 
-static void glfw_cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
+void glfw_cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
 {
     mjv_moveCamera(this_->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &this_->scn, &this_->cam);
 }
@@ -206,7 +206,7 @@ void Env::render()
     io.Fonts->AddFontFromFileTTF((__DIRNAME__ / "cascadia-code.ttf").string().c_str(), 13.0);
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplOpenGL2_Init();
 
     mjv_defaultCamera(&cam);
     mjv_defaultOption(&opt);
@@ -216,7 +216,7 @@ void Env::render()
     mjr_makeContext(m, &con, mjFONTSCALE_50);
     align_scale();
     mjv_defaultFigure(&figscore);
-    strcpy_s(figscore.yformat, "%.0f");
+    strncpy(figscore.yformat, "%.0f", 4);
     figscore.figurergba[3] = 0.5f;
     figscore.gridsize[0] = 3;
     figscore.gridsize[1] = 5;
@@ -232,7 +232,7 @@ void Env::render()
         mjr_render(viewport, &scn, &con);
 
         if (progress_data.size() > 0) {
-            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplOpenGL2_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             ImGui::SetNextWindowPos(ImVec2(0, viewport.height / 3 * 1.92));
@@ -260,7 +260,7 @@ void Env::render()
             ImPlot::EndPlot();
             ImGui::End();
             ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
         }
 
         glfwSwapBuffers(window);
@@ -269,7 +269,7 @@ void Env::render()
     mjv_freeScene(&scn);
     mjr_freeContext(&con);
 
-    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
