@@ -26,22 +26,27 @@ endif()
 add_library(deps_expected-lite INTERFACE)
 target_include_directories(deps_expected-lite INTERFACE ${DEPS_PREFIX}/expected-lite/include)
 
-# add_library(deps_python3 INTERFACE)
-# target_include_directories(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/include/python3.8)
-# target_link_libraries(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/lib/libpython3.8.a dl util)
-# string(CONCAT DEPS_PYTHON_SYS_PATH
-#     "${DEPS_PREFIX}/python3/lib/python38.zip:"
-#     "${DEPS_PREFIX}/python3/lib/python3.8:"
-#     "${DEPS_PREFIX}/python3/lib/python3.8/lib-dynload:"
-#     "${DEPS_PREFIX}/python3/lib/python3.8/site-packages"
-# )
-# target_compile_definitions(deps_python3 INTERFACE
-#     DEPS_PYTHON_SYS_PATH="\"\"${DEPS_PYTHON_SYS_PATH}\"\""
-# )
+add_library(deps_python3 INTERFACE)
+target_include_directories(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/include/python3.8)
+if(UNIX)
+    target_link_libraries(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/lib/libpython3.8.a dl util)
+    string(CONCAT DEPS_PYTHON_SYS_PATH
+        "${DEPS_PREFIX}/python3/lib/python38.zip:"
+        "${DEPS_PREFIX}/python3/lib/python3.8:"
+        "${DEPS_PREFIX}/python3/lib/python3.8/lib-dynload:"
+        "${DEPS_PREFIX}/python3/lib/python3.8/site-packages"
+    )
+    target_compile_definitions(deps_python3 INTERFACE
+        DEPS_PYTHON_SYS_PATH="\"\"${DEPS_PYTHON_SYS_PATH}\"\""
+    )
+elseif(WIN32)
+    target_link_libraries(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/lib/python38.lib)
+endif()
 
-# add_library(deps_pybind11 INTERFACE)
-# target_include_directories(deps_pybind11 INTERFACE ${DEPS_PREFIX}/pybind11/include)
-# target_link_libraries(deps_pybind11 INTERFACE deps_python3)
+
+add_library(deps_pybind11 INTERFACE)
+target_include_directories(deps_pybind11 INTERFACE ${DEPS_PREFIX}/pybind11/include)
+target_link_libraries(deps_pybind11 INTERFACE deps_python3)
 
 # add_library(deps_glfw INTERFACE)
 # target_include_directories(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/include)

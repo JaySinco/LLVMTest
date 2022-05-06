@@ -34,8 +34,7 @@
             "defines": [
                 "UNICODE",
                 "GLOG_NO_ABBREVIATED_SEVERITIES",
-                "DEPS_PREFIX=\"\"",
-                "DEPS_PYTHON_SYS_PATH=\"\""
+                "DEPS_PREFIX=\"\""
             ],
             "includePath": [
                 "${workspaceFolder}/deps/win32/gflags/include",

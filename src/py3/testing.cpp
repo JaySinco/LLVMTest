@@ -16,7 +16,9 @@ int main(int argc, char** argv)
 
     TRY_;
     py::scoped_interpreter guard;
+#ifdef __linux__
     PySys_SetPath(L"" DEPS_PYTHON_SYS_PATH);
+#endif
     py::module sys = py::module::import("sys");
     py::print(sys.attr("path"));
     py::module_ mpl = py::module_::import("matplotlib");

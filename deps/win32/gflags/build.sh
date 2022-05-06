@@ -9,7 +9,6 @@ SOURCE_NAME=gflags-2.2.2
 
 mkdir -p $SCRIPT_DIR/src
 if [ ! -d $SCRIPT_DIR/src/$SOURCE_NAME ]; then
-    echo $SCRIPT_DIR
     tar --force-local -zxf $SOURCE_DIR/$SOURCE_NAME.tar.gz -C $SCRIPT_DIR/src/
 fi
 
