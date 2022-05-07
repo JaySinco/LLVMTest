@@ -100,5 +100,8 @@ pushd $PROJECT_ROOT \
 && cmake -G "$BUILD_GENERATOR" .. \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=debug \
+    -DCMAKE_C_COMPILER="clang-cl" \
+    -DCMAKE_CXX_COMPILER="clang-cl" \
+    -DCMAKE_LINKER="lld-link" \
     -DTARGET_OS=$PLATFORM \
 && $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]}

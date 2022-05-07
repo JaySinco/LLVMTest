@@ -42,7 +42,9 @@ public:
     void show(const std::vector<size_t>& indexList, int ncols = 5)
     {
         py::scoped_interpreter guard{};
+#ifdef __linux__
         PySys_SetPath(L"" DEPS_PYTHON_SYS_PATH);
+#endif
         py::module_ plt = py::module_::import("matplotlib.pyplot");
         for (int i = 0; i < indexList.size(); ++i) {
             size_t index = indexList[i];
@@ -230,7 +232,7 @@ void fashion_mnist()
     }
     torch::Device device(device_type);
 
-    auto saved_model_path = utils::getExeDir() + "/fashion-mnist.model.pt";
+    auto saved_model_path = utils::ws2s(utils::getExeDir() + L"/fashion-mnist.model.pt");
     Net model;
     model.to(device);
     if (std::filesystem::exists(saved_model_path)) {

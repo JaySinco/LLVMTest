@@ -8,6 +8,9 @@ add_executable(${TESTING}
     testing.cpp
 )
 target_precompile_headers(${TESTING} PRIVATE prec.h)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(${TESTING} PRIVATE -Wno-deprecated-declarations)
+endif()
 target_link_libraries(${TESTING} utils deps_mujoco deps_torch deps_imgui deps_implot)
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -16,6 +19,9 @@ add_custom_command(TARGET ${TESTING} POST_BUILD
 )
 
 add_executable(simulate testbed/uitools.cpp testbed/simulate.cpp)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(simulate PRIVATE -Wno-deprecated-declarations)
+endif()
 target_link_libraries(simulate utils deps_mujoco)
 
 add_executable(linear-regression testbed/linear-regression.cpp)
@@ -24,6 +30,9 @@ target_link_libraries(linear-regression utils deps_torch)
 
 add_executable(fashion-mnist testbed/fashion-mnist.cpp)
 target_precompile_headers(fashion-mnist REUSE_FROM ${TESTING})
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(fashion-mnist PRIVATE -Wno-deprecated-declarations)
+endif()
 if(UNIX)
     set_target_properties(fashion-mnist PROPERTIES ENABLE_EXPORTS 1)
 endif()
