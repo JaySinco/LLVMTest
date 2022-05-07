@@ -77,7 +77,8 @@ RUN apt-get update -y \
 # config
 # -----------------
 ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
-    LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib
+    LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib \
+    pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
 RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
     && git config --global user.name jaysinco \
