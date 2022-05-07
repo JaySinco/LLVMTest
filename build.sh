@@ -6,7 +6,7 @@ case "$OSTYPE" in
     linux*)   PLATFORM=linux ;;
     msys*)    PLATFORM=win32 ;;
 esac
-echo "platform: $PLATFORM"
+# echo "platform: $PLATFORM"
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"

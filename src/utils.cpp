@@ -3,7 +3,6 @@
 #include <limits.h>
 #include <libgen.h>
 #include <codecvt>
-#define max std::max
 #elif _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -197,7 +196,7 @@ public:
             doLogStep(s1, s2, s1n, s2n, record, steps);
             int count = 1;
             const char* templ = "{:<3d} {:{}s}";
-            int sep = max(s1n, s2n) + 2;
+            int sep = std::max(s1n, s2n) + 2;
             std::cout << fmt::format(templ, count++, s1, sep);
             for (auto& s: steps) {
                 std::cout << s.desc << std::endl << fmt::format(templ, count++, s.s, sep);

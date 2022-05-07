@@ -53,12 +53,25 @@ RUN apt-get update -y \
     && $code --install-extension vscode-icons-team.vscode-icons \
     && rm -rf /var/lib/apt/lists/*
 
-# devtools
+# cmake
+# -----------------
+RUN apt-get update -y \
+    && apt-get install -y build-essential curl libssl-dev \
+    && cd /tmp \
+    && curl -L -o cmake-3.23.1.tar.gz 'https://gh.api.99988866.xyz/https://github.com/Kitware/CMake/releases/download/v3.23.1/cmake-3.23.1.tar.gz' \
+    && tar zxvf cmake-3.23.1.tar.gz \
+    && cd /tmp/cmake-3.23.1 \
+    && ./bootstrap --prefix=/usr/local --parallel=`nproc` \
+    && make -j`nproc` \
+    && make install \
+    && rm -rf /tmp/cmake-3.23.1 /tmp/cmake-3.23.1.tar.gz \
+    && rm -rf /var/lib/apt/lists/*
+
+# install
 # -----------------
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
-    && apt-get install -y build-essential gdb git git-lfs cmake clang-format zip \
-        tcl libxcb-xinerama0-dev \
+    && apt-get install -y gdb git git-lfs clang-format zip tcl libxcb-xinerama0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # config
