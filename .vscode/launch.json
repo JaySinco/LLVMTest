@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug testing",
+            "name": "Debug linux",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/testing",
@@ -20,6 +20,21 @@
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug win32",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/testing.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/",
+            "environment": [],
+            "console": "integratedTerminal",
+            "logging": {
+                "moduleLoad": true,
+                "trace": true
+            }
         }
     ]
 }
