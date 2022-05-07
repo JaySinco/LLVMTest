@@ -14,6 +14,15 @@ DOCKER_IMAGE_TAG=build:v1
 DOCKER_PROJECT_DIR=/workspace
 BUILD_TARGETS=()
 
+if [ $PLATFORM = "linux" ]; then
+    BUILD_GENERATOR="Unix Makefiles"
+    BUILD_PROGRAM="make"
+elif [ $PLATFORM = "win32" ]; then
+    BUILD_GENERATOR="Ninja"
+    BUILD_PROGRAM="ninja"
+    source $PROJECT_ROOT/vcvars64.sh
+fi
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         -h|--help)
@@ -65,12 +74,12 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --edit-ui)
-            $PROJECT_ROOT/deps/linux/qt5/bin/designer \
-                $PROJECT_ROOT/src/qt5/go-to-cell-dialog.ui
+            $PROJECT_ROOT/deps/$PLATFORM/qt5/bin/designer \
+                $PROJECT_ROOT/src/qt5/*.ui
             exit 0
             ;;
         -c|--clean)
-            pushd $PROJECT_ROOT/out && make clean && popd
+            pushd $PROJECT_ROOT/out && $BUILD_PROGRAM clean && popd
             exit 0
             ;;
         -*|--*)
@@ -83,15 +92,6 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-
-if [ $PLATFORM = "linux" ]; then
-    BUILD_GENERATOR="Unix Makefiles"
-    BUILD_PROGRAM="make"
-elif [ $PLATFORM = "win32" ]; then
-    BUILD_GENERATOR="Ninja"
-    BUILD_PROGRAM="ninja"
-    source $PROJECT_ROOT/vcvars64.sh
-fi
 
 pushd $PROJECT_ROOT \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \

@@ -9,12 +9,12 @@ SOURCE_NAME=mujoco-2.1.5
 
 mkdir -p $SCRIPT_DIR/src
 if [ ! -d $SCRIPT_DIR/src/$SOURCE_NAME ]; then
-    tar -zxf $SOURCE_DIR/$SOURCE_NAME-linux-x86_64.tar.gz -C $SCRIPT_DIR/src/
+    unzip -o $SOURCE_DIR/$SOURCE_NAME-windows-x86_64.zip -d $SCRIPT_DIR/src/$SOURCE_NAME
 fi
 
 pushd $SCRIPT_DIR/src/$SOURCE_NAME \
 && mkdir -p -v ../../include \
 && cp -r -v ./include/* ../../include \
 && mkdir -p -v ../../lib \
-&& cp -r -v ./lib/* ../../lib \
+&& cp -r -v ./lib/* ./bin/*.dll ../../lib \
 && popd

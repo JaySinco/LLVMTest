@@ -9,7 +9,7 @@ SOURCE_NAME=implot-0.13
 
 mkdir -p $SCRIPT_DIR/src
 if [ ! -d $SCRIPT_DIR/src/$SOURCE_NAME ]; then
-    tar -zxf $SOURCE_DIR/$SOURCE_NAME.tar.gz -C $SCRIPT_DIR/src/
+    tar --force-local -zxf $SOURCE_DIR/$SOURCE_NAME.tar.gz -C $SCRIPT_DIR/src/
 fi
 
 pushd $SCRIPT_DIR/src/$SOURCE_NAME \

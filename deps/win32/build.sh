@@ -13,10 +13,10 @@ $SCRIPT_DIR/expected-lite/build.sh && \
 $SCRIPT_DIR/zlib/build.sh && \
 $SCRIPT_DIR/python3/build.sh && \
 $SCRIPT_DIR/pybind11/build.sh && \
-# $SCRIPT_DIR/qt5/build.sh && \
-# $SCRIPT_DIR/glfw/build.sh && \
-# $SCRIPT_DIR/mujoco/build.sh && \
-# $SCRIPT_DIR/torch/build.sh && \
-# $SCRIPT_DIR/imgui/build.sh && \
-# $SCRIPT_DIR/implot/build.sh && \
+$SCRIPT_DIR/qt5/build.sh && \
+$SCRIPT_DIR/glfw/build.sh && \
+$SCRIPT_DIR/mujoco/build.sh && \
+$SCRIPT_DIR/torch/build.sh && \
+$SCRIPT_DIR/imgui/build.sh && \
+$SCRIPT_DIR/implot/build.sh && \
 echo done!

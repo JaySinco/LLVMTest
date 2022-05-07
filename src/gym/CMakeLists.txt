@@ -11,7 +11,7 @@ target_precompile_headers(${TESTING} PRIVATE prec.h)
 target_link_libraries(${TESTING} utils deps_mujoco deps_torch deps_imgui deps_implot)
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${DEPS_PREFIX}/mujoco/lib/libmujoco.so.2.1.5
+    ${DEPS_PREFIX}/mujoco/lib/$<IF:$<BOOL:${UNIX}>,libmujoco.so.2.1.5,mujoco.dll>
     $<TARGET_FILE_DIR:${TESTING}>
 )
 
@@ -24,5 +24,7 @@ target_link_libraries(linear-regression utils deps_torch)
 
 add_executable(fashion-mnist testbed/fashion-mnist.cpp)
 target_precompile_headers(fashion-mnist REUSE_FROM ${TESTING})
-set_target_properties(fashion-mnist PROPERTIES ENABLE_EXPORTS 1)
+if(UNIX)
+    set_target_properties(fashion-mnist PROPERTIES ENABLE_EXPORTS 1)
+endif()
 target_link_libraries(fashion-mnist utils deps_python3 deps_torch)

@@ -5,5 +5,5 @@ add_executable(testing testing.cpp)
 target_link_libraries(testing utils)
 
 add_subdirectory(py3)
-# add_subdirectory(qt5)
-# add_subdirectory(gym)
+add_subdirectory(qt5)
+add_subdirectory(gym)
