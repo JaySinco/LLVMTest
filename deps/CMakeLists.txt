@@ -107,4 +107,10 @@ target_include_directories(deps_implot PUBLIC ${DEPS_PREFIX}/implot/include)
 target_link_libraries(deps_implot PUBLIC deps_imgui)
 
 add_library(deps_boost INTERFACE)
-target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include)
+target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include/boost-1_79)
+if(UNIX)
+elseif(WIN32)
+    target_link_libraries(deps_boost INTERFACE
+        ${DEPS_PREFIX}/boost/lib/libboost_filesystem-vc142-mt-x64-1_79.lib
+    )
+endif()

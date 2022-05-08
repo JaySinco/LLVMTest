@@ -1,5 +1,11 @@
 add_library(utils utils.cpp)
-target_link_libraries(utils PUBLIC deps_fmt deps_gflags deps_glog deps_expected-lite)
+target_link_libraries(utils PUBLIC
+    deps_fmt
+    deps_gflags
+    deps_glog
+    deps_expected-lite
+    deps_boost
+)
 
 add_executable(testing testing.cpp)
 target_link_libraries(testing utils)
