@@ -22,4 +22,5 @@ $SCRIPT_DIR/mujoco/build.sh && \
 $SCRIPT_DIR/torch/build.sh && \
 $SCRIPT_DIR/imgui/build.sh && \
 $SCRIPT_DIR/implot/build.sh && \
+$SCRIPT_DIR/boost/build.sh && \
 echo done!

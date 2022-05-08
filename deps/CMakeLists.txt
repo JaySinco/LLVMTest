@@ -105,3 +105,6 @@ add_library(deps_implot STATIC
 )
 target_include_directories(deps_implot PUBLIC ${DEPS_PREFIX}/implot/include)
 target_link_libraries(deps_implot PUBLIC deps_imgui)
+
+add_library(deps_boost INTERFACE)
+target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include)

@@ -23,6 +23,7 @@
                 "${workspaceFolder}/deps/linux/torch/include/torch/csrc/api/include",
                 "${workspaceFolder}/deps/linux/imgui/include",
                 "${workspaceFolder}/deps/linux/implot/include",
+                "${workspaceFolder}/deps/linux/boost/include",
                 "${workspaceFolder}/out/src/qt5/qt5-testing_autogen/include"
             ]
         },
@@ -51,6 +52,7 @@
                 "${workspaceFolder}/deps/win32/torch/include/torch/csrc/api/include",
                 "${workspaceFolder}/deps/win32/imgui/include",
                 "${workspaceFolder}/deps/win32/implot/include",
+                "${workspaceFolder}/deps/win32/boost/include",
                 "${workspaceFolder}/out/src/qt5/qt5-testing_autogen/include"
             ]
         }
