@@ -20,8 +20,10 @@
     "scm.inputFontFamily": "editor",
     "debug.console.fontFamily": "'Cascadia Code'",
     "explorer.confirmDelete": false,
+    "explorer.autoReveal": false,
     "extensions.ignoreRecommendations": true,
     "C_Cpp.autoAddFileAssociations": false,
     "vsicons.dontShowNewVersionMessage": true,
+    "git.autofetch": false,
     "git.confirmSync": false,
 }
