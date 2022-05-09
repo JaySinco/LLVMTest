@@ -1,5 +1,4 @@
 #pragma once
-#define BOOST_ALL_NO_LIB
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>

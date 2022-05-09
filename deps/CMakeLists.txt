@@ -108,9 +108,12 @@ target_link_libraries(deps_implot PUBLIC deps_imgui)
 
 add_library(deps_boost INTERFACE)
 target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include/boost-1_79)
+target_compile_definitions(deps_boost INTERFACE BOOST_ALL_NO_LIB _WIN32_WINNT=0x0601)
 if(UNIX)
 elseif(WIN32)
     target_link_libraries(deps_boost INTERFACE
         ${DEPS_PREFIX}/boost/lib/libboost_filesystem-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_coroutine-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_context-vc142-mt-x64-1_79.lib
     )
 endif()

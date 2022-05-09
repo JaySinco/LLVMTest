@@ -34,9 +34,6 @@
             "intelliSenseMode": "windows-clang-x64",
             "compilerPath": "C:/Program Files/LLVM/bin/clang-cl.exe",
             "defines": [
-                "UNICODE",
-                "_WIN32_WINNT=0x0601",
-                "GLOG_NO_ABBREVIATED_SEVERITIES",
                 "DEPS_PREFIX=\"\""
             ],
             "includePath": [
