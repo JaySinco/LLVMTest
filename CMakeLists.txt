@@ -9,7 +9,12 @@ if(UNIX)
     set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 elseif(WIN32)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-    add_compile_options(/utf-8)
+    add_compile_definitions(
+        WINVER=0x0601
+        _WIN32_WINNT=0x0601
+        NOMINMAX
+    )
+    add_compile_options(/utf-8 /permissive-)
 endif()
 
 set(DEPS_PREFIX ${CMAKE_SOURCE_DIR}/deps/${TARGET_OS})

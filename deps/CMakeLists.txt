@@ -76,6 +76,7 @@ if(UNIX)
         ${DEPS_PREFIX}/torch/lib/libtorch_cpu.so
     )
 elseif(WIN32)
+    target_compile_options(deps_torch INTERFACE /W0)
     target_link_libraries(deps_torch INTERFACE
         "-INCLUDE:?warp_size@cuda@at@@YAHXZ"
         "-INCLUDE:?searchsorted_cuda@native@at@@YA?AVTensor@2@AEBV32@0_N1@Z"
@@ -108,7 +109,7 @@ target_link_libraries(deps_implot PUBLIC deps_imgui)
 
 add_library(deps_boost INTERFACE)
 target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include/boost-1_79)
-target_compile_definitions(deps_boost INTERFACE BOOST_ALL_NO_LIB _WIN32_WINNT=0x0601)
+target_compile_definitions(deps_boost INTERFACE BOOST_ALL_NO_LIB)
 if(UNIX)
 elseif(WIN32)
     target_link_libraries(deps_boost INTERFACE

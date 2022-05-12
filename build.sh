@@ -23,9 +23,9 @@ if [ $PLATFORM = "linux" ]; then
 elif [ $PLATFORM = "win32" ]; then
     BUILD_GENERATOR="Ninja"
     BUILD_PROGRAM="ninja"
-    BUILD_C_COMPILER="clang-cl"
-    BUILD_CXX_COMPILER="clang-cl"
-    BUILD_LINKER="lld-link"
+    BUILD_C_COMPILER="cl"
+    BUILD_CXX_COMPILER="cl"
+    BUILD_LINKER="link"
     source $PROJECT_ROOT/vcvars64.sh
 fi
 
@@ -126,4 +126,5 @@ pushd $PROJECT_ROOT \
     -DCMAKE_CXX_COMPILER=$BUILD_CXX_COMPILER \
     -DCMAKE_LINKER=$BUILD_LINKER \
     -DTARGET_OS=$PLATFORM \
-&& $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]}
+&& $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]} \
+&& echo done!

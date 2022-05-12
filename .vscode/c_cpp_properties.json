@@ -31,9 +31,9 @@
             "name": "Win32",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-clang-x64",
-            "compilerPath": "C:/Program Files/LLVM/bin/clang-cl.exe",
+            "intelliSenseMode": "windows-msvc-x64",
             "defines": [
+                "NOMINMAX",
                 "DEPS_PREFIX=\"\""
             ],
             "includePath": [
