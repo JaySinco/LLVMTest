@@ -6,6 +6,7 @@
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <boost/timer/timer.hpp>
 
 namespace py = pybind11;
 
@@ -175,6 +176,7 @@ template <typename DataLoader>
 void train(int32_t epoch, Net& model, torch::Device device, DataLoader& data_loader,
            torch::optim::Optimizer& optimizer, size_t dataset_size)
 {
+    boost::timer::cpu_timer timer;
     model.train();
     size_t batch_idx = 0;
     for (auto& batch: data_loader) {
@@ -192,6 +194,7 @@ void train(int32_t epoch, Net& model, torch::Device device, DataLoader& data_loa
                                      loss.template item<float>());
         }
     }
+    std::cout << fmt::format(" Time: {:.3f}s", timer.elapsed().wall * 1e-9);
 }
 
 template <typename DataLoader>

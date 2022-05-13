@@ -1,5 +1,6 @@
 #include "../prec.h"
 #include "../../utils.h"
+#include <boost/timer/timer.hpp>
 
 struct TensorDataset: public torch::data::Dataset<TensorDataset>
 {
@@ -62,6 +63,7 @@ int main(int argc, char** argv)
     google::InitGoogleLogging(argv[0]);
 
     TRY_;
+    boost::timer::auto_cpu_timer timer;
     torch::manual_seed(1);
     linear_regression();
     CATCH_;

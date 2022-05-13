@@ -116,5 +116,7 @@ elseif(WIN32)
         ${DEPS_PREFIX}/boost/lib/libboost_filesystem-vc142-mt-x64-1_79.lib
         ${DEPS_PREFIX}/boost/lib/libboost_coroutine-vc142-mt-x64-1_79.lib
         ${DEPS_PREFIX}/boost/lib/libboost_context-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_timer-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_chrono-vc142-mt-x64-1_79.lib
     )
 endif()
