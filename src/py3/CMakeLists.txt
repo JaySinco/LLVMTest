@@ -22,5 +22,6 @@ elseif(WIN32)
 endif()
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${PIP3} config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-    COMMAND ${PIP3} install --no-warn-script-location -q -r ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
+    COMMAND ${PIP3} install --disable-pip-version-check --no-warn-script-location -q -r
+        ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
 )
