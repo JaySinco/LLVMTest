@@ -1,33 +1,11 @@
 #include "../utils.h"
+#include "prec.h"
 #include <glog/logging.h>
-#include <boost/spirit/include/qi.hpp>
 
 namespace qi = boost::spirit::qi;
 namespace enc = qi::standard_wide;
-using CsvColumn = std::wstring;
-using CsvLine = std::vector<CsvColumn>;
-
-struct CsvDoubleQuote_: qi::symbols<wchar_t, wchar_t>
-{
-    CsvDoubleQuote_() { add(L"\"\"", L'"'); }
-
-} CsvDoubleQuote;
-
-template <typename It>
-struct CsvGrammar: qi::grammar<It, CsvLine(), qi::blank_type>
-{
-    CsvGrammar(const std::wstring& colSep): CsvGrammar::base_type(line)
-    {
-        line = column % qi::no_skip[colSep];
-        column = quoted | qi::no_skip[*(enc::char_ - colSep)];
-        quoted = qi::no_skip[L'"' >> *(CsvDoubleQuote | ~enc::char_(L'"')) >> L'"'];
-    }
-
-private:
-    qi::rule<It, CsvLine(), qi::blank_type> line;
-    qi::rule<It, CsvColumn(), qi::blank_type> column;
-    qi::rule<It, std::wstring(), qi::blank_type> quoted;
-};
+namespace phx = boost::phoenix;
+using phx::placeholders::arg1;
 
 int main(int argc, char** argv)
 {
@@ -36,13 +14,12 @@ int main(int argc, char** argv)
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
 
-    std::vector<std::wstring> cols;
-    std::wstring line = L"a,测试,c";
-    CsvGrammar<std::wstring::const_iterator> parser(L",");
-    bool ok = qi::phrase_parse(line.begin(), line.end(), parser, qi::blank, cols);
-    for (auto& c: cols) {
-        LOG(INFO) << utils::ws2s(c);
-    }
+    std::string line = "{12 13 14}";
+    std::vector<int> q;
+    auto g = *qi::int_;
+    auto g1 = g[([](auto&& q) { std::cout << q.back() << std::endl; })];
+    bool ok =
+        qi::phrase_parse(line.begin(), line.end(), '{' >> g1 >> '}' >> qi::int_, qi::blank, q);
 }
 
 // lexer grammar TLexer;
