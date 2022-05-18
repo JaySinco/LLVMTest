@@ -23,7 +23,13 @@
     "explorer.autoReveal": false,
     "extensions.ignoreRecommendations": true,
     "C_Cpp.autoAddFileAssociations": false,
+    "C_Cpp.intelliSenseEngine": "Disabled",
     "vsicons.dontShowNewVersionMessage": true,
     "git.autofetch": false,
     "git.confirmSync": false,
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/out",
+        "--completion-style=detailed",
+        "--header-insertion=never"
+    ],
 }

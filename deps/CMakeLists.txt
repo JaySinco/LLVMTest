@@ -43,7 +43,6 @@ elseif(WIN32)
     target_link_libraries(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/lib/python38.lib)
 endif()
 
-
 add_library(deps_pybind11 INTERFACE)
 target_include_directories(deps_pybind11 INTERFACE ${DEPS_PREFIX}/pybind11/include)
 target_link_libraries(deps_pybind11 INTERFACE deps_python3)

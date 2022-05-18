@@ -16,6 +16,7 @@ add_custom_command(TARGET ${TESTING} POST_BUILD
 )
 
 add_executable(simulate testbed/uitools.cpp testbed/simulate.cpp)
+target_compile_options(simulate PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wno-deprecated-declarations>)
 target_link_libraries(simulate utils deps_mujoco)
 
 add_executable(linear-regression testbed/linear-regression.cpp)

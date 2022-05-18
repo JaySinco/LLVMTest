@@ -3,9 +3,17 @@
 #include <glog/logging.h>
 
 namespace qi = boost::spirit::qi;
-namespace enc = qi::standard_wide;
-namespace phx = boost::phoenix;
-using phx::placeholders::arg1;
+// namespace phx = boost::phoenix;
+
+struct ten_: qi::symbols<char, unsigned>
+{
+    ten_() { add("sds", 10)("sdc", 12); }
+} ten;
+
+template <typename Iterator>
+struct roman: qi::grammar<Iterator, unsigned()>
+{
+};
 
 int main(int argc, char** argv)
 {
@@ -14,12 +22,17 @@ int main(int argc, char** argv)
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
 
-    std::string line = "{12 13 14}";
-    std::vector<int> q;
-    auto g = *qi::int_;
-    auto g1 = g[([](auto&& q) { std::cout << q.back() << std::endl; })];
-    bool ok =
-        qi::phrase_parse(line.begin(), line.end(), '{' >> g1 >> '}' >> qi::int_, qi::blank, q);
+    std::string line = argv[1];
+    std::vector<double> vs;
+    auto grammar = qi::double_ % ',';
+    auto beg = line.begin();
+    auto end = line.end();
+    bool ok = qi::phrase_parse(beg, end, grammar, qi::blank, vs);
+    if (beg != end) {
+        LOG(INFO) << "failed!";
+        return 0;
+    }
+    LOG(INFO) << fmt::to_string(vs);
 }
 
 // lexer grammar TLexer;
