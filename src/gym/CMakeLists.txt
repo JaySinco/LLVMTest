@@ -21,11 +21,11 @@ target_link_libraries(simulate utils deps_mujoco)
 
 add_executable(linear-regression testbed/linear-regression.cpp)
 target_precompile_headers(linear-regression REUSE_FROM ${TESTING})
-target_link_libraries(linear-regression utils deps_torch)
+target_link_libraries(linear-regression utils deps_torch deps_boost)
 
 add_executable(fashion-mnist testbed/fashion-mnist.cpp)
 target_precompile_headers(fashion-mnist REUSE_FROM ${TESTING})
 if(UNIX)
     set_target_properties(fashion-mnist PROPERTIES ENABLE_EXPORTS 1)
 endif()
-target_link_libraries(fashion-mnist utils deps_python3 deps_torch)
+target_link_libraries(fashion-mnist utils deps_python3 deps_torch deps_boost)

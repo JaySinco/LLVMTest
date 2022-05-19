@@ -13,8 +13,6 @@ if [ ! -d $SCRIPT_DIR/src/$SOURCE_NAME ]; then
 fi
 
 pushd $SCRIPT_DIR/src/$SOURCE_NAME \
-&& mkdir -p -v ../../include \
-&& cp -r -v ./include/* ../../include \
-&& mkdir -p -v ../../lib \
-&& cp -r -v ./lib/* ../../lib \
+&& mv ./include/ ../../include \
+&& mv ./lib/ ../../lib \
 && popd
