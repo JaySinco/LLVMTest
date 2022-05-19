@@ -23,6 +23,30 @@ elseif(WIN32)
     target_link_libraries(deps_fmt INTERFACE ${DEPS_PREFIX}/fmt/lib/fmt.lib)
 endif()
 
+add_library(deps_boost INTERFACE)
+target_compile_definitions(deps_boost INTERFACE BOOST_ALL_NO_LIB)
+if(UNIX)
+    target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include)
+    target_link_libraries(deps_boost INTERFACE
+        ${DEPS_PREFIX}/boost/lib/libboost_filesystem.a
+        ${DEPS_PREFIX}/boost/lib/libboost_coroutine.a
+        ${DEPS_PREFIX}/boost/lib/libboost_context.a
+        ${DEPS_PREFIX}/boost/lib/libboost_timer.a
+        ${DEPS_PREFIX}/boost/lib/libboost_chrono.a
+        ${DEPS_PREFIX}/boost/lib/libboost_thread.a
+    )
+elseif(WIN32)
+    target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include/boost-1_79)
+    target_link_libraries(deps_boost INTERFACE
+        ${DEPS_PREFIX}/boost/lib/libboost_filesystem-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_coroutine-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_context-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_timer-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_chrono-vc142-mt-x64-1_79.lib
+        ${DEPS_PREFIX}/boost/lib/libboost_thread-vc142-mt-x64-1_79.lib
+    )
+endif()
+
 add_library(deps_expected-lite INTERFACE)
 target_include_directories(deps_expected-lite INTERFACE ${DEPS_PREFIX}/expected-lite/include)
 
@@ -105,27 +129,3 @@ add_library(deps_implot STATIC
 )
 target_include_directories(deps_implot PUBLIC ${DEPS_PREFIX}/implot/include)
 target_link_libraries(deps_implot PUBLIC deps_imgui)
-
-add_library(deps_boost INTERFACE)
-target_compile_definitions(deps_boost INTERFACE BOOST_ALL_NO_LIB)
-if(UNIX)
-    target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include)
-    target_link_libraries(deps_boost INTERFACE
-        ${DEPS_PREFIX}/boost/lib/libboost_filesystem.a
-        ${DEPS_PREFIX}/boost/lib/libboost_coroutine.a
-        ${DEPS_PREFIX}/boost/lib/libboost_context.a
-        ${DEPS_PREFIX}/boost/lib/libboost_timer.a
-        ${DEPS_PREFIX}/boost/lib/libboost_chrono.a
-        ${DEPS_PREFIX}/boost/lib/libboost_thread.a
-    )
-elseif(WIN32)
-    target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include/boost-1_79)
-    target_link_libraries(deps_boost INTERFACE
-        ${DEPS_PREFIX}/boost/lib/libboost_filesystem-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_coroutine-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_context-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_timer-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_chrono-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_thread-vc142-mt-x64-1_79.lib
-    )
-endif()

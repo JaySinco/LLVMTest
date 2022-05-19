@@ -14,7 +14,7 @@ fi
 
 pushd $SCRIPT_DIR/src/$SOURCE_NAME \
 && ./bootstrap.sh --without-libraries=python --with-toolset=gcc \
-&& ./b2 --prefix=$SCRIPT_DIR \
+&& ./b2 --prefix=$SCRIPT_DIR toolset=gcc \
     variant=release link=static runtime-link=shared \
     architecture=x86 address-model=64 threading=multi \
     install \
