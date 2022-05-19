@@ -4,11 +4,10 @@ target_link_libraries(utils PUBLIC
     deps_gflags
     deps_glog
     deps_expected-lite
-    deps_boost
 )
 
 add_executable(testing testing.cpp)
-target_link_libraries(testing utils)
+target_link_libraries(testing utils deps_boost)
 
 add_subdirectory(py3)
 add_subdirectory(qt5)
