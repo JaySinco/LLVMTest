@@ -67,16 +67,28 @@ RUN apt-get update -y \
     && rm -rf /tmp/cmake-3.23.1 /tmp/cmake-3.23.1.tar.gz \
     && rm -rf /var/lib/apt/lists/*
 
-# install
+# clang
 # -----------------
 RUN apt-get update -y \
     && apt-get install -y software-properties-common \
-    && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
+    && wget -q -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
     && add-apt-repository 'deb https://mirrors.tuna.tsinghua.edu.cn/llvm-apt/focal/ llvm-toolchain-focal-13 main' \
     && apt-get update -y \
+    && apt-get install -y clang-13 lldb-13 lld-13 clangd-13 clang-format-13 \
+        libc++-13-dev libc++abi-13-dev \
+    && $code --install-extension llvm-vs-code-extensions.vscode-clangd \
+    && ln -s /usr/bin/clang-13 /usr/bin/clang \
+    && ln -s /usr/bin/clang++-13 /usr/bin/clang++ \
+    && ln -s /usr/bin/ld.lld-13 /usr/bin/ld.lld \
+    && ln -s /usr/bin/clangd-13 /usr/bin/clangd \
+    && ln -s /usr/bin/clang-format-13 /usr/bin/clang-format \
+    && rm -rf /var/lib/apt/lists/*
+
+# install
+# -----------------
+RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && apt-get install -y gdb git git-lfs zip tcl libxcb-xinerama0-dev \
-        clang-13 lldb-13 lld-13 clangd-13 clang-format-13 \
     && rm -rf /var/lib/apt/lists/*
 
 # config
@@ -86,17 +98,11 @@ ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
     pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
 RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
-    && $code --install-extension llvm-vs-code-extensions.vscode-clangd \
     && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
     && git config --global --add safe.directory $PROJECT_DIR \
     && mkdir -p $XDG_RUNTIME_DIR \
-    && chmod 700 $XDG_RUNTIME_DIR \
-    && ln -s /usr/bin/clang-13 /usr/bin/clang \
-    && ln -s /usr/bin/clang++-13 /usr/bin/clang++ \
-    && ln -s /usr/bin/ld.lld-13 /usr/bin/ld.lld \
-    && ln -s /usr/bin/clangd-13 /usr/bin/clangd \
-    && ln -s /usr/bin/clang-format-13 /usr/bin/clang-format
+    && chmod 700 $XDG_RUNTIME_DIR
 
 # entry
 # -----------------
