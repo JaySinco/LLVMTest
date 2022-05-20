@@ -11,8 +11,11 @@ struct ten_: qi::symbols<char, unsigned>
 } ten;
 
 template <typename Iterator>
-struct roman: qi::grammar<Iterator, unsigned()>
+struct testg: qi::grammar<Iterator, double()>
 {
+    testg(): testg::base_type(start) { start = ten >> qi::double_; }
+
+    qi::rule<Iterator, double()> start;
 };
 
 int main(int argc, char** argv)
@@ -23,16 +26,18 @@ int main(int argc, char** argv)
     google::InitGoogleLogging(argv[0]);
 
     std::string line = argv[1];
-    std::vector<double> vs;
-    auto grammar = qi::double_ % ',';
     auto beg = line.begin();
     auto end = line.end();
-    bool ok = qi::phrase_parse(beg, end, grammar, qi::blank, vs);
+
+    using grammar_t = testg<std::string::const_iterator>;
+    grammar_t g;
+    grammar_t::start_type::attr_type attr;
+    bool ok = qi::phrase_parse(beg, end, g, qi::blank, attr);
     if (beg != end) {
         LOG(INFO) << "failed!";
         return 0;
     }
-    LOG(INFO) << fmt::to_string(vs);
+    LOG(INFO) << fmt::to_string(attr);
 }
 
 // lexer grammar TLexer;

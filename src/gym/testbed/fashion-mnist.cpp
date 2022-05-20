@@ -13,12 +13,12 @@ namespace py = pybind11;
 class FashionMnistDataset: public torch::data::Dataset<FashionMnistDataset>
 {
 public:
-    explicit FashionMnistDataset(const std::string& dataRoot, bool train = true)
+    explicit FashionMnistDataset(std::string_view dataRoot, bool train = true)
     {
-        std::string imagesPath =
-            dataRoot + (train ? "train-images-idx3-ubyte" : "t10k-images-idx3-ubyte");
-        std::string labelsPath =
-            dataRoot + (train ? "train-labels-idx1-ubyte" : "t10k-labels-idx1-ubyte");
+        std::string imagesPath(dataRoot);
+        imagesPath += train ? "train-images-idx3-ubyte" : "t10k-images-idx3-ubyte";
+        std::string labelsPath(dataRoot);
+        labelsPath += train ? "train-labels-idx1-ubyte" : "t10k-labels-idx1-ubyte";
 
         this->readImages(imagesPath);
         this->readLabels(labelsPath);
@@ -80,7 +80,7 @@ private:
         return ((int32_t)c1 << 24) + ((int32_t)c2 << 16) + ((int32_t)c3 << 8) + c4;
     }
 
-    void readImages(const std::string& path)
+    void readImages(std::string_view path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);
@@ -103,7 +103,7 @@ private:
             torch::kUInt8);
     }
 
-    void readLabels(const std::string& path)
+    void readLabels(std::string_view path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);

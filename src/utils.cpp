@@ -13,48 +13,48 @@
 
 namespace utils
 {
-std::string ws2s(const std::wstring& ws, bool utf8)
+std::string ws2s(std::wstring_view ws, bool utf8)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.to_bytes(ws);
 #elif _WIN32
     UINT page = utf8 ? CP_UTF8 : CP_ACP;
-    int len = WideCharToMultiByte(page, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    int len = WideCharToMultiByte(page, 0, ws.data(), -1, nullptr, 0, nullptr, nullptr);
     if (len <= 0) return "";
     auto buf = new char[len]{0};
     if (buf == nullptr) return "";
-    WideCharToMultiByte(page, 0, ws.c_str(), -1, buf, len, nullptr, nullptr);
+    WideCharToMultiByte(page, 0, ws.data(), -1, buf, len, nullptr, nullptr);
     std::string s = buf;
     delete[] buf;
     return s;
 #endif
 }
 
-std::wstring s2ws(const std::string& s, bool utf8)
+std::wstring s2ws(std::string_view s, bool utf8)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.from_bytes(s);
 #elif _WIN32
     UINT page = utf8 ? CP_UTF8 : CP_ACP;
-    int len = MultiByteToWideChar(page, 0, s.c_str(), -1, nullptr, 0);
+    int len = MultiByteToWideChar(page, 0, s.data(), -1, nullptr, 0);
     if (len <= 0) return L"";
     auto buf = new wchar_t[len]{0};
     if (buf == nullptr) return L"";
-    MultiByteToWideChar(page, 0, s.c_str(), -1, buf, len);
+    MultiByteToWideChar(page, 0, s.data(), -1, buf, len);
     std::wstring ws = buf;
     delete[] buf;
     return ws;
 #endif
 }
 
-nonstd::unexpected_type<error> make_unexpected(const std::string& s)
+nonstd::unexpected_type<error> make_unexpected(std::string_view s)
 {
     return nonstd::unexpected_type<error>(s);
 }
 
-expected<std::string> readFile(const std::wstring& path)
+expected<std::string> readFile(std::wstring_view path)
 {
 #ifdef __linux__
     std::ifstream in_file(ws2s(path));
@@ -127,7 +127,7 @@ std::string base64_encode(const unsigned char* buf, unsigned int bufLen)
     return ret;
 }
 
-std::vector<unsigned char> base64_decode(const std::string& encoded_string)
+std::vector<unsigned char> base64_decode(std::string_view encoded_string)
 {
     int in_len = encoded_string.size();
     int i = 0;
@@ -169,7 +169,7 @@ std::vector<unsigned char> base64_decode(const std::string& encoded_string)
 class WordDistance
 {
 public:
-    static int calc(const std::string& s1, const std::string& s2, bool logStep = false)
+    static int calc(std::string_view s1, std::string_view s2, bool logStep = false)
     {
         int s1n = s1.size();
         int s2n = s2.size();
@@ -228,7 +228,7 @@ private:
 
     using Record = std::vector<std::vector<Result>>;
 
-    static void doLogStep(const std::string& s1, const std::string& s2, int i, int j,
+    static void doLogStep(std::string_view s1, std::string_view s2, int i, int j,
                           const Record& record, std::vector<Step>& steps)
     {
         if (i == 0 && j == 0) {
@@ -238,10 +238,12 @@ private:
         switch (record[i][j].op) {
             case ADD:
                 doLogStep(s1, s2, i, j - 1, record, steps);
-                steps.push_back({s2.substr(0, j), fmt::format(templ, "ADD", j, s2[j - 1])});
+                steps.push_back(
+                    {std::string(s2.substr(0, j)), fmt::format(templ, "ADD", j, s2[j - 1])});
                 break;
             case DELETE_:
-                steps.push_back({s1.substr(0, i - 1), fmt::format(templ, "DELETE", i, s1[i - 1])});
+                steps.push_back(
+                    {std::string(s1.substr(0, i - 1)), fmt::format(templ, "DELETE", i, s1[i - 1])});
                 doLogStep(s1, s2, i - 1, j, record, steps);
                 break;
             case CHANGE: {
@@ -252,7 +254,7 @@ private:
                     steps.push_back(s);
                 }
                 if (s1[i - 1] != s2[j - 1]) {
-                    steps.push_back({s2.substr(0, j),
+                    steps.push_back({std::string(s2.substr(0, j)),
                                      fmt::format(templ, "CHANGE", j,
                                                  fmt::format("{} -> {}", s1[i - 1], s2[j - 1]))});
                 }
@@ -264,7 +266,7 @@ private:
     }
 };
 
-int word_distance(const std::string& s1, const std::string& s2, bool logStep)
+int word_distance(std::string_view s1, std::string_view s2, bool logStep)
 {
     return WordDistance::calc(s1, s2, logStep);
 }

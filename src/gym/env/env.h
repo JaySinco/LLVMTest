@@ -19,7 +19,7 @@ struct Progress
 class Env
 {
 public:
-    Env(const std::string& model_path, int frame_skip, bool show_ui);
+    Env(std::string_view model_path, int frame_skip, bool show_ui);
     virtual ~Env();
     virtual int act_space() const;
     virtual int ob_space() const;

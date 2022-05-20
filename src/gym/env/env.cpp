@@ -68,12 +68,12 @@ void glfw_cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
     mjv_moveCamera(this_->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &this_->scn, &this_->cam);
 }
 
-Env::Env(const std::string& model_path, int frame_skip, bool show_ui)
+Env::Env(std::string_view model_path, int frame_skip, bool show_ui)
     : frame_skip(frame_skip), show_ui(show_ui)
 {
     this_ = this;
     char error[1000] = {0};
-    m = mj_loadXML(model_path.c_str(), nullptr, error, 1000);
+    m = mj_loadXML(model_path.data(), nullptr, error, 1000);
     if (!m) {
         THROW_(fmt::format("failed to load xml: {}", error));
     }

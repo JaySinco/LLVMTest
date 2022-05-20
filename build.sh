@@ -115,6 +115,7 @@ echo "compiler=$BUILD_CXX_COMPILER"
 echo
 
 pushd $PROJECT_ROOT \
+&& ls -A1 deps/src > deps/.src.lst \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
 && mkdir -p out \
 && pushd out \
