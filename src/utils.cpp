@@ -17,14 +17,14 @@ std::string ws2s(std::wstring_view ws, bool utf8)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.to_bytes(ws);
+    return converter.to_bytes(ws.data(), ws.data() + ws.size());
 #elif _WIN32
     UINT page = utf8 ? CP_UTF8 : CP_ACP;
-    int len = WideCharToMultiByte(page, 0, ws.data(), -1, nullptr, 0, nullptr, nullptr);
+    int len = WideCharToMultiByte(page, 0, ws.data(), ws.size(), nullptr, 0, nullptr, nullptr);
     if (len <= 0) return "";
     auto buf = new char[len]{0};
     if (buf == nullptr) return "";
-    WideCharToMultiByte(page, 0, ws.data(), -1, buf, len, nullptr, nullptr);
+    WideCharToMultiByte(page, 0, ws.data(), ws.size(), buf, len, nullptr, nullptr);
     std::string s = buf;
     delete[] buf;
     return s;
@@ -35,21 +35,21 @@ std::wstring s2ws(std::string_view s, bool utf8)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(s);
+    return converter.from_bytes(s.data(), s.data() + s.size());
 #elif _WIN32
     UINT page = utf8 ? CP_UTF8 : CP_ACP;
-    int len = MultiByteToWideChar(page, 0, s.data(), -1, nullptr, 0);
+    int len = MultiByteToWideChar(page, 0, s.data(), s.size(), nullptr, 0);
     if (len <= 0) return L"";
     auto buf = new wchar_t[len]{0};
     if (buf == nullptr) return L"";
-    MultiByteToWideChar(page, 0, s.data(), -1, buf, len);
+    MultiByteToWideChar(page, 0, s.data(), s.size(), buf, len);
     std::wstring ws = buf;
     delete[] buf;
     return ws;
 #endif
 }
 
-nonstd::unexpected_type<error> make_unexpected(std::string_view s)
+nonstd::unexpected_type<error> make_unexpected(const std::string& s)
 {
     return nonstd::unexpected_type<error>(s);
 }

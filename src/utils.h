@@ -19,13 +19,13 @@ namespace utils
 {
 struct error: public std::runtime_error
 {
-    explicit error(std::string_view s): std::runtime_error(s.data()){};
+    explicit error(const std::string& s): std::runtime_error(s){};
 };
 
 template <typename T>
 using expected = nonstd::expected<T, error>;
 
-nonstd::unexpected_type<error> make_unexpected(std::string_view s);
+nonstd::unexpected_type<error> make_unexpected(const std::string& s);
 
 template <typename T>
 struct scope_exit
