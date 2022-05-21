@@ -5,7 +5,7 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/testing",
+            "program": "${workspaceFolder}/bin/parser-testing",
             "args": [],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
@@ -19,7 +19,6 @@
                 "type": "cppvsdbg",
             },
             "linux": {
-                "type": "cppdbg",
                 "MIMode": "gdb",
                 "setupCommands": [
                     {

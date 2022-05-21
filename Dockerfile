@@ -89,6 +89,7 @@ RUN apt-get update -y \
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && apt-get install -y gdb git git-lfs zip tcl libxcb-xinerama0-dev \
+    && $code --install-extension ms-vscode.hexeditor \
     && rm -rf /var/lib/apt/lists/*
 
 # config

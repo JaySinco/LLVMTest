@@ -1,21 +1,18 @@
 #include "../utils.h"
 #include "prec.h"
 #include <glog/logging.h>
+#include <fmt/ranges.h>
 
 namespace qi = boost::spirit::qi;
+namespace enc = boost::spirit::standard_wide;
 // namespace phx = boost::phoenix;
 
-struct ten_: qi::symbols<char, unsigned>
+template <typename Iterator, typename Attr, typename Skipper>
+struct grammar: qi::grammar<Iterator, Attr(), Skipper>
 {
-    ten_() { add("sds", 10)("sdc", 12); }
-} ten;
+    grammar(): grammar::base_type(start) { start = *qi::double_; }
 
-template <typename Iterator>
-struct testg: qi::grammar<Iterator, double()>
-{
-    testg(): testg::base_type(start) { start = ten >> qi::double_; }
-
-    qi::rule<Iterator, double()> start;
+    qi::rule<Iterator, Attr(), Skipper> start;
 };
 
 int main(int argc, char** argv)
@@ -25,19 +22,18 @@ int main(int argc, char** argv)
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
 
-    std::string line = argv[1];
-    auto beg = line.begin();
-    auto end = line.end();
+    auto raw = utils::readFile((__DIRNAME__ / "input.txt").wstring());
+    std::wstring input = utils::s2ws(*raw, true);
+    auto beg = input.begin();
+    auto end = input.end();
 
-    using grammar_t = testg<std::string::const_iterator>;
-    grammar_t g;
-    grammar_t::start_type::attr_type attr;
-    bool ok = qi::phrase_parse(beg, end, g, qi::blank, attr);
+    std::vector<double> attr;
+    grammar<decltype(beg), decltype(attr), enc::blank_type> g;
+    bool ok = qi::phrase_parse(beg, end, g, enc::blank, attr);
     if (beg != end) {
-        LOG(INFO) << "failed!";
-        return 0;
+        LOG(ERROR) << "left => " << utils::ws2s({&*beg, size_t(end - beg)});
     }
-    LOG(INFO) << fmt::to_string(attr);
+    LOG(INFO) << ok << " " << fmt::to_string(attr);
 }
 
 // lexer grammar TLexer;

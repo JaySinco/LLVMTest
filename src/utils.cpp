@@ -22,11 +22,8 @@ std::string ws2s(std::wstring_view ws, bool utf8)
     UINT page = utf8 ? CP_UTF8 : CP_ACP;
     int len = WideCharToMultiByte(page, 0, ws.data(), ws.size(), nullptr, 0, nullptr, nullptr);
     if (len <= 0) return "";
-    auto buf = new char[len]{0};
-    if (buf == nullptr) return "";
-    WideCharToMultiByte(page, 0, ws.data(), ws.size(), buf, len, nullptr, nullptr);
-    std::string s = buf;
-    delete[] buf;
+    std::string s(len, '\0');
+    WideCharToMultiByte(page, 0, ws.data(), ws.size(), s.data(), len, nullptr, nullptr);
     return s;
 #endif
 }
@@ -40,11 +37,8 @@ std::wstring s2ws(std::string_view s, bool utf8)
     UINT page = utf8 ? CP_UTF8 : CP_ACP;
     int len = MultiByteToWideChar(page, 0, s.data(), s.size(), nullptr, 0);
     if (len <= 0) return L"";
-    auto buf = new wchar_t[len]{0};
-    if (buf == nullptr) return L"";
-    MultiByteToWideChar(page, 0, s.data(), s.size(), buf, len);
-    std::wstring ws = buf;
-    delete[] buf;
+    std::wstring ws(len, L'\0');
+    MultiByteToWideChar(page, 0, s.data(), s.size(), ws.data(), len);
     return ws;
 #endif
 }
