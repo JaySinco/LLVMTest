@@ -7,12 +7,16 @@ namespace qi = boost::spirit::qi;
 namespace enc = boost::spirit::standard_wide;
 // namespace phx = boost::phoenix;
 
-template <typename Iterator, typename Attr, typename Skipper>
-struct grammar: qi::grammar<Iterator, Attr(), Skipper>
+template <typename Iterator, typename Attr>
+struct grammar: qi::grammar<Iterator, Attr()>
 {
-    grammar(): grammar::base_type(start) { start = *qi::double_; }
+    grammar(): grammar::base_type(start)
+    {
+        auto g = *qi::double_;
+        start = qi::skip(enc::blank)[g];
+    }
 
-    qi::rule<Iterator, Attr(), Skipper> start;
+    qi::rule<Iterator, Attr()> start;
 };
 
 int main(int argc, char** argv)
@@ -28,8 +32,8 @@ int main(int argc, char** argv)
     auto end = input.end();
 
     std::vector<double> attr;
-    grammar<decltype(beg), decltype(attr), enc::blank_type> g;
-    bool ok = qi::phrase_parse(beg, end, g, enc::blank, attr);
+    grammar<decltype(beg), decltype(attr)> g;
+    bool ok = qi::parse(beg, end, g, attr);
     if (beg != end) {
         LOG(ERROR) << "left => " << utils::ws2s({&*beg, size_t(end - beg)});
     }
