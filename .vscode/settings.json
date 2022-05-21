@@ -17,6 +17,7 @@
     },
     "terminal.integrated.fontFamily": "'Cascadia Code'",
     "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.persistentSessionReviveProcess": "never",
     "scm.inputFontFamily": "editor",
     "debug.console.fontFamily": "'Cascadia Code'",
     "explorer.confirmDelete": false,

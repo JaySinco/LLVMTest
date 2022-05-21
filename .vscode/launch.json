@@ -2,39 +2,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug linux",
+            "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/testing",
             "args": [],
-            "stopAtEntry": false,
+            "environment": [],
             "cwd": "${workspaceFolder}/bin",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "miDebuggerPath": "/usr/bin/gdb"
-        },
-        {
-            "name": "Debug win32",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bin/testing.exe",
-            "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/",
-            "environment": [],
-            "console": "integratedTerminal",
+            "externalConsole": false,
             "logging": {
                 "moduleLoad": true,
                 "trace": true
-            }
+            },
+            "windows": {
+                "type": "cppvsdbg",
+            },
+            "linux": {
+                "type": "cppdbg",
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ],
+                "miDebuggerPath": "/usr/bin/gdb"
+            },
         }
     ]
 }
