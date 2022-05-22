@@ -29,7 +29,7 @@ struct error_handler
                    << utils::ws2s(source_file.generic_wstring()) << ":" << line << "\n"
                    << utils::ws2s(std::wstring(ln_start, ln_end)) << "\n"
                    << std::string(ln_pos, ' ') << "^\n\n"
-                   << what << " expected\n";
+                   << what << " expected";
     }
 
     std::filesystem::path source_file;

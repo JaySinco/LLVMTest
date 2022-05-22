@@ -1,4 +1,4 @@
-#include "error_handler.h"
+#include "error-handler.h"
 #include <fmt/ranges.h>
 
 namespace qi = boost::spirit::qi;
@@ -8,8 +8,6 @@ namespace phx = boost::phoenix;
 namespace parser
 {
 
-using iterator = boost::spirit::line_pos_iterator<std::wstring::const_iterator>;
-
 struct employee
 {
     int age;
@@ -18,7 +16,16 @@ struct employee
     double salary;
 };
 
-struct grammar: qi::grammar<iterator, employee(), enc::space_type>
+}  // namespace parser
+
+BOOST_FUSION_ADAPT_STRUCT(parser::employee,
+                          (int, age)(std::wstring, surname)(std::wstring, forename)(double, salary))
+
+namespace parser
+{
+
+template <typename Iterator>
+struct grammar: qi::grammar<Iterator, employee()>
 {
     grammar(const std::filesystem::path& source_file)
         : grammar::base_type(start), err_handler(source_file)
@@ -26,16 +33,24 @@ struct grammar: qi::grammar<iterator, employee(), enc::space_type>
         quoted = qi::lexeme['"' > *(enc::char_ - '"') > '"'];
         epl = qi::lit(L"employee") > '{' > qi::int_ > ',' > quoted > ',' > quoted > ',' >
               qi::double_ > '}';
-        start = epl > qi::eoi;
+        start = qi::skip(enc::space)[epl > qi::eoi];
 
         qi::on_error<qi::fail>(start, err_handler(qi::_1, qi::_2, qi::_3, qi::_4));
     }
 
-    qi::rule<iterator, std::wstring(), enc::space_type> quoted;
-    qi::rule<iterator, employee(), enc::space_type> epl;
-    qi::rule<iterator, employee(), enc::space_type> start;
-    phx::function<error_handler<iterator>> err_handler;
+    qi::rule<Iterator, std::wstring()> quoted;
+    qi::rule<Iterator, employee()> epl;
+    qi::rule<Iterator, employee()> start;
+
+    phx::function<error_handler<Iterator>> err_handler;
 };
+
+}  // namespace parser
+
+namespace parser
+{
+
+using iterator = boost::spirit::line_pos_iterator<std::wstring::const_iterator>;
 
 void parse(const std::filesystem::path& source_file)
 {
@@ -43,16 +58,13 @@ void parse(const std::filesystem::path& source_file)
     std::wstring input = utils::s2ws(*raw, true);
     iterator beg(input.begin());
     iterator end(input.end());
-    grammar g(source_file);
+    grammar<iterator> g(source_file);
     employee attr;
-    bool ok = qi::phrase_parse(beg, end, g, enc::space, attr);
+    bool ok = qi::parse(beg, end, g, attr);
     LOG(INFO) << ok << " " << utils::ws2s(attr.surname);
 }
 
 }  // namespace parser
-
-BOOST_FUSION_ADAPT_STRUCT(parser::employee,
-                          (int, age)(std::wstring, surname)(std::wstring, forename)(double, salary))
 
 // lexer grammar TLexer;
 
