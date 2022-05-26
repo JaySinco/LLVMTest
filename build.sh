@@ -115,8 +115,8 @@ echo "compiler=$BUILD_CXX_COMPILER"
 echo
 
 pushd $PROJECT_ROOT \
-&& ls -A1 deps/src > deps/.src.lst \
-&& code --list-extensions | jq -R -s '{recommendations:split("\n")[:-1]}' \
+&& ls -AU1 deps/src > deps/.src.lst \
+&& $code --list-extensions | jq -R -s '{recommendations:split("\n")[:-1]}' \
     --indent 4 > .vscode/extensions.json \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
 && mkdir -p out \

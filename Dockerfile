@@ -42,19 +42,6 @@ ENV LANG=zh_CN.UTF-8 \
     LANGUAGE=zh_CN:zh \
     LC_ALL=zh_CN.UTF-8
 
-# vscode
-# -----------------
-ENV code='code --no-sandbox --user-data-dir /root/.config/vscode'
-
-RUN apt-get update -y \
-    && apt-get install -y wget \
-    && wget -q -O code_amd64.deb 'https://vscode.cdn.azure.cn/stable/dfd34e8260c270da74b5c2d86d61aee4b6d56977/code_1.66.2-1649664567_amd64.deb' \
-    && apt-get install -y libnss3 gnupg libxkbfile1 libsecret-1-0 libgtk-3-0 libxss1 libgbm1 libasound2 \
-        fonts-firacode fonts-cascadia-code ttf-wqy-microhei tk-dev \
-    && dpkg -i code_amd64.deb \
-    && rm -f code_amd64.deb \
-    && rm -rf /var/lib/apt/lists/*
-
 # cmake
 # -----------------
 RUN apt-get update -y \
@@ -66,13 +53,12 @@ RUN apt-get update -y \
     && ./bootstrap --prefix=/usr/local --parallel=`nproc` \
     && make -j`nproc` \
     && make install \
-    && rm -rf /tmp/cmake-3.23.1 /tmp/cmake-3.23.1.tar.gz \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /tmp/cmake-3.23.1 /tmp/cmake-3.23.1.tar.gz
 
 # clang
 # -----------------
 RUN apt-get update -y \
-    && apt-get install -y software-properties-common \
+    && apt-get install -y wget software-properties-common \
     && wget -q -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
     && add-apt-repository 'deb https://mirrors.tuna.tsinghua.edu.cn/llvm-apt/focal/ llvm-toolchain-focal-13 main' \
     && apt-get update -y \
@@ -82,22 +68,31 @@ RUN apt-get update -y \
     && ln -s /usr/bin/clang++-13 /usr/bin/clang++ \
     && ln -s /usr/bin/ld.lld-13 /usr/bin/ld.lld \
     && ln -s /usr/bin/clangd-13 /usr/bin/clangd \
-    && ln -s /usr/bin/clang-format-13 /usr/bin/clang-format \
-    && rm -rf /var/lib/apt/lists/*
+    && ln -s /usr/bin/clang-format-13 /usr/bin/clang-format
 
-# install
+# vscode
 # -----------------
+ENV code='code --no-sandbox --user-data-dir /root/.config/vscode'
+
 RUN apt-get update -y \
-    && apt-get build-dep -y qt5-default \
-    && apt-get install -y gdb git git-lfs zip tcl libxcb-xinerama0-dev jq \
+    && wget -q -O code_amd64.deb 'https://vscode.cdn.azure.cn/stable/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5/code_1.67.2-1652812855_amd64.deb' \
+    && apt-get install -y libnss3 gnupg libxkbfile1 libsecret-1-0 libgtk-3-0 libxss1 libgbm1 libasound2 \
+        fonts-firacode fonts-cascadia-code ttf-wqy-microhei tk-dev \
+    && dpkg -i code_amd64.deb \
+    && rm -f code_amd64.deb \
     && $code --install-extension jeff-hykin.better-cpp-syntax \
     && $code --install-extension llvm-vs-code-extensions.vscode-clangd \
     && $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
     && $code --install-extension ms-vscode.cpptools \
     && $code --install-extension ms-vscode.hexeditor \
     && $code --install-extension twxs.cmake \
-    && $code --install-extension vscode-icons-team.vscode-icons \
-    && rm -rf /var/lib/apt/lists/*
+    && $code --install-extension vscode-icons-team.vscode-icons
+
+# install
+# -----------------
+RUN apt-get update -y \
+    && apt-get build-dep -y qt5-default \
+    && apt-get install -y gdb git git-lfs zip tcl libxcb-xinerama0-dev jq
 
 # config
 # -----------------
@@ -105,7 +100,8 @@ ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
     LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib \
     pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
-RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
+RUN apt-get update -y \
+    && printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
     && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
     && git config --global --add safe.directory $PROJECT_DIR \

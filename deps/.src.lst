@@ -1,6 +1,6 @@
 boost_1_79_0.tar.gz
-cpython-3.8.10.tar.gz
 cpython-3.8.10-externals-win-x64.zip
+cpython-3.8.10.tar.gz
 expected-lite-0.5.0.tar.gz
 fmt-8.1.1.tar.gz
 gflags-2.2.2.tar.gz

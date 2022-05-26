@@ -80,7 +80,7 @@ private:
         return ((int32_t)c1 << 24) + ((int32_t)c2 << 16) + ((int32_t)c3 << 8) + c4;
     }
 
-    void readImages(std::string_view path)
+    void readImages(const std::string& path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);
@@ -103,7 +103,7 @@ private:
             torch::kUInt8);
     }
 
-    void readLabels(std::string_view path)
+    void readLabels(const std::string& path)
     {
         std::ifstream file;
         file.open(path, std::ios::in | std::ios::binary);
