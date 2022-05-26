@@ -9,10 +9,16 @@ FROM ubuntu:20.04
 
 # google-pinyin
 # -----------------
-# apt-get install -y fictx fcitx-googlepinyin
+# apt-get install -y fcitx fcitx-googlepinyin
 # im-config
 # reboot
 # fcitx-config-gtk3
+
+# ssh
+# -----------------
+# chmod 700 .ssh
+# chmod 600 .ssh/id_rsa
+# chmod 644 .ssh/id_rsa.pub
 
 ARG PROJECT_DIR
 
@@ -83,7 +89,7 @@ RUN apt-get update -y \
 # -----------------
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
-    && apt-get install -y gdb git git-lfs zip tcl libxcb-xinerama0-dev \
+    && apt-get install -y gdb git git-lfs zip tcl libxcb-xinerama0-dev jq \
     && $code --install-extension jeff-hykin.better-cpp-syntax \
     && $code --install-extension llvm-vs-code-extensions.vscode-clangd \
     && $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
