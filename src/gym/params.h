@@ -7,7 +7,7 @@ namespace params
 {
 namespace pg
 {
-policy::pg::HyperParams hopper()
+inline policy::pg::HyperParams hopper()
 {
     policy::pg::HyperParams hp;
     hp.max_iters = 15000;
