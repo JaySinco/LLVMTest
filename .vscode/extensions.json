@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "jeff-hykin.better-cpp-syntax",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "MS-CEINTL.vscode-language-pack-zh-hans",
+        "ms-vscode.cpptools",
+        "ms-vscode.hexeditor",
+        "twxs.cmake",
+        "vscode-icons-team.vscode-icons"
+    ]
+}

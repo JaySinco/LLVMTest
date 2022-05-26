@@ -47,10 +47,6 @@ RUN apt-get update -y \
         fonts-firacode fonts-cascadia-code ttf-wqy-microhei tk-dev \
     && dpkg -i code_amd64.deb \
     && rm -f code_amd64.deb \
-    && $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
-    && $code --install-extension twxs.cmake \
-    && $code --install-extension ms-vscode.cpptools \
-    && $code --install-extension vscode-icons-team.vscode-icons \
     && rm -rf /var/lib/apt/lists/*
 
 # cmake
@@ -76,7 +72,6 @@ RUN apt-get update -y \
     && apt-get update -y \
     && apt-get install -y clang-13 lldb-13 lld-13 clangd-13 clang-format-13 \
         libc++-13-dev libc++abi-13-dev \
-    && $code --install-extension llvm-vs-code-extensions.vscode-clangd \
     && ln -s /usr/bin/clang-13 /usr/bin/clang \
     && ln -s /usr/bin/clang++-13 /usr/bin/clang++ \
     && ln -s /usr/bin/ld.lld-13 /usr/bin/ld.lld \
@@ -89,7 +84,13 @@ RUN apt-get update -y \
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && apt-get install -y gdb git git-lfs zip tcl libxcb-xinerama0-dev \
+    && $code --install-extension jeff-hykin.better-cpp-syntax \
+    && $code --install-extension llvm-vs-code-extensions.vscode-clangd \
+    && $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
+    && $code --install-extension ms-vscode.cpptools \
     && $code --install-extension ms-vscode.hexeditor \
+    && $code --install-extension twxs.cmake \
+    && $code --install-extension vscode-icons-team.vscode-icons \
     && rm -rf /var/lib/apt/lists/*
 
 # config
