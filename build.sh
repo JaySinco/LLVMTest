@@ -25,6 +25,7 @@ elif [ $PLATFORM = "win32" ]; then
     BUILD_C_COMPILER="clang-cl"
     BUILD_CXX_COMPILER="clang-cl"
     BUILD_LINKER="lld-link"
+    code="code"
     source $PROJECT_ROOT/vcvars64.sh
 fi
 
