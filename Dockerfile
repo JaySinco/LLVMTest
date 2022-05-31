@@ -93,7 +93,7 @@ RUN apt-get update -y \
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y gdb vim git git-lfs nodejs zip tcl libxcb-xinerama0-dev \
+    && apt-get install -y gdb vim-gtk3 git git-lfs nodejs zip tcl libxcb-xinerama0-dev \
     && curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.staticdn.net/junegunn/vim-plug/master/plug.vim
 
 RUN apt-get update -y \

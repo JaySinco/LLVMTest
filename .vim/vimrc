@@ -4,12 +4,14 @@
 call plug#begin()
 Plug 'https://hub.fastgit.xyz/scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'https://hub.fastgit.xyz/vim-airline/vim-airline'
+Plug 'https://hub.fastgit.xyz/vim-airline/vim-airline-themes'
 Plug 'https://hub.fastgit.xyz/easymotion/vim-easymotion'
 Plug 'https://hub.fastgit.xyz/morhetz/gruvbox'
 Plug 'https://hub.fastgit.xyz/tpope/vim-fugitive'
 Plug 'https://hub.fastgit.xyz/neoclide/coc.nvim', {'branch': 'release'}
 Plug 'https://hub.fastgit.xyz/junegunn/fzf'
 Plug 'https://hub.fastgit.xyz/junegunn/fzf.vim'
+Plug 'https://hub.fastgit.xyz/octol/vim-cpp-enhanced-highlight'
 call plug#end()
 
 
@@ -29,6 +31,9 @@ au FocusGained,BufEnter * checktime
 
 " With a map leader it's possible to do extra key combinations
 let mapleader = ","
+
+" Yanking/deleting operations copy to the system clipboard
+set clipboard=unnamedplus
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -144,6 +149,7 @@ set wrap "Wrap lines
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Airline
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:airline_theme='gruvbox'
 let g:airline_section_b='%{getcwd()}'
 let g:airline#extensions#tabline#enabled=1
 let g:airline#extensions#tabline#buffer_idx_mode=1
