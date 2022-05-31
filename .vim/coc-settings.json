@@ -1,0 +1,24 @@
+{
+    "languageserver": {
+        "clangd": {
+            "command": "clangd",
+            "args": [
+                "--compile-commands-dir=out",
+                "--completion-style=detailed",
+                "--header-insertion=never"
+            ],
+            "rootPatterns": [
+                ".git"
+            ],
+            "requireRootPattern": true,
+            "filetypes": [
+                "c",
+                "cc",
+                "cpp",
+                "c++",
+                "objc",
+                "objcpp"
+            ]
+        }
+    }
+}

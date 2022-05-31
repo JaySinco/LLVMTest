@@ -65,7 +65,7 @@ while [[ $# -gt 0 ]]; do
                 -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
                 -v /usr/share/icons:/usr/share/icons:ro \
                 -v /home/$USER/.ssh:/root/.ssh:ro \
-                -v $PROJECT_ROOT/.vimrc:/root/.vimrc:rw \
+                -v $PROJECT_ROOT/.vim/vimrc:/root/.vim/vimrc:rw \
                 -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR:rw \
                 --device=/dev/dri:/dev/dri \
                 $DOCKER_IMAGE_TAG
