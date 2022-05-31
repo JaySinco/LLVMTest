@@ -2,7 +2,7 @@
 " => Plugin
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 call plug#begin()
-Plug 'https://hub.fastgit.xyz/scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'https://hub.fastgit.xyz/scrooloose/nerdtree'
 Plug 'https://hub.fastgit.xyz/vim-airline/vim-airline'
 Plug 'https://hub.fastgit.xyz/vim-airline/vim-airline-themes'
 Plug 'https://hub.fastgit.xyz/easymotion/vim-easymotion'
@@ -112,6 +112,7 @@ set encoding=utf8
 " => Files and saves
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nmap <leader>t :NERDTreeToggle<CR>
+nmap <leader>n :NERDTreeFind<CR>
 nmap <leader>p :GFiles<CR>
 
 " Turn backup off, since most stuff is in SVN, git etc. anyway...
