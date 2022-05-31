@@ -35,6 +35,8 @@ let mapleader = ","
 " Yanking/deleting operations copy to the system clipboard
 set clipboard=unnamedplus
 
+command! BufOnly silent! execute "%bd|e#|bd#"
+
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => User interface
