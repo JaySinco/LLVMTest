@@ -93,8 +93,16 @@ RUN apt-get update -y \
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y gdb vim git git-lfs nodejs zip tcl libxcb-xinerama0-dev jq fzf \
+    && apt-get install -y gdb vim git git-lfs nodejs zip tcl libxcb-xinerama0-dev \
     && curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.staticdn.net/junegunn/vim-plug/master/plug.vim
+
+RUN apt-get update -y \
+    && apt-get install -y jq \
+    && cd /tmp \
+    && curl -L -o fzf-0.30.0.tar.gz 'https://gh.api.99988866.xyz/https://github.com/junegunn/fzf/releases/download/0.30.0/fzf-0.30.0-linux_amd64.tar.gz' \
+    && tar zxvf fzf-0.30.0.tar.gz \
+    && mv fzf /usr/bin/fzf \
+    && rm -rf /tmp/fzf-0.30.0.tar.gz
 
 # config
 # -----------------
