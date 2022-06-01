@@ -93,8 +93,7 @@ RUN apt-get update -y \
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y gdb vim-gtk3 git git-lfs nodejs zip tcl libxcb-xinerama0-dev \
-    && curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.staticdn.net/junegunn/vim-plug/master/plug.vim
+    && apt-get install -y gdb vim-gtk3 git git-lfs nodejs zip tcl libxcb-xinerama0-dev
 
 RUN apt-get update -y \
     && apt-get install -y jq \
@@ -110,13 +109,10 @@ ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
     LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib \
     pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
-COPY .vim/vimrc /root/.vim/vimrc
-
 RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
     && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
     && git config --global --add safe.directory $PROJECT_DIR \
-    && vim -E -s -u /root/.vim/vimrc +PlugInstall +qall \
     && mkdir -p $XDG_RUNTIME_DIR \
     && chmod 700 $XDG_RUNTIME_DIR
 
