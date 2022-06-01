@@ -93,7 +93,7 @@ RUN apt-get update -y \
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y gdb vim-gtk3 git git-lfs nodejs zip tcl libxcb-xinerama0-dev
+    && apt-get install -y gdb vim-gtk3 libcanberra-gtk3-module git git-lfs nodejs zip tcl libxcb-xinerama0-dev
 
 RUN apt-get update -y \
     && apt-get install -y jq \
@@ -106,6 +106,7 @@ RUN apt-get update -y \
 # config
 # -----------------
 ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
+    NO_AT_BRIDGE=1 \
     LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib \
     pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
