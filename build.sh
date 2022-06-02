@@ -130,5 +130,6 @@ pushd $PROJECT_ROOT \
     -DCMAKE_CXX_COMPILER=$BUILD_CXX_COMPILER \
     -DCMAKE_LINKER=$BUILD_LINKER \
     -DTARGET_OS=$PLATFORM \
+&& cp compile_commands.json $PROJECT_ROOT \
 && $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]} \
 && echo done!
