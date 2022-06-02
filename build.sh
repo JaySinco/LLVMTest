@@ -52,7 +52,7 @@ while [[ $# -gt 0 ]]; do
             docker build --build-arg PROJECT_DIR=$DOCKER_PROJECT_DIR \
                 -f $PROJECT_ROOT/Dockerfile \
                 -t $DOCKER_IMAGE_TAG \
-                $PROJECT_ROOT
+                $PROJECT_ROOT/.vscode
             exit 0
             ;;
         -r|--run)
