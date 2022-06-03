@@ -96,7 +96,7 @@ RUN apt-get update -y \
     && apt-get install -y gdb vim-gtk3 libcanberra-gtk3-module git git-lfs nodejs zip tcl libxcb-xinerama0-dev
 
 RUN apt-get update -y \
-    && apt-get install -y jq \
+    && apt-get install -y jq tmux \
     && cd /tmp \
     && curl -L -o fzf-0.30.0.tar.gz 'https://gh.api.99988866.xyz/https://github.com/junegunn/fzf/releases/download/0.30.0/fzf-0.30.0-linux_amd64.tar.gz' \
     && tar zxvf fzf-0.30.0.tar.gz \
@@ -111,6 +111,8 @@ ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
     pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
 RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
+    && printf 'set -g mouse on\nset -g default-terminal "screen-256color"\n' > /root/.tmux.conf \
+    && printf 'alias tmux="tmux -2"\n' >> /root/.bashrc \
     && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
     && git config --global --add safe.directory $PROJECT_DIR \
