@@ -30,6 +30,7 @@
     "git.confirmSync": false,
     "clangd.arguments": [
         "--completion-style=detailed",
-        "--header-insertion=never"
+        "--function-arg-placeholders=0",
+        "--header-insertion=never",
     ],
 }
