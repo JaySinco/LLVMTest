@@ -116,6 +116,7 @@ RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/U
     && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \
     && git config --global --add safe.directory $PROJECT_DIR \
+    && git config --global --add safe.directory /root/.vim \
     && mkdir -p $XDG_RUNTIME_DIR \
     && chmod 700 $XDG_RUNTIME_DIR
 
