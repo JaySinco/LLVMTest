@@ -93,10 +93,10 @@ RUN apt-get update -y \
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y gdb vim-gtk3 libcanberra-gtk3-module git git-lfs nodejs zip tcl libxcb-xinerama0-dev
+    && apt-get install -y gdb vim-gtk3 libcanberra-gtk3-module git git-lfs git-gui nodejs zip tcl libxcb-xinerama0-dev
 
 RUN apt-get update -y \
-    && apt-get install -y jq tmux \
+    && apt-get install -y jq tmux silversearcher-ag bat \
     && cd /tmp \
     && curl -L -o fzf-0.30.0.tar.gz 'https://gh.api.99988866.xyz/https://github.com/junegunn/fzf/releases/download/0.30.0/fzf-0.30.0-linux_amd64.tar.gz' \
     && tar zxvf fzf-0.30.0.tar.gz \

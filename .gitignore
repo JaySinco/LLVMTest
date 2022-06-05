@@ -1,5 +1,12 @@
-bin
-out
 *.swp
 .cache
-compile_commands.json
+
+/bin
+/out
+/compile_commands.json
+
+/deps/src
+/deps/*/*/*
+!/deps/*/*/build.sh
+!/deps/*/*/*.patch
+
