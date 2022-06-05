@@ -63,9 +63,8 @@ while [[ $# -gt 0 ]]; do
                 -e QT_IM_MODULE="fcitx" \
                 -e GTK_IM_MODULE="fcitx" \
                 -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-                -v /usr/share/icons:/usr/share/icons:ro \
                 -v /home/$USER/.ssh:/root/.ssh:ro \
-                -v /home/$USER/.vim:/root/.vim:rw \
+                -v /home/$USER/.config/nvim:/root/.config/nvim:rw \
                 -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR:rw \
                 --device=/dev/dri:/dev/dri \
                 $DOCKER_IMAGE_TAG
