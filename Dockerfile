@@ -97,7 +97,8 @@ RUN apt-get update -y \
         zip tcl libxcb-xinerama0-dev jq tmux
 
 RUN apt-get update -y \
-    && apt-get install -y silversearcher-ag bat xclip \
+    && apt-get install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep \
+    && apt-get install -y xclip \
     && cd /tmp \
     && curl -L -o fzf-0.30.0.tar.gz 'https://gh.api.99988866.xyz/https://github.com/junegunn/fzf/releases/download/0.30.0/fzf-0.30.0-linux_amd64.tar.gz' \
     && tar zxvf fzf-0.30.0.tar.gz --directory=/usr/bin \

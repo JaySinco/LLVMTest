@@ -1,7 +1,7 @@
 {
     "workbench.startupEditor": "newUntitledFile",
     "workbench.iconTheme": "vscode-icons",
-    "editor.fontFamily": "'Fira Code'",
+    "editor.fontFamily": "'FiraCode NF'",
     "editor.fontLigatures": false,
     "editor.fontSize": 14,
     "editor.fontWeight": "400",
