@@ -75,46 +75,41 @@ RUN apt-get update -y \
 ENV code='code --no-sandbox --user-data-dir /root/.config/vscode'
 
 RUN apt-get update -y \
+    && apt-get install -y libnss3 gnupg libxkbfile1 libsecret-1-0 \
+        libgtk-3-0 libxss1 libgbm1 libasound2 tk-dev \
+    && cd /tmp \
     && wget -q -O code_amd64.deb 'https://vscode.cdn.azure.cn/stable/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5/code_1.67.2-1652812855_amd64.deb' \
-    && apt-get install -y libnss3 gnupg libxkbfile1 libsecret-1-0 libgtk-3-0 libxss1 libgbm1 libasound2 \
-        fonts-firacode fonts-cascadia-code ttf-wqy-microhei tk-dev \
     && dpkg -i code_amd64.deb \
-    && rm -f code_amd64.deb \
-    && $code --install-extension jeff-hykin.better-cpp-syntax \
-    && $code --install-extension llvm-vs-code-extensions.vscode-clangd \
-    && $code --install-extension MS-CEINTL.vscode-language-pack-zh-hans \
-    && $code --install-extension ms-vscode.cpptools \
-    && $code --install-extension ms-vscode.hexeditor \
-    && $code --install-extension twxs.cmake \
-    && $code --install-extension vscode-icons-team.vscode-icons
+    && rm -f code_amd64.deb
 
 # install
 # -----------------
 RUN apt-get update -y \
     && apt-get build-dep -y qt5-default \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y gdb libcanberra-gtk3-module git git-lfs git-gui nodejs \
-        zip tcl libxcb-xinerama0-dev jq tmux
+    && apt-get install -y gdb libcanberra-gtk3-module git git-lfs git-gui \
+        nodejs zip tcl libxcb-xinerama0-dev jq tmux ripgrep \
+    && npm install -g typescript-language-server typescript
 
 RUN apt-get update -y \
-    && apt-get install -y -o Dpkg::Options::="--force-overwrite" bat ripgrep \
     && apt-get install -y xclip \
     && cd /tmp \
-    && curl -L -o fzf-0.30.0.tar.gz 'https://gh.api.99988866.xyz/https://github.com/junegunn/fzf/releases/download/0.30.0/fzf-0.30.0-linux_amd64.tar.gz' \
-    && tar zxvf fzf-0.30.0.tar.gz --directory=/usr/bin \
     && curl -L -o nvim-linux64.tar.gz 'https://gh.api.99988866.xyz/https://github.com/neovim/neovim/releases/download/v0.7.0/nvim-linux64.tar.gz' \
     && tar zxvf nvim-linux64.tar.gz --directory=/usr --strip-components=1 \
+    && curl -L -o lua-language-server.tar.gz 'https://gh.api.99988866.xyz/https://github.com/sumneko/lua-language-server/releases/download/3.2.5/lua-language-server-3.2.5-linux-x64.tar.gz' \
+    && mkdir -p /root/app/lua-language-server \
+    && tar zxvf lua-language-server.tar.gz --directory=/root/app/lua-language-server \
     && rm -f *.tar.gz
 
 # config
 # -----------------
 ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
     NO_AT_BRIDGE=1 \
+    PATH="/root/app/lua-language-server/bin:${PATH}" \
     LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib \
     pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
-RUN printf '{"security.workspace.trust.enabled":false}' > /root/.config/vscode/User/settings.json \
-    && printf 'set -g mouse on\nset -g default-terminal "screen-256color"\n' > /root/.tmux.conf \
+RUN printf 'set -g mouse on\nset -g default-terminal "screen-256color"\n' > /root/.tmux.conf \
     && printf 'alias tmux="tmux -2"\n' >> /root/.bashrc \
     && git config --global user.name jaysinco \
     && git config --global user.email jaysinco@163.com \

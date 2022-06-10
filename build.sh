@@ -25,7 +25,6 @@ elif [ $PLATFORM = "win32" ]; then
     BUILD_C_COMPILER="clang-cl"
     BUILD_CXX_COMPILER="clang-cl"
     BUILD_LINKER="lld-link"
-    code="code"
     source $PROJECT_ROOT/vcvars64.sh
 fi
 
@@ -52,7 +51,7 @@ while [[ $# -gt 0 ]]; do
             docker build --build-arg PROJECT_DIR=$DOCKER_PROJECT_DIR \
                 -f $PROJECT_ROOT/Dockerfile \
                 -t $DOCKER_IMAGE_TAG \
-                $PROJECT_ROOT/.vscode
+                $PROJECT_ROOT
             exit 0
             ;;
         -r|--run)
@@ -65,6 +64,7 @@ while [[ $# -gt 0 ]]; do
                 -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
                 -v /home/$USER/.ssh:/root/.ssh:ro \
                 -v /home/$USER/.config/nvim:/root/.config/nvim:rw \
+                -v /home/$USER/.local/share/nvim:/root/.local/share/nvim:rw \
                 -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR:rw \
                 --device=/dev/dri:/dev/dri \
                 $DOCKER_IMAGE_TAG
@@ -117,8 +117,6 @@ echo
 
 pushd $PROJECT_ROOT \
 && ls -AU1 deps/src > deps/.src.lst \
-&& $code --list-extensions | jq -R -s '{recommendations:split("\n")[:-1]}' \
-    --indent 4 > .vscode/extensions.json \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
 && mkdir -p out \
 && pushd out \
