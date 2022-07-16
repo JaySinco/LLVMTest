@@ -4,7 +4,6 @@ set(TESTING ${CURRENT_DIR_NAME}-testing)
 find_package(Qt5Widgets PATHS ${DEPS_PREFIX}/qt5)
 
 add_executable(${TESTING}
-    find-dialog.cpp
     go-to-cell-dialog.cpp
     testing.cpp
 )

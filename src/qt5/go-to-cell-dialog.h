@@ -1,14 +1,22 @@
 #pragma once
-#include "ui_go-to-cell-dialog.h"
 #include <QtWidgets/QDialog>
 
-class GoToCellDialog: public QDialog, public Ui::GoToCellDialog
+namespace Ui
+{
+class GoToCellDialog;
+}
+
+class GoToCellDialog: public QDialog
 {
     Q_OBJECT
 
 public:
-    GoToCellDialog(QWidget* parent = nullptr);
+    explicit GoToCellDialog(QWidget* parent = nullptr);
+    ~GoToCellDialog();
 
 private slots:
     void on_lineEdit_textChanged();
+
+private:
+    Ui::GoToCellDialog* ui;
 };

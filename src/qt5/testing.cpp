@@ -1,5 +1,4 @@
 #include "../utils.h"
-#include "./find-dialog.h"
 #include "./go-to-cell-dialog.h"
 #include <QtWidgets/QApplication>
 
