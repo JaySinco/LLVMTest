@@ -5,7 +5,7 @@
 int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
-    auto* window = new GoToCellDialog;
-    window->show();
+    GoToCellDialog w;
+    w.show();
     return app.exec();
 }
