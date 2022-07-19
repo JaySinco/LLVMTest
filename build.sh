@@ -39,7 +39,8 @@ while [[ $# -gt 0 ]]; do
             echo "  -r, --run                run dev container"
             echo "      --mount              mount vbox share"
             echo "      --umount             unmount vbox share"
-            echo "      --edit-ui            edit qt5 ui files"
+            echo "  -u, --edit-ui            edit qt ui files"
+            echo "  -q, --qt-doc             open qt assistant"
             echo "  -c, --clean              clean targets built"
             echo "      --release            build release version"
             echo "  -f, --force-config       remove cmake cache before build"
@@ -81,9 +82,13 @@ while [[ $# -gt 0 ]]; do
             sudo umount -a -t vboxsf
             exit 0
             ;;
-        --edit-ui)
+        -u|--edit-ui)
             $PROJECT_ROOT/deps/$PLATFORM/qt5/bin/designer \
-                $PROJECT_ROOT/src/qt5/*.ui
+                $PROJECT_ROOT/src/qt5/*.ui &
+            exit 0
+            ;;
+        -q|--qt-doc)
+            $PROJECT_ROOT/deps/$PLATFORM/qt5/bin/assistant &
             exit 0
             ;;
         --release)

@@ -27,6 +27,7 @@ pushd $SCRIPT_DIR/src/$QT_BASE_NAME \
 # qttools
 # ----------------------
 QT_TOOLS_NAME=qttools-everywhere-src-5.15.3
+export LLVM_INSTALL_DIR="C:\Program Files\LLVM"
 
 if [ ! -d $SCRIPT_DIR/src/$QT_TOOLS_NAME ]; then
     tar --force-local -xf $SOURCE_DIR/qttools-everywhere-opensource-src-5.15.3.tar.xz -C $SCRIPT_DIR/src/
@@ -37,3 +38,12 @@ pushd $SCRIPT_DIR/src/$QT_TOOLS_NAME \
 && jom -j`nproc` \
 && jom install \
 && popd
+
+# qch-docs
+# ----------------------
+pushd $SCRIPT_DIR/src/$QT_BASE_NAME \
+&& jom docs \
+&& jom install_qch_docs \
+&& pushd $SCRIPT_DIR/src/$QT_TOOLS_NAME \
+&& jom docs \
+&& jom install_qch_docs
