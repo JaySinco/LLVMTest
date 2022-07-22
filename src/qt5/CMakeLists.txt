@@ -4,7 +4,7 @@ set(TESTING ${CURRENT_DIR_NAME}-testing)
 find_package(Qt5Widgets PATHS ${DEPS_PREFIX}/qt5)
 
 add_executable(${TESTING}
-    go-to-cell-dialog.cpp
+    testing-widget.cpp
     testing.cpp
 )
 set_target_properties(${TESTING} PROPERTIES
