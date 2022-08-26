@@ -1,6 +1,5 @@
 #include "../utils.h"
 #include "prec.h"
-#include <glog/logging.h>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
 #include <fmt/ranges.h>
 #include <fmt/ostream.h>
@@ -44,11 +43,9 @@ struct error_handler
         Iterator ln_end = boost::spirit::get_line_end(err_pos, last);
         int ln_pos = std::distance(ln_start, err_pos);
         int line = boost::spirit::get_line(err_pos);
-        LOG(ERROR) << fmt::format("{}({},{}): error: {} expected\n",
-                                  utils::ws2s(source_file.filename().generic_wstring()), line,
-                                  ln_pos + 1, what)
-                   << utils::ws2s(std::wstring(ln_start, ln_end)) << "\n"
-                   << std::string(ln_pos, ' ') << "^";
+        spdlog::error("{}({},{}): error: {} expected\n{}\n{}^",
+                      utils::ws2s(source_file.filename().generic_wstring()), line, ln_pos + 1, what,
+                      utils::ws2s(std::wstring(ln_start, ln_end)), std::string(ln_pos, ' '));
     }
 
     std::filesystem::path source_file;
@@ -87,15 +84,7 @@ void parsing(const std::filesystem::path& source_file)
     parser::expression<iterator> expr(source_file);
     ast::employee attr;
     bool ok = qi::parse(beg, end, expr, attr);
-    LOG(INFO) << ok << " " << utils::ws2s(attr.surname);
+    spdlog::info("{} {}", ok, utils::ws2s(attr.surname));
 }
 
-int main(int argc, char** argv)
-{
-    FLAGS_logtostderr = 1;
-    FLAGS_minloglevel = 0;
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
-    google::InitGoogleLogging(argv[0]);
-
-    parsing(__DIRNAME__ / "input.txt");
-}
+int main(int argc, char** argv) { parsing(__DIRNAME__ / "input.txt"); }

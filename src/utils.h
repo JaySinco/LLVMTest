@@ -5,13 +5,14 @@
 #include <vector>
 #include <iostream>
 #include <string_view>
+#include <spdlog/spdlog.h>
 #define __DIRNAME__ std::filesystem::path(__FILE__).parent_path()
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #define THROW_(s) throw utils::error(fmt::format("[{}:{}] {}", __FILENAME__, __LINE__, (s)));
 #define TRY_ try {
 #define CATCH_ \
     }          \
-    catch (const std::exception& err) { LOG(ERROR) << err.what(); }
+    catch (const std::exception& err) { spdlog::error(err.what()); }
 
 namespace utils
 {

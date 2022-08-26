@@ -1,5 +1,4 @@
 #include "../utils.h"
-#include <glog/logging.h>
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
@@ -9,11 +8,6 @@ using namespace py::literals;
 
 int main(int argc, char** argv)
 {
-    FLAGS_logtostderr = 1;
-    FLAGS_minloglevel = 0;
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
-    google::InitGoogleLogging(argv[0]);
-
     TRY_;
     py::scoped_interpreter guard;
 #ifdef __linux__

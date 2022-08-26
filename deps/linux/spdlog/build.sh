@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 SOURCE_DIR=$PROJECT_ROOT/deps/src
-SOURCE_NAME=glog-0.6.0
+SOURCE_NAME=spdlog-1.10.0
 
 if [ -d $SCRIPT_DIR/include ]; then
     echo "-- skip build $SOURCE_NAME" && exit 0
@@ -26,8 +26,7 @@ pushd $SCRIPT_DIR/src \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDLL" \
     -DBUILD_SHARED_LIBS=OFF \
-    -DWITH_THREADS=ON \
-    -Dgflags_DIR=$SCRIPT_DIR/../gflags/lib/cmake/gflags \
+    -DSPDLOG_BUILD_EXAMPLE=OFF \
 && ninja -j`nproc` \
 && ninja install \
 && popd \

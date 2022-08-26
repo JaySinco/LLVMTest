@@ -279,7 +279,7 @@ void Env::render()
     CATCH_;
 
     ui_has_exited = true;
-    LOG(INFO) << "render exit";
+    spdlog::info("render exit");
 }
 
 }  // namespace env
