@@ -131,3 +131,11 @@ target_link_libraries(deps_implot PUBLIC deps_imgui)
 
 add_library(deps_catch2 INTERFACE)
 target_include_directories(deps_catch2 INTERFACE ${DEPS_PREFIX}/catch2/include)
+
+add_library(deps_nodeeditor INTERFACE)
+target_include_directories(deps_nodeeditor INTERFACE ${DEPS_PREFIX}/nodeeditor/include)
+if(UNIX)
+    target_link_libraries(deps_nodeeditor INTERFACE ${DEPS_PREFIX}/nodeeditor/lib/libnodes.a)
+elseif(WIN32)
+    target_link_libraries(deps_nodeeditor INTERFACE ${DEPS_PREFIX}/nodeeditor/lib/nodes.lib)
+endif()
