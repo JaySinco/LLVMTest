@@ -129,3 +129,6 @@ add_library(deps_implot STATIC
 )
 target_include_directories(deps_implot PUBLIC ${DEPS_PREFIX}/implot/include)
 target_link_libraries(deps_implot PUBLIC deps_imgui)
+
+add_library(deps_catch2 INTERFACE)
+target_include_directories(deps_catch2 INTERFACE ${DEPS_PREFIX}/catch2/include)

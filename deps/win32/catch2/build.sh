@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 SOURCE_DIR=$PROJECT_ROOT/deps/src
-SOURCE_NAME=libxl-4.0.3
+SOURCE_NAME=catch2-2.13.9
 
 if [ -d $SCRIPT_DIR/include ]; then
     echo "-- skip build $SOURCE_NAME" && exit 0
@@ -13,8 +13,7 @@ fi
 
 mkdir -p $SCRIPT_DIR/src
 if [ ! -d $SCRIPT_DIR/src/$SOURCE_NAME ]; then
-    mkdir -p $SCRIPT_DIR/src/$SOURCE_NAME
-    tar --force-local -zxf $SOURCE_DIR/$SOURCE_NAME.tar.gz -C $SCRIPT_DIR/src/$SOURCE_NAME
+    tar --force-local -zxf $SOURCE_DIR/$SOURCE_NAME.tar.gz -C $SCRIPT_DIR/src/
 fi
 
 source $PROJECT_ROOT/vcvars64.sh
@@ -26,7 +25,8 @@ pushd $SCRIPT_DIR/src \
     -DCMAKE_INSTALL_PREFIX=$SCRIPT_DIR \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDLL" \
-    -DLIBXL_SHARED=1 \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DCATCH_BUILD_TESTING=OFF \
 && ninja -j`nproc` \
 && ninja install \
 && popd \

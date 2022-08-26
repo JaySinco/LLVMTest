@@ -1,12 +1,8 @@
 #include "./utils.h"
-#include <glog/logging.h>
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
 
-int main(int argc, char** argv)
+TEST_CASE("word_distance are computed", "[word_distance]")
 {
-    FLAGS_logtostderr = 1;
-    FLAGS_minloglevel = 0;
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
-    google::InitGoogleLogging(argv[0]);
-
-    LOG(INFO) << "dis(hello, world) = " << utils::word_distance("hello", "world", true);
+    REQUIRE(utils::word_distance("hello", "world", true) == 4);
 }

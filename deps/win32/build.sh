@@ -20,4 +20,6 @@ $SCRIPT_DIR/torch/build.sh && \
 $SCRIPT_DIR/imgui/build.sh && \
 $SCRIPT_DIR/implot/build.sh && \
 $SCRIPT_DIR/boost/build.sh && \
+$SCRIPT_DIR/libxl/build.sh && \
+$SCRIPT_DIR/catch2/build.sh && \
 echo done!

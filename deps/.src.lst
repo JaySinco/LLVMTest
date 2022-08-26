@@ -1,4 +1,5 @@
 boost_1_79_0.tar.gz
+catch2-2.13.9.tar.gz
 cpython-3.8.10-externals-win-x64.zip
 cpython-3.8.10.tar.gz
 expected-lite-0.5.0.tar.gz
@@ -14,6 +15,7 @@ libtorch-win-shared-with-deps-1.8.2+cu111.zip
 libxl-4.0.3.tar.gz
 mujoco-2.1.5-linux-x86_64.tar.gz
 mujoco-2.1.5-windows-x86_64.zip
+nodeeditor-2.2.2.tar.gz
 openssl-1.1.1m.tar.gz
 pybind11-2.9.2.tar.gz
 qtbase-everywhere-opensource-src-5.15.3.tar.xz
