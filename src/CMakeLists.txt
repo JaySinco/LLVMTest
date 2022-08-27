@@ -5,10 +5,8 @@ target_link_libraries(utils PUBLIC
     deps_expected-lite
 )
 
-add_executable(testing testing.cpp)
-target_link_libraries(testing utils deps_boost deps_catch2)
-
 add_subdirectory(py3)
 add_subdirectory(qt5)
 add_subdirectory(gym)
 add_subdirectory(parser)
+add_subdirectory(clrs)
