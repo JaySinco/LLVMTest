@@ -25,10 +25,11 @@ pushd $SCRIPT_DIR/src \
     -DCMAKE_INSTALL_PREFIX=$SCRIPT_DIR \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDLL" \
+    -DCMAKE_PREFIX_PATH="$SCRIPT_DIR/../qt5" \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
     -DBUILD_SHARED_LIBS=OFF \
     -DBUILD_EXAMPLES=ON \
     -DBUILD_TESTING=OFF \
-    -DCMAKE_PREFIX_PATH="$SCRIPT_DIR/../qt5" \
 && ninja -j`nproc` \
 && ninja install \
 && popd \
