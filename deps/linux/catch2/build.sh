@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 SOURCE_DIR=$PROJECT_ROOT/deps/src
-SOURCE_NAME=gflags-2.2.2
+SOURCE_NAME=catch2-2.13.9
 
 if [ -d $SCRIPT_DIR/include ]; then
     echo "-- skip build $SOURCE_NAME" && exit 0
@@ -23,6 +23,7 @@ pushd $SCRIPT_DIR/src \
     -DCMAKE_INSTALL_PREFIX=$SCRIPT_DIR \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF \
+    -DCATCH_BUILD_TESTING=OFF \
 && make -j`nproc` \
 && make install \
 && popd \

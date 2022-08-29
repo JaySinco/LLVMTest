@@ -5,6 +5,11 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 SOURCE_DIR=$PROJECT_ROOT/deps/src
+SOURCE_NAME=qt-5.15.3
+
+if [ -d $SCRIPT_DIR/include ]; then
+    echo "-- skip build $SOURCE_NAME" && exit 0
+fi
 
 mkdir -p $SCRIPT_DIR/src
 
