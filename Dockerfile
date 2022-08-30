@@ -14,6 +14,13 @@ FROM ubuntu:20.04
 # chmod 644 .ssh/id_rsa.pub
 # ssh-add
 
+# font
+# -----------------
+# FiraMono Nerd Font Medium 11
+# mv *.ttf ~/.local/share/fonts
+# fc-cache -fv
+
+
 ARG PROJECT_DIR
 
 # locale
@@ -81,7 +88,7 @@ RUN apt-get update -y \
     && cd /tmp \
     && tar zxvf nvim-0.7.0-linux-x86_64.tar.gz --directory=/usr --strip-components=1 \
     && mkdir -p /root/app/lua-language-server \
-    && tar zxvf lua-language-server.tar.gz --directory=/root/app/lua-language-server \
+    && tar zxvf lua-language-server-3.2.5-linux-x64.tar.gz --directory=/root/app/lua-language-server \
     && rm -f *.tar.gz
 
 # config
