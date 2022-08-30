@@ -52,24 +52,16 @@ while [[ $# -gt 0 ]]; do
             docker build --build-arg PROJECT_DIR=$DOCKER_PROJECT_DIR \
                 -f $PROJECT_ROOT/Dockerfile \
                 -t $DOCKER_IMAGE_TAG \
-                $PROJECT_ROOT
+                $PROJECT_ROOT/deps
             exit 0
             ;;
         -r|--run)
-            xhost +local:docker > /dev/null
             docker run -it --rm \
-                -e DISPLAY \
-                -e XMODIFIERS="@im=fcitx" \
-                -e QT_IM_MODULE="fcitx" \
-                -e GTK_IM_MODULE="fcitx" \
-                -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
                 -v /home/$USER/.ssh:/root/.ssh:ro \
                 -v /home/$USER/.config/nvim:/root/.config/nvim:rw \
                 -v /home/$USER/.local/share/nvim:/root/.local/share/nvim:rw \
                 -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR:rw \
-                --device=/dev/dri:/dev/dri \
                 $DOCKER_IMAGE_TAG
-            xhost -local:docker > /dev/null
             exit 0
             ;;
         --mount)
