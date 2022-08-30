@@ -79,16 +79,14 @@ COPY src/nvim-0.7.0-linux-x86_64.tar.gz \
 RUN apt-get update -y \
     && apt-get install -y xclip \
     && cd /tmp \
-    && tar zxvf vim-0.7.0-linux-x86_64.tar.gz --directory=/usr --strip-components=1 \
+    && tar zxvf nvim-0.7.0-linux-x86_64.tar.gz --directory=/usr --strip-components=1 \
     && mkdir -p /root/app/lua-language-server \
     && tar zxvf lua-language-server.tar.gz --directory=/root/app/lua-language-server \
     && rm -f *.tar.gz
 
 # config
 # -----------------
-ENV XDG_RUNTIME_DIR=/tmp/xdg-runtime-root \
-    NO_AT_BRIDGE=1 \
-    PATH="/root/app/lua-language-server/bin:${PATH}" \
+ENV PATH="/root/app/lua-language-server/bin:${PATH}" \
     LD_LIBRARY_PATH=$PROJECT_DIR/deps/linux/torch/lib \
     pip=$PROJECT_DIR/deps/linux/python3/bin/pip3
 
