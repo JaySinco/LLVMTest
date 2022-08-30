@@ -20,7 +20,6 @@ FROM ubuntu:20.04
 # mv *.ttf ~/.local/share/fonts
 # fc-cache -fv
 
-
 ARG PROJECT_DIR
 
 # locale
