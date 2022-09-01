@@ -1,0 +1,8 @@
+[requires]
+gflags/2.2.2@jaysinco/stable
+
+[generators]
+cmake
+
+[options]
+gflags:nothreads=False

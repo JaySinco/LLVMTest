@@ -2,6 +2,10 @@
 
 set -e
 
+case "$(uname -m)" in
+    x86_64)   ARCH=x64 ;;
+esac
+
 case "$OSTYPE" in
     linux*)   PLATFORM=linux ;;
     msys*)    PLATFORM=win32 ;;
@@ -13,18 +17,14 @@ DOCKER_IMAGE_TAG=build:v1
 DOCKER_PROJECT_DIR=/workspace
 BUILD_TYPE=debug
 BUILD_TARGETS=()
+CONAN_PROFILE="$PROJECT_ROOT/config/$PLATFORM/$ARCH/conan.profile"
 
 if [ $PLATFORM = "linux" ]; then
-    BUILD_GENERATOR="Unix Makefiles"
-    BUILD_PROGRAM="make"
     BUILD_C_COMPILER="clang"
     BUILD_CXX_COMPILER="clang++"
 elif [ $PLATFORM = "win32" ]; then
-    BUILD_GENERATOR="Ninja"
-    BUILD_PROGRAM="ninja"
-    BUILD_C_COMPILER="clang-cl"
-    BUILD_CXX_COMPILER="clang-cl"
-    BUILD_LINKER="lld-link"
+    BUILD_C_COMPILER="cl"
+    BUILD_CXX_COMPILER="cl"
     source $PROJECT_ROOT/vcvars64.sh
 fi
 
@@ -113,17 +113,20 @@ echo "compiler=$BUILD_CXX_COMPILER"
 echo
 
 pushd $PROJECT_ROOT \
-&& ls -AU1 deps/src > deps/.src.lst \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
+&& conan install \
+    --profile=$CONAN_PROFILE\
+    --install-folder=$PROJECT_ROOT/out \
+    --build=never \
+    . \
 && mkdir -p out \
 && pushd out \
-&& cmake -G "$BUILD_GENERATOR" .. \
+&& cmake -G "Ninja" .. \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DCMAKE_C_COMPILER=$BUILD_C_COMPILER \
     -DCMAKE_CXX_COMPILER=$BUILD_CXX_COMPILER \
-    -DCMAKE_LINKER=$BUILD_LINKER \
     -DTARGET_OS=$PLATFORM \
 && cp compile_commands.json $PROJECT_ROOT \
-&& $BUILD_PROGRAM -j`nproc` ${BUILD_TARGETS[*]} \
+&& ninja -j`nproc` ${BUILD_TARGETS[*]} \
 && echo done!
