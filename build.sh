@@ -13,8 +13,8 @@ esac
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+DOCKER_WORKSPACE_DIR=/workspace
 DOCKER_IMAGE_TAG=build:v1
-DOCKER_PROJECT_DIR=/workspace
 BUILD_TYPE=debug
 BUILD_TARGETS=()
 CONAN_PROFILE="$PROJECT_ROOT/config/$PLATFORM/$ARCH/conan.profile"
@@ -35,43 +35,23 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: build.sh [options] [targets]"
             echo
             echo "Options:"
-            echo "  -b, --build              build image from dockerfile"
-            echo "  -r, --run                run dev container"
-            echo "      --mount              mount vbox share"
-            echo "      --umount             unmount vbox share"
-            echo "  -u, --edit-ui            edit qt ui files"
-            echo "  -q, --qt-doc             open qt assistant"
-            echo "  -c, --clean              clean targets built"
-            echo "      --release            build release version"
-            echo "  -f, --force-config       remove cmake cache before build"
-            echo "  -h, --help               print command line options"
+            echo "  -r, --docker-run      run dev container"
+            echo "  -u, --edit-ui         edit qt ui files"
+            echo "  -q, --qt-doc          open qt assistant"
+            echo "  -c, --clean           clean targets built"
+            echo "      --release         build release version"
+            echo "  -f, --force-config    remove cmake cache before build"
+            echo "  -h, --help            print command line options"
             echo
             exit 0
             ;;
-        -b|--build)
-            docker build --build-arg PROJECT_DIR=$DOCKER_PROJECT_DIR \
-                -f $PROJECT_ROOT/Dockerfile \
-                -t $DOCKER_IMAGE_TAG \
-                $PROJECT_ROOT/deps
-            exit 0
-            ;;
-        -r|--run)
+        -r|--docker-run)
             docker run -it --rm \
-                -v /home/$USER/.ssh:/root/.ssh:ro \
-                -v /home/$USER/.config/nvim:/root/.config/nvim:rw \
-                -v /home/$USER/.local/share/nvim:/root/.local/share/nvim:rw \
-                -v $PROJECT_ROOT:$DOCKER_PROJECT_DIR:rw \
+                -v $HOME/.ssh:/root/.ssh:ro \
+                -v $HOME/.config/nvim:/root/.config/nvim:rw \
+                -v $HOME/.local/share/nvim:/root/.local/share/nvim:rw \
+                -v $PROJECT_ROOT:$DOCKER_WORKSPACE_DIR:rw \
                 $DOCKER_IMAGE_TAG
-            exit 0
-            ;;
-        --mount)
-            mkdir -p $PROJECT_ROOT/deps/src
-            sudo mount -t vboxsf -o ro,uid=$(id -u),gid=$(id -g) \
-                share $PROJECT_ROOT/deps/src
-            exit 0
-            ;;
-        --umount)
-            sudo umount -a -t vboxsf
             exit 0
             ;;
         -u|--edit-ui)
