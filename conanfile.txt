@@ -1,6 +1,7 @@
 [requires]
 gflags/2.2.2@jaysinco/stable
 spdlog/1.10.0@jaysinco/stable
+boost/1.79.0@jaysinco/stable
 
 [generators]
 cmake

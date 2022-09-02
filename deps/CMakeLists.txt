@@ -1,50 +1,50 @@
-add_library(deps_gflags INTERFACE)
-target_include_directories(deps_gflags INTERFACE ${DEPS_PREFIX}/gflags/include)
-if(UNIX)
-    target_link_libraries(deps_gflags INTERFACE ${DEPS_PREFIX}/gflags/lib/libgflags.a)
-elseif(WIN32)
-    target_link_libraries(deps_gflags INTERFACE ${DEPS_PREFIX}/gflags/lib/gflags_static.lib)
-endif()
+# add_library(deps_gflags INTERFACE)
+# target_include_directories(deps_gflags INTERFACE ${DEPS_PREFIX}/gflags/include)
+# if(UNIX)
+#     target_link_libraries(deps_gflags INTERFACE ${DEPS_PREFIX}/gflags/lib/libgflags.a)
+# elseif(WIN32)
+#     target_link_libraries(deps_gflags INTERFACE ${DEPS_PREFIX}/gflags/lib/gflags_static.lib)
+# endif()
 
-add_library(deps_spdlog INTERFACE)
-target_include_directories(deps_spdlog INTERFACE ${DEPS_PREFIX}/spdlog/include)
-if(UNIX)
-    target_link_libraries(deps_spdlog INTERFACE ${DEPS_PREFIX}/spdlog/lib/libspdlog.a pthread)
-elseif(WIN32)
-    target_link_libraries(deps_spdlog INTERFACE ${DEPS_PREFIX}/spdlog/lib/spdlog.lib)
-endif()
+# add_library(deps_spdlog INTERFACE)
+# target_include_directories(deps_spdlog INTERFACE ${DEPS_PREFIX}/spdlog/include)
+# if(UNIX)
+#     target_link_libraries(deps_spdlog INTERFACE ${DEPS_PREFIX}/spdlog/lib/libspdlog.a pthread)
+# elseif(WIN32)
+#     target_link_libraries(deps_spdlog INTERFACE ${DEPS_PREFIX}/spdlog/lib/spdlog.lib)
+# endif()
 
-add_library(deps_fmt INTERFACE)
-target_include_directories(deps_fmt INTERFACE ${DEPS_PREFIX}/fmt/include)
-if(UNIX)
-    target_link_libraries(deps_fmt INTERFACE ${DEPS_PREFIX}/fmt/lib/libfmt.a)
-elseif(WIN32)
-    target_link_libraries(deps_fmt INTERFACE ${DEPS_PREFIX}/fmt/lib/fmt.lib)
-endif()
+# add_library(deps_fmt INTERFACE)
+# target_include_directories(deps_fmt INTERFACE ${DEPS_PREFIX}/fmt/include)
+# if(UNIX)
+#     target_link_libraries(deps_fmt INTERFACE ${DEPS_PREFIX}/fmt/lib/libfmt.a)
+# elseif(WIN32)
+#     target_link_libraries(deps_fmt INTERFACE ${DEPS_PREFIX}/fmt/lib/fmt.lib)
+# endif()
 
-add_library(deps_boost INTERFACE)
-target_compile_definitions(deps_boost INTERFACE BOOST_ALL_NO_LIB)
-if(UNIX)
-    target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include)
-    target_link_libraries(deps_boost INTERFACE
-        ${DEPS_PREFIX}/boost/lib/libboost_filesystem.a
-        ${DEPS_PREFIX}/boost/lib/libboost_coroutine.a
-        ${DEPS_PREFIX}/boost/lib/libboost_context.a
-        ${DEPS_PREFIX}/boost/lib/libboost_timer.a
-        ${DEPS_PREFIX}/boost/lib/libboost_chrono.a
-        ${DEPS_PREFIX}/boost/lib/libboost_thread.a
-    )
-elseif(WIN32)
-    target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include/boost-1_79)
-    target_link_libraries(deps_boost INTERFACE
-        ${DEPS_PREFIX}/boost/lib/libboost_filesystem-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_coroutine-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_context-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_timer-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_chrono-vc142-mt-x64-1_79.lib
-        ${DEPS_PREFIX}/boost/lib/libboost_thread-vc142-mt-x64-1_79.lib
-    )
-endif()
+# add_library(deps_boost INTERFACE)
+# target_compile_definitions(deps_boost INTERFACE BOOST_ALL_NO_LIB)
+# if(UNIX)
+#     target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include)
+#     target_link_libraries(deps_boost INTERFACE
+#         ${DEPS_PREFIX}/boost/lib/libboost_filesystem.a
+#         ${DEPS_PREFIX}/boost/lib/libboost_coroutine.a
+#         ${DEPS_PREFIX}/boost/lib/libboost_context.a
+#         ${DEPS_PREFIX}/boost/lib/libboost_timer.a
+#         ${DEPS_PREFIX}/boost/lib/libboost_chrono.a
+#         ${DEPS_PREFIX}/boost/lib/libboost_thread.a
+#     )
+# elseif(WIN32)
+#     target_include_directories(deps_boost INTERFACE ${DEPS_PREFIX}/boost/include/boost-1_79)
+#     target_link_libraries(deps_boost INTERFACE
+#         ${DEPS_PREFIX}/boost/lib/libboost_filesystem-vc142-mt-x64-1_79.lib
+#         ${DEPS_PREFIX}/boost/lib/libboost_coroutine-vc142-mt-x64-1_79.lib
+#         ${DEPS_PREFIX}/boost/lib/libboost_context-vc142-mt-x64-1_79.lib
+#         ${DEPS_PREFIX}/boost/lib/libboost_timer-vc142-mt-x64-1_79.lib
+#         ${DEPS_PREFIX}/boost/lib/libboost_chrono-vc142-mt-x64-1_79.lib
+#         ${DEPS_PREFIX}/boost/lib/libboost_thread-vc142-mt-x64-1_79.lib
+#     )
+# endif()
 
 add_library(deps_expected-lite INTERFACE)
 target_include_directories(deps_expected-lite INTERFACE ${DEPS_PREFIX}/expected-lite/include)
