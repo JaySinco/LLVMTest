@@ -4,8 +4,6 @@ project(Prototyping C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS NO_OUTPUT_DIRS)
 
 if(UNIX)
     set(CMAKE_INSTALL_RPATH "$ORIGIN")

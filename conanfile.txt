@@ -4,7 +4,7 @@ spdlog/1.10.0@jaysinco/stable
 boost/1.79.0@jaysinco/stable
 
 [generators]
-cmake
+cmake_find_package
 
 [options]
 gflags:nothreads=False

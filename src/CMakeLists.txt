@@ -1,6 +1,9 @@
+find_package(spdlog REQUIRED)
+find_package(boost REQUIRED)
+
 add_library(utils utils.cpp)
 target_link_libraries(utils PUBLIC
-    CONAN_PKG::spdlog
+    spdlog::spdlog
     deps_expected-lite
 )
 
