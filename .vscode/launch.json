@@ -5,7 +5,7 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/testing",
+            "program": "${workspaceFolder}/bin/clrs-testing",
             "args": [],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
