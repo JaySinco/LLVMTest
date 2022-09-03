@@ -7,7 +7,6 @@ target_link_libraries(utils PUBLIC
     deps_expected-lite
 )
 
-add_subdirectory(py3)
 add_subdirectory(qt5)
 add_subdirectory(gym)
 add_subdirectory(parser)

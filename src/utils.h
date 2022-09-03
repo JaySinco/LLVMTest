@@ -2,7 +2,6 @@
 #include <fmt/format.h>
 #include <nonstd/expected.hpp>
 #include <filesystem>
-#include <vector>
 #include <iostream>
 #include <string_view>
 #include <spdlog/spdlog.h>
@@ -55,10 +54,5 @@ expected<std::string> readFile(std::wstring_view path);
 
 std::string ws2s(std::wstring_view ws, bool utf8 = false);
 std::wstring s2ws(std::string_view s, bool utf8 = false);
-
-std::string base64_encode(const unsigned char* buf, unsigned int bufLen);
-std::vector<unsigned char> base64_decode(std::string_view encoded_string);
-
-int word_distance(std::string_view s1, std::string_view s2, bool logStep = false);
 
 }  // namespace utils
