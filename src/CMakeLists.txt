@@ -1,5 +1,5 @@
 find_package(spdlog REQUIRED)
-find_package(boost REQUIRED)
+find_package(Boost REQUIRED)
 
 add_library(utils utils.cpp)
 target_link_libraries(utils PUBLIC

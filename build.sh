@@ -15,7 +15,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 DOCKER_WORKSPACE_DIR=/workspace
 DOCKER_IMAGE_TAG=build:v1
-BUILD_TYPE=debug
+BUILD_TYPE=Debug
 BUILD_TARGETS=()
 CONAN_PROFILE="$PROJECT_ROOT/config/$PLATFORM/$ARCH/conan.profile"
 
@@ -96,18 +96,17 @@ pushd $PROJECT_ROOT \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
 && conan install \
     --profile=$CONAN_PROFILE\
-    --install-folder=$PROJECT_ROOT/out \
+    --install-folder=$PROJECT_ROOT/out/generators \
     --build=never \
     . \
-&& mkdir -p out \
-&& pushd out \
-&& cmake -G "Ninja" .. \
+&& mkdir -p out/$BUILD_TYPE \
+&& pushd out/$BUILD_TYPE \
+&& cmake -G "Ninja" ../.. \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT_ROOT/bin \
     -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DCMAKE_C_COMPILER=$BUILD_C_COMPILER \
     -DCMAKE_CXX_COMPILER=$BUILD_CXX_COMPILER \
-    -DCMAKE_MODULE_PATH=$PROJECT_ROOT/out \
-    -DCONAN_CMAKE_SILENT_OUTPUT=ON \
+    -DCMAKE_PREFIX_PATH=$PROJECT_ROOT/out/generators \
     -DTARGET_OS=$PLATFORM \
 && cp compile_commands.json $PROJECT_ROOT \
 && ninja -j`nproc` ${BUILD_TARGETS[*]} \
