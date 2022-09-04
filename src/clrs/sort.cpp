@@ -1,4 +1,4 @@
-#include "../utils.h"
+#include "utils/base.h"
 #include <catch2/catch.hpp>
 
 void insertion_sort(int* arr, int n)

@@ -17,6 +17,8 @@ elseif(WIN32)
     add_compile_options(/utf-8 /permissive-)
 endif()
 
+include_directories(src)
+
 set(DEPS_PREFIX ${CMAKE_SOURCE_DIR}/deps/${TARGET_OS})
 add_compile_definitions(DEPS_PREFIX="\"\"${DEPS_PREFIX}\"\"")
 

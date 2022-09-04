@@ -1,4 +1,4 @@
-#include "./testing-widget.h"
+#include "testing-widget.h"
 #include "ui_testing-widget.h"
 #include <QtWidgets/QFileSystemModel>
 

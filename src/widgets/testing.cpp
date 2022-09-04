@@ -1,5 +1,5 @@
-#include "../utils.h"
-#include "./testing-widget.h"
+#include "utils/base.h"
+#include "testing-widget.h"
 #include <QtWidgets/QApplication>
 
 int main(int argc, char** argv)
