@@ -4,7 +4,7 @@ import os
 import sys
 
 
-class SpdlogConan(ConanFile):
+class PrototypingConan(ConanFile):
     name = "prototyping"
     version = "0.1.0"
     url = "https://github.com/JaySinco/conan"
@@ -38,6 +38,7 @@ class SpdlogConan(ConanFile):
         self.requires("implot/0.13@jaysinco/stable")
         self.requires("expected-lite/0.5.0@jaysinco/stable")
         self.requires("catch2/2.13.9@jaysinco/stable")
+        self.requires("mujoco/2.1.5@jaysinco/stable")
 
     def layout(self):
         build_folder = "out"
@@ -49,13 +50,12 @@ class SpdlogConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-
         tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY"] = os.path.join(
             self.source_folder, "bin").replace("\\", "/")
-
-        tc.variables["IMGUI_BINGINGS_DIR"] = self.dependencies["imgui"].cpp_info.srcdirs[0].replace(
-            "\\", "/")
-
+        tc.variables["IMGUI_BINGINGS_DIR"] = self._normalize(
+            self.dependencies["imgui"].cpp_info.srcdirs[0])
+        tc.variables["MUJOCO_BIN_DIR"] = self._normalize(
+            self.dependencies["mujoco"].cpp_info.bindirs[0])
         tc.variables["TARGET_OS"] = sys.platform
         tc.generate()
         cmake_deps = CMakeDeps(self)
@@ -65,3 +65,9 @@ class SpdlogConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+    def _normalize(self, path):
+        if self.settings.os == "Windows":
+            return path.replace("\\", "/")
+        else:
+            return path

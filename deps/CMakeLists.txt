@@ -78,13 +78,13 @@
 #     target_link_libraries(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/lib/glfw3.lib opengl32.lib)
 # endif()
 
-add_library(deps_mujoco INTERFACE)
-target_include_directories(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/include)
-if(UNIX)
-    target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/libmujoco.so glfw::glfw)
-elseif(WIN32)
-    target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/mujoco.lib glfw::glfw)
-endif()
+# add_library(deps_mujoco INTERFACE)
+# target_include_directories(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/include)
+# if(UNIX)
+#     target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/libmujoco.so glfw::glfw)
+# elseif(WIN32)
+#     target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/mujoco.lib glfw::glfw)
+# endif()
 
 add_library(deps_torch INTERFACE)
 target_include_directories(deps_torch INTERFACE

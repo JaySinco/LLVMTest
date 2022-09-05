@@ -17,7 +17,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  -c   clean output"
             echo "  -r   run docker"
-            echo "  -e   build release version"
+            echo "  -l   build release version"
             echo "  -f   remove cmake cache before build"
             echo "  -h   print command line options"
             echo
@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -c) do_clean=1 && shift ;;
         -r) do_run_docker=1 && shift ;;
-        -e) build_release=1 && shift ;;
+        -l) build_release=1 && shift ;;
         -f) do_rm_cmake_cache=1 && shift ;;
         -*) echo "Unknown option: $1" && exit 1 ;;
     esac

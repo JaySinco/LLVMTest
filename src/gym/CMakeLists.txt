@@ -16,12 +16,13 @@ target_precompile_headers(${TESTING} PRIVATE prec.h)
 target_link_libraries(${TESTING} utils
     implot::implot
     glfw::glfw
-    deps_mujoco deps_torch
+    mujoco::mujoco
+    deps_torch
 )
 
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${DEPS_PREFIX}/mujoco/lib/$<IF:$<BOOL:${UNIX}>,libmujoco.so.2.1.5,mujoco.dll>
+    ${MUJOCO_BIN_DIR}/$<IF:$<BOOL:${UNIX}>,libmujoco.so.2.1.5,mujoco.dll>
     ${DEPS_PREFIX}/torch/lib/$<IF:$<BOOL:${UNIX}>,,libiomp5md.dll>
     $<TARGET_FILE_DIR:${TESTING}>
 )
