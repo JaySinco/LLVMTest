@@ -36,6 +36,8 @@ class SpdlogConan(ConanFile):
         self.requires("boost/1.79.0@jaysinco/stable")
         self.requires("glfw/3.3.7@jaysinco/stable")
         self.requires("implot/0.13@jaysinco/stable")
+        self.requires("expected-lite/0.5.0@jaysinco/stable")
+        self.requires("catch2/2.13.9@jaysinco/stable")
 
     def layout(self):
         build_folder = "out"

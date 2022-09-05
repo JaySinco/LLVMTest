@@ -46,8 +46,8 @@
 #     )
 # endif()
 
-add_library(deps_expected-lite INTERFACE)
-target_include_directories(deps_expected-lite INTERFACE ${DEPS_PREFIX}/expected-lite/include)
+# add_library(deps_expected-lite INTERFACE)
+# target_include_directories(deps_expected-lite INTERFACE ${DEPS_PREFIX}/expected-lite/include)
 
 # add_library(deps_python3 INTERFACE)
 # target_include_directories(deps_python3 INTERFACE ${DEPS_PREFIX}/python3/include/python3.8)
@@ -129,8 +129,8 @@ endif()
 # target_include_directories(deps_implot PUBLIC ${DEPS_PREFIX}/implot/include)
 # target_link_libraries(deps_implot PUBLIC imgui::imgui)
 
-add_library(deps_catch2 INTERFACE)
-target_include_directories(deps_catch2 INTERFACE ${DEPS_PREFIX}/catch2/include)
+# add_library(deps_catch2 INTERFACE)
+# target_include_directories(deps_catch2 INTERFACE ${DEPS_PREFIX}/catch2/include)
 
 # add_library(deps_nodeeditor INTERFACE)
 # target_include_directories(deps_nodeeditor INTERFACE ${DEPS_PREFIX}/nodeeditor/include)

@@ -21,6 +21,8 @@ find_package(spdlog REQUIRED CONFIG)
 find_package(Boost REQUIRED CONFIG)
 find_package(glfw3 REQUIRED CONFIG)
 find_package(implot REQUIRED CONFIG)
+find_package(expected-lite REQUIRED CONFIG)
+find_package(Catch2 REQUIRED CONFIG)
 find_package(Qt5Widgets REQUIRED CONFIG PATHS ${DEPS_PREFIX}/qt5)
 
 set(DEPS_PREFIX ${CMAKE_SOURCE_DIR}/deps/${TARGET_OS})
