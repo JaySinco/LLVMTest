@@ -32,9 +32,10 @@ class SpdlogConan(ConanFile):
             del self.options.fPIC
 
     def requirements(self):
-        self.requires("gflags/2.2.2@jaysinco/stable")
         self.requires("spdlog/1.10.0@jaysinco/stable")
         self.requires("boost/1.79.0@jaysinco/stable")
+        self.requires("glfw/3.3.7@jaysinco/stable")
+        self.requires("implot/0.13@jaysinco/stable")
 
     def layout(self):
         build_folder = "out"
@@ -46,8 +47,13 @@ class SpdlogConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
+
         tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY"] = os.path.join(
             self.source_folder, "bin").replace("\\", "/")
+
+        tc.variables["IMGUI_BINGINGS_DIR"] = self.dependencies["imgui"].cpp_info.srcdirs[0].replace(
+            "\\", "/")
+
         tc.variables["TARGET_OS"] = sys.platform
         tc.generate()
         cmake_deps = CMakeDeps(self)

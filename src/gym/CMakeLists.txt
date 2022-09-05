@@ -6,11 +6,18 @@ add_executable(${TESTING}
     policy/policy.cpp
     policy/pg.cpp
     testing.cpp
+    ${IMGUI_BINGINGS_DIR}/imgui_impl_glfw.cpp
+    ${IMGUI_BINGINGS_DIR}/imgui_impl_opengl2.cpp
 )
 
+target_include_directories(${TESTING} PRIVATE ${IMGUI_BINGINGS_DIR})
 target_precompile_headers(${TESTING} PRIVATE prec.h)
 
-target_link_libraries(${TESTING} utils deps_mujoco deps_torch deps_imgui deps_implot)
+target_link_libraries(${TESTING} utils
+    implot::implot
+    glfw::glfw
+    deps_mujoco deps_torch
+)
 
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

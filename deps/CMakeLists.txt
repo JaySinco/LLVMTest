@@ -70,20 +70,20 @@ target_include_directories(deps_expected-lite INTERFACE ${DEPS_PREFIX}/expected-
 # target_include_directories(deps_pybind11 INTERFACE ${DEPS_PREFIX}/pybind11/include)
 # target_link_libraries(deps_pybind11 INTERFACE deps_python3)
 
-add_library(deps_glfw INTERFACE)
-target_include_directories(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/include)
-if(UNIX)
-    target_link_libraries(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/lib/libglfw3.a dl X11 GL)
-elseif(WIN32)
-    target_link_libraries(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/lib/glfw3.lib opengl32.lib)
-endif()
+# add_library(deps_glfw INTERFACE)
+# target_include_directories(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/include)
+# if(UNIX)
+#     target_link_libraries(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/lib/libglfw3.a dl X11 GL)
+# elseif(WIN32)
+#     target_link_libraries(deps_glfw INTERFACE ${DEPS_PREFIX}/glfw/lib/glfw3.lib opengl32.lib)
+# endif()
 
 add_library(deps_mujoco INTERFACE)
 target_include_directories(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/include)
 if(UNIX)
-    target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/libmujoco.so deps_glfw)
+    target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/libmujoco.so glfw::glfw)
 elseif(WIN32)
-    target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/mujoco.lib deps_glfw)
+    target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/mujoco.lib glfw::glfw)
 endif()
 
 add_library(deps_torch INTERFACE)
@@ -109,25 +109,25 @@ elseif(WIN32)
     )
 endif()
 
-add_library(deps_imgui STATIC
-    ${DEPS_PREFIX}/imgui/lib/imgui.cpp
-    ${DEPS_PREFIX}/imgui/lib/imgui_demo.cpp
-    ${DEPS_PREFIX}/imgui/lib/imgui_draw.cpp
-    ${DEPS_PREFIX}/imgui/lib/imgui_tables.cpp
-    ${DEPS_PREFIX}/imgui/lib/imgui_widgets.cpp
-    ${DEPS_PREFIX}/imgui/lib/imgui_impl_glfw.cpp
-    ${DEPS_PREFIX}/imgui/lib/imgui_impl_opengl2.cpp
-)
-target_include_directories(deps_imgui PUBLIC ${DEPS_PREFIX}/imgui/include)
-target_link_libraries(deps_imgui PUBLIC deps_glfw)
+# add_library(deps_imgui STATIC
+#     ${DEPS_PREFIX}/imgui/lib/imgui.cpp
+#     ${DEPS_PREFIX}/imgui/lib/imgui_demo.cpp
+#     ${DEPS_PREFIX}/imgui/lib/imgui_draw.cpp
+#     ${DEPS_PREFIX}/imgui/lib/imgui_tables.cpp
+#     ${DEPS_PREFIX}/imgui/lib/imgui_widgets.cpp
+#     ${DEPS_PREFIX}/imgui/lib/imgui_impl_glfw.cpp
+#     ${DEPS_PREFIX}/imgui/lib/imgui_impl_opengl2.cpp
+# )
+# target_include_directories(deps_imgui PUBLIC ${DEPS_PREFIX}/imgui/include)
+# target_link_libraries(deps_imgui PUBLIC deps_glfw)
 
-add_library(deps_implot STATIC
-    ${DEPS_PREFIX}/implot/lib/implot.cpp
-    ${DEPS_PREFIX}/implot/lib/implot_items.cpp
-    ${DEPS_PREFIX}/implot/lib/implot_demo.cpp
-)
-target_include_directories(deps_implot PUBLIC ${DEPS_PREFIX}/implot/include)
-target_link_libraries(deps_implot PUBLIC deps_imgui)
+# add_library(deps_implot STATIC
+#     ${DEPS_PREFIX}/implot/lib/implot.cpp
+#     ${DEPS_PREFIX}/implot/lib/implot_items.cpp
+#     ${DEPS_PREFIX}/implot/lib/implot_demo.cpp
+# )
+# target_include_directories(deps_implot PUBLIC ${DEPS_PREFIX}/implot/include)
+# target_link_libraries(deps_implot PUBLIC imgui::imgui)
 
 add_library(deps_catch2 INTERFACE)
 target_include_directories(deps_catch2 INTERFACE ${DEPS_PREFIX}/catch2/include)

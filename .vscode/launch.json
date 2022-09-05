@@ -5,12 +5,11 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/clrs-testing",
+            "program": "${workspaceFolder}/bin/gym-testing",
             "args": [],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
             "stopAtEntry": false,
-            "externalConsole": false,
             "logging": {
                 "moduleLoad": true,
                 "trace": true

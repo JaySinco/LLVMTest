@@ -17,10 +17,15 @@ elseif(WIN32)
     add_compile_options(/utf-8 /permissive-)
 endif()
 
-include_directories(src)
+find_package(spdlog REQUIRED CONFIG)
+find_package(Boost REQUIRED CONFIG)
+find_package(glfw3 REQUIRED CONFIG)
+find_package(implot REQUIRED CONFIG)
+find_package(Qt5Widgets REQUIRED CONFIG PATHS ${DEPS_PREFIX}/qt5)
 
 set(DEPS_PREFIX ${CMAKE_SOURCE_DIR}/deps/${TARGET_OS})
 add_compile_definitions(DEPS_PREFIX="\"\"${DEPS_PREFIX}\"\"")
 
 add_subdirectory(deps)
+include_directories(src)
 add_subdirectory(src)
