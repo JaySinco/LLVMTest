@@ -25,7 +25,7 @@ find_package(expected-lite REQUIRED CONFIG)
 find_package(Catch2 REQUIRED CONFIG)
 find_package(mujoco REQUIRED CONFIG)
 find_package(torch REQUIRED CONFIG)
-find_package(Qt5Widgets REQUIRED CONFIG PATHS ${CMAKE_SOURCE_DIR}/deps/${TARGET_OS}/qt5)
+find_package(Qt5Widgets REQUIRED CONFIG)
 
 include_directories(src)
 add_subdirectory(src)

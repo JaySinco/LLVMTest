@@ -5,8 +5,3 @@
 /out
 /compile_commands.json
 /CMakeUserPresets.json
-
-/deps/src
-/deps/*/*/*
-!/deps/*/*/build.sh
-!/deps/*/*/*.patch

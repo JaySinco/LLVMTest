@@ -1,4 +1,5 @@
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(IMGUI_BINGINGS_DIR ${IMGUI_ROOT}/res/bindings)
 set(TESTING ${CURRENT_DIR_NAME}-testing)
 
 add_executable(${TESTING}
@@ -22,7 +23,7 @@ target_link_libraries(${TESTING} utils
 
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${MUJOCO_BIN_DIR}/$<IF:$<BOOL:${UNIX}>,libmujoco.so.2.1.5,mujoco.dll>
-    ${TORCH_BIN_DIR}/$<IF:$<BOOL:${UNIX}>,,libiomp5md.dll>
+    ${MUJOCO_ROOT}/bin/$<IF:$<BOOL:${UNIX}>,libmujoco.so.2.1.5,mujoco.dll>
+    ${TORCH_ROOT}/bin/$<IF:$<BOOL:${UNIX}>,,libiomp5md.dll>
     $<TARGET_FILE_DIR:${TESTING}>
 )

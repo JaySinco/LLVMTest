@@ -40,6 +40,7 @@ class PrototypingConan(ConanFile):
         self.requires("catch2/2.13.9@jaysinco/stable")
         self.requires("mujoco/2.1.5@jaysinco/stable")
         self.requires("torch/1.8.2@jaysinco/stable")
+        self.requires("qt/5.15.3@jaysinco/stable")
 
     def layout(self):
         build_folder = "out"
@@ -53,13 +54,8 @@ class PrototypingConan(ConanFile):
         tc = CMakeToolchain(self)
         tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY"] = os.path.join(
             self.source_folder, "bin").replace("\\", "/")
-        tc.variables["IMGUI_BINGINGS_DIR"] = self._normalize(
-            self.dependencies["imgui"].cpp_info.srcdirs[0])
-        tc.variables["MUJOCO_BIN_DIR"] = self._normalize(
-            self.dependencies["mujoco"].cpp_info.bindirs[0])
-        tc.variables["TORCH_BIN_DIR"] = self._normalize(
-            self.dependencies["torch"].cpp_info.bindirs[0])
-        tc.variables["TARGET_OS"] = sys.platform
+        tc.variables["CMAKE_PREFIX_PATH"] = self._cmake_path()
+        self._setup_pkg_root(tc)
         tc.generate()
         cmake_deps = CMakeDeps(self)
         cmake_deps.generate()
@@ -68,6 +64,21 @@ class PrototypingConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+    def _setup_pkg_root(self, tc):
+        pkg_list = ["imgui", "mujoco", "torch"]
+        for pkg in pkg_list:
+            macro = "{}_ROOT".format(pkg.upper())
+            tc.variables[macro] = self._normalize(
+                self.deps_cpp_info[pkg].cpp_info.rootpath)
+
+    def _cmake_path(self):
+        prefix_path = []
+        pkg_list = ["boost", "qt"]
+        for pkg in pkg_list:
+            prefix_path.append(self._normalize(os.path.join(
+                self.deps_cpp_info[pkg].cpp_info.rootpath, "lib", "cmake")))
+        return "%s;${CMAKE_PREFIX_PATH}" % (";".join(prefix_path))
 
     def _normalize(self, path):
         if self.settings.os == "Windows":
