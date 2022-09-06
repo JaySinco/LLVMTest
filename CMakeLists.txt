@@ -24,11 +24,8 @@ find_package(implot REQUIRED CONFIG)
 find_package(expected-lite REQUIRED CONFIG)
 find_package(Catch2 REQUIRED CONFIG)
 find_package(mujoco REQUIRED CONFIG)
-find_package(Qt5Widgets REQUIRED CONFIG PATHS ${DEPS_PREFIX}/qt5)
+find_package(torch REQUIRED CONFIG)
+find_package(Qt5Widgets REQUIRED CONFIG PATHS ${CMAKE_SOURCE_DIR}/deps/${TARGET_OS}/qt5)
 
-set(DEPS_PREFIX ${CMAKE_SOURCE_DIR}/deps/${TARGET_OS})
-add_compile_definitions(DEPS_PREFIX="\"\"${DEPS_PREFIX}\"\"")
-
-add_subdirectory(deps)
 include_directories(src)
 add_subdirectory(src)

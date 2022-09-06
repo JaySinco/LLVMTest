@@ -46,16 +46,16 @@ git_root="$(git rev-parse --show-toplevel)"
 docker_workspace_dir=/workspace
 docker_image_tag=build:v1
 
-conan_build_type=Debug
+build_type=Debug
 if [ $build_release -eq 1 ]; then
-    conan_build_type=Release
+    build_type=Release
 fi
 
 conan_profile=$git_root/profiles/$arch-$os.profile
-conan_build_folder=$git_root/out/$conan_build_type
+build_folder=$git_root/out/$build_type
 
 if [ $do_clean -eq 1 ]; then
-    cd $conan_build_folder && ninja clean
+    cd $build_folder && ninja clean
     exit 0
 fi
 
@@ -70,19 +70,17 @@ if [ $do_run_docker -eq 1 ]; then
 fi
 
 if [ $do_rm_cmake_cache -eq 1 ]; then
-    rm -f $conan_build_folder/CMakeCache.txt
+    rm -f $build_folder/CMakeCache.txt
 fi
 
 pushd $git_root \
 && find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
-&& conan install \
-    --install-folder=$conan_build_folder \
+&& conan install . \
+    --install-folder=$build_folder \
     --profile=$conan_profile \
     --profile:build=$conan_profile \
-    --conf=tools.cmake.cmaketoolchain:generator=Ninja \
-    --settings=build_type=$conan_build_type \
+    --settings=build_type=$build_type \
     --build=never \
-    . \
-&& conan build --install-folder=$conan_build_folder . \
-&& cp $conan_build_folder/compile_commands.json $git_root \
+&& conan build --install-folder=$build_folder . \
+&& cp $build_folder/compile_commands.json $git_root \
 && echo done!

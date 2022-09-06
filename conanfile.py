@@ -39,6 +39,7 @@ class PrototypingConan(ConanFile):
         self.requires("expected-lite/0.5.0@jaysinco/stable")
         self.requires("catch2/2.13.9@jaysinco/stable")
         self.requires("mujoco/2.1.5@jaysinco/stable")
+        self.requires("torch/1.8.2@jaysinco/stable")
 
     def layout(self):
         build_folder = "out"
@@ -56,6 +57,8 @@ class PrototypingConan(ConanFile):
             self.dependencies["imgui"].cpp_info.srcdirs[0])
         tc.variables["MUJOCO_BIN_DIR"] = self._normalize(
             self.dependencies["mujoco"].cpp_info.bindirs[0])
+        tc.variables["TORCH_BIN_DIR"] = self._normalize(
+            self.dependencies["torch"].cpp_info.bindirs[0])
         tc.variables["TARGET_OS"] = sys.platform
         tc.generate()
         cmake_deps = CMakeDeps(self)

@@ -17,12 +17,12 @@ target_link_libraries(${TESTING} utils
     implot::implot
     glfw::glfw
     mujoco::mujoco
-    deps_torch
+    torch::torch
 )
 
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${MUJOCO_BIN_DIR}/$<IF:$<BOOL:${UNIX}>,libmujoco.so.2.1.5,mujoco.dll>
-    ${DEPS_PREFIX}/torch/lib/$<IF:$<BOOL:${UNIX}>,,libiomp5md.dll>
+    ${TORCH_BIN_DIR}/$<IF:$<BOOL:${UNIX}>,,libiomp5md.dll>
     $<TARGET_FILE_DIR:${TESTING}>
 )

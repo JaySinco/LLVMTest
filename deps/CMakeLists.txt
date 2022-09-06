@@ -86,28 +86,28 @@
 #     target_link_libraries(deps_mujoco INTERFACE ${DEPS_PREFIX}/mujoco/lib/mujoco.lib glfw::glfw)
 # endif()
 
-add_library(deps_torch INTERFACE)
-target_include_directories(deps_torch INTERFACE
-    ${DEPS_PREFIX}/torch/include/
-    ${DEPS_PREFIX}/torch/include/torch/csrc/api/include/
-)
-if(UNIX)
-    target_link_libraries(deps_torch INTERFACE
-        ${DEPS_PREFIX}/torch/lib/libc10.so
-        ${DEPS_PREFIX}/torch/lib/libgomp-75eea7e8.so.1
-        ${DEPS_PREFIX}/torch/lib/libtorch_cpu.so
-    )
-elseif(WIN32)
-    target_compile_options(deps_torch INTERFACE /W0)
-    target_link_libraries(deps_torch INTERFACE
-        "-INCLUDE:?warp_size@cuda@at@@YAHXZ"
-        "-INCLUDE:?searchsorted_cuda@native@at@@YA?AVTensor@2@AEBV32@0_N1@Z"
-        ${DEPS_PREFIX}/torch/lib/c10.lib
-        ${DEPS_PREFIX}/torch/lib/torch_cpu.lib
-        ${DEPS_PREFIX}/torch/lib/torch_cuda_cpp.lib
-        ${DEPS_PREFIX}/torch/lib/torch_cuda_cu.lib
-    )
-endif()
+# add_library(deps_torch INTERFACE)
+# target_include_directories(deps_torch INTERFACE
+#     ${DEPS_PREFIX}/torch/include/
+#     ${DEPS_PREFIX}/torch/include/torch/csrc/api/include/
+# )
+# if(UNIX)
+#     target_link_libraries(deps_torch INTERFACE
+#         ${DEPS_PREFIX}/torch/lib/libc10.so
+#         ${DEPS_PREFIX}/torch/lib/libgomp-75eea7e8.so.1
+#         ${DEPS_PREFIX}/torch/lib/libtorch_cpu.so
+#     )
+# elseif(WIN32)
+#     target_compile_options(deps_torch INTERFACE /W0)
+#     target_link_libraries(deps_torch INTERFACE
+#         "-INCLUDE:?warp_size@cuda@at@@YAHXZ"
+#         "-INCLUDE:?searchsorted_cuda@native@at@@YA?AVTensor@2@AEBV32@0_N1@Z"
+#         ${DEPS_PREFIX}/torch/lib/c10.lib
+#         ${DEPS_PREFIX}/torch/lib/torch_cpu.lib
+#         ${DEPS_PREFIX}/torch/lib/torch_cuda_cpp.lib
+#         ${DEPS_PREFIX}/torch/lib/torch_cuda_cu.lib
+#     )
+# endif()
 
 # add_library(deps_imgui STATIC
 #     ${DEPS_PREFIX}/imgui/lib/imgui.cpp
