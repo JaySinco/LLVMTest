@@ -4,7 +4,7 @@ set(CMPL ${CURRENT_DIR_NAME}-autocomplete)
 
 add_executable(${TESTING} testing.cpp)
 target_precompile_headers(${TESTING} PRIVATE prec.h)
-target_link_libraries(${TESTING} utils Boost::headers)
+target_link_libraries(${TESTING} utils Boost::headers Boost::timer)
 
 add_executable(${CMPL} autocomplete.cpp)
 target_precompile_headers(${CMPL} REUSE_FROM ${TESTING})

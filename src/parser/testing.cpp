@@ -1,6 +1,7 @@
 #include "prec.h"
 #include "utils/base.h"
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
+#include <boost/timer/timer.hpp>
 #include <fmt/ranges.h>
 #include <fmt/ostream.h>
 
@@ -87,4 +88,8 @@ void parsing(const std::filesystem::path& source_file)
     spdlog::info("{} {}", ok, utils::ws2s(attr.surname));
 }
 
-int main(int argc, char** argv) { parsing(__DIRNAME__ / "input.txt"); }
+int main(int argc, char** argv)
+{
+    boost::timer::auto_cpu_timer timer;
+    parsing(__DIRNAME__ / "input.txt");
+}
