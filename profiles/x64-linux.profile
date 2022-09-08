@@ -10,5 +10,7 @@ build_type=Release
 [options]
 [build_requires]
 [env]
+CC=/usr/bin/clang
+CXX=/usr/bin/clang++
 [conf]
 tools.cmake.cmaketoolchain:generator=Ninja

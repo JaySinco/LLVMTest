@@ -42,8 +42,6 @@ esac
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 git_root="$(git rev-parse --show-toplevel)"
-
-docker_workspace_dir=/workspace
 docker_image_tag=build:v1
 
 build_type=Debug
@@ -60,11 +58,19 @@ if [ $do_clean -eq 1 ]; then
 fi
 
 if [ $do_run_docker -eq 1 ]; then
+    mkdir -p \
+        $HOME/.ssh \
+        $HOME/.config/nvim \
+        $HOME/.local/share/nvim \
+        $HOME/.conan
     docker run -it --rm \
-        -v $HOME/.ssh:/root/.ssh:ro \
-        -v $HOME/.config/nvim:/root/.config/nvim:rw \
-        -v $HOME/.local/share/nvim:/root/.local/share/nvim:rw \
-        -v $git_root:$docker_workspace_dir:rw \
+        -e DISPLAY \
+        -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+        -v $HOME/.ssh:/home/jaysinco/.ssh:ro \
+        -v $HOME/.config/nvim:/home/jaysinco/.config/nvim:rw \
+        -v $HOME/.local/share/nvim:/home/jaysinco/.local/share/nvim:rw \
+        -v $HOME/.conan:/home/jaysinco/.conan:rw \
+        -v $git_root:/home/jaysinco/workspace:rw \
         $docker_image_tag
     exit 0
 fi
