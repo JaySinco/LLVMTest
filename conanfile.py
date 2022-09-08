@@ -74,10 +74,14 @@ class PrototypingConan(ConanFile):
 
     def _cmake_path(self):
         prefix_path = []
-        pkg_list = ["boost", "qt"]
-        for pkg in pkg_list:
-            prefix_path.append(self._normalize(os.path.join(
-                self.deps_cpp_info[pkg].cpp_info.rootpath, "lib", "cmake")))
+        cmake_dir = {
+            "boost" : "lib/cmake",
+            "qt" : "lib/cmake",
+        }
+        for pkg in cmake_dir:
+            prefix_path.append(self._normalize(
+                os.path.join(self.deps_cpp_info[pkg].cpp_info.rootpath, cmake_dir[pkg])))
+
         return "%s;${CMAKE_PREFIX_PATH}" % (";".join(prefix_path))
 
     def _normalize(self, path):

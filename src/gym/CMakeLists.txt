@@ -18,7 +18,7 @@ target_link_libraries(${TESTING} utils
     implot::implot
     glfw::glfw
     mujoco::mujoco
-    torch::torch
+    Torch::torch
 )
 
 add_custom_command(TARGET ${TESTING} POST_BUILD

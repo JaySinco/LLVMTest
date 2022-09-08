@@ -24,7 +24,7 @@ find_package(implot REQUIRED CONFIG)
 find_package(expected-lite REQUIRED CONFIG)
 find_package(Catch2 REQUIRED CONFIG)
 find_package(mujoco REQUIRED CONFIG)
-find_package(torch REQUIRED CONFIG)
+find_package(Torch REQUIRED CONFIG)
 find_package(Qt5Widgets REQUIRED CONFIG)
 
 include_directories(src)

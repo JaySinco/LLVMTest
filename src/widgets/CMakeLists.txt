@@ -10,4 +10,4 @@ set_target_properties(${TESTING} PROPERTIES
     AUTORCC ON
     AUTOUIC ON
 )
-target_link_libraries(${TESTING} utils Qt5::Widgets)
+target_link_libraries(${TESTING} utils Qt5::Widgets Boost::timer)
