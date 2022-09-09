@@ -1,7 +1,7 @@
 #pragma once
 #include "gym/prec.h"
 #include "utils/base.h"
-#include "mujoco.h"
+#include "mujoco/mujoco.h"
 #include "GLFW/glfw3.h"
 #include <string>
 #include <mutex>

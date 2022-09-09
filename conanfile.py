@@ -38,7 +38,7 @@ class PrototypingConan(ConanFile):
         self.requires("implot/0.13@jaysinco/stable")
         self.requires("expected-lite/0.5.0@jaysinco/stable")
         self.requires("catch2/2.13.9@jaysinco/stable")
-        self.requires("mujoco/2.1.5@jaysinco/stable")
+        self.requires("mujoco/2.2.2@jaysinco/stable")
         self.requires("torch/1.8.2@jaysinco/stable")
         self.requires("qt/5.15.3@jaysinco/stable")
 
