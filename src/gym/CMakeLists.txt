@@ -23,7 +23,7 @@ target_link_libraries(${TESTING} utils
 
 add_custom_command(TARGET ${TESTING} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${MUJOCO_ROOT}/$<IF:$<BOOL:${UNIX}>,lib/libmujoco.so.2.1.5,bin/mujoco.dll>
+    ${MUJOCO_ROOT}/$<IF:$<BOOL:${UNIX}>,lib/libmujoco.so.${mujoco_VERSION_STRING},bin/mujoco.dll>
     ${TORCH_ROOT}/bin/$<IF:$<BOOL:${UNIX}>,,libiomp5md.dll>
     $<TARGET_FILE_DIR:${TESTING}>
 )
