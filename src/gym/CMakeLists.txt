@@ -19,6 +19,8 @@ target_link_libraries(${TESTING} utils
     glfw::glfw
     mujoco::mujoco
     Torch::torch
+    $<IF:$<BOOL:${UNIX}>,,-INCLUDE:?warp_size@cuda@at@@YAHXZ>
+    $<IF:$<BOOL:${UNIX}>,,-INCLUDE:?searchsorted_cuda@native@at@@YA?AVTensor@2@AEBV32@0_N1@Z>
 )
 
 add_custom_command(TARGET ${TESTING} POST_BUILD
