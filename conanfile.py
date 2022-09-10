@@ -66,10 +66,10 @@ class PrototypingConan(ConanFile):
         cmake.build()
 
     def _setup_pkg_root(self, tc):
-        pkg_list = ["imgui", "mujoco", "torch"]
-        for pkg in pkg_list:
-            macro = "{}_ROOT".format(pkg.upper())
-            tc.variables[macro] = self._normalize(
+        for pkg in self.deps_cpp_info._dependencies:
+            root = "{}_ROOT".format(pkg)
+            self.output.info("setup {}".format(root))
+            tc.variables[root] = self._normalize(
                 self.deps_cpp_info[pkg].cpp_info.rootpath)
 
     def _cmake_path(self):
