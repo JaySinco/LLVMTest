@@ -453,13 +453,12 @@ Move mapping_move(int id, Move mv)
     return mv;
 }
 
-std::pair<torch::Tensor, torch::Tensor> FIRNetModule::forward(torch::Tensor x)
+std::pair<torch::Tensor, torch::Tensor> FIRNetModule::forward(torch::Tensor input)
 {
     // common layers
-    x = torch::relu(conv1->forward(x));
+    auto x = torch::relu(conv1->forward(input));
     x = torch::relu(conv2->forward(x));
     x = torch::relu(conv3->forward(x));
-    x = torch::relu(conv1->forward(x));
     // action policy layers
     auto x_act = torch::relu(act_conv1(x));
     x_act = x_act.view({-1, INPUT_FEATURE_NUM * BOARD_MAX_ROW * BOARD_MAX_COL});
@@ -475,6 +474,8 @@ std::pair<torch::Tensor, torch::Tensor> FIRNetModule::forward(torch::Tensor x)
 void FIRNet::evalState(const State& state, float value[1],
                        std::vector<std::pair<Move, float>>& net_move_priors)
 {
+    torch::NoGradGuard no_grad;
+    module_.eval();
     float buf[INPUT_FEATURE_NUM * BOARD_SIZE] = {0.0f};
     state.fill_feature_array(buf);
     std::uniform_int_distribution<int> uniform(0, 7);
@@ -483,9 +484,6 @@ void FIRNet::evalState(const State& state, float value[1],
     auto data = torch::from_blob(
         buf, {1, INPUT_FEATURE_NUM, BOARD_MAX_ROW, BOARD_MAX_COL}, [](void* buf) {},
         torch::kFloat32);
-
-    torch::NoGradGuard no_grad;
-    module_.eval();
     auto&& [x_act, x_val] = module_.forward(data);
     float priors_sum = 0.0f;
     for (const auto mv: state.get_options()) {
@@ -506,6 +504,7 @@ void FIRNet::evalState(const State& state, float value[1],
 
 float FIRNet::train_step(MiniBatch* batch)
 {
+    module_.train();
     auto data = torch::from_blob(
         batch->data, {BATCH_SIZE, INPUT_FEATURE_NUM, BOARD_MAX_ROW, BOARD_MAX_COL},
         [](void* buf) {}, torch::kFloat32);
@@ -513,13 +512,11 @@ float FIRNet::train_step(MiniBatch* batch)
         batch->p_label, {BATCH_SIZE, BOARD_SIZE}, [](void* buf) {}, torch::kFloat32);
     auto val_label = torch::from_blob(
         batch->p_label, {BATCH_SIZE, 1}, [](void* buf) {}, torch::kFloat32);
-
-    module_.train();
-    optimizer.zero_grad();
     auto&& [x_act, x_val] = module_.forward(data);
     auto value_loss = torch::mse_loss(x_val, val_label);
     auto policy_loss = -torch::mean(torch::sum(plc_label * torch::log(x_act), 1));
     auto loss = value_loss + policy_loss;
+    optimizer.zero_grad();
     loss.backward();
     optimizer.step();
     adjust_lr();

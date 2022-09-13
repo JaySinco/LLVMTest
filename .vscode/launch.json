@@ -5,8 +5,11 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/gym-testing",
-            "args": [],
+            "program": "${workspaceFolder}/bin/gomoku",
+            "args": [
+                "train",
+                "0"
+            ],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
             "stopAtEntry": false,
