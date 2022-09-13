@@ -1,16 +1,5 @@
-#include <iomanip>
 #include "network.h"
-
-// #define MX_TRY try {
-// #define MX_CATCH                                    \
-//     }                                               \
-//     catch (dmlc::Error & err)                       \
-//     {                                               \
-//         std::cout << MXGetLastError() << std::endl; \
-//         std::exit(-1);                              \
-//     }
-
-// using namespace mxnet::cpp;
+#include <iomanip>
 
 void SampleData::flip_verticing()
 {
@@ -115,7 +104,7 @@ void DataSet::make_mini_batch(MiniBatch* batch) const
     assert(index > BATCH_SIZE);
     std::uniform_int_distribution<int> uniform(0, size() - 1);
     for (int i = 0; i < BATCH_SIZE; i++) {
-        int c = uniform(global_random_engine);
+        int c = uniform(g_random_engine);
         SampleData* r = buf + c;
         std::copy(std::begin(r->data), std::end(r->data),
                   batch->data + INPUT_FEATURE_NUM * BOARD_SIZE * i);
@@ -129,83 +118,6 @@ std::ostream& operator<<(std::ostream& out, const DataSet& set)
     for (int i = 0; i < set.size(); ++i) out << set.get(i) << std::endl;
     return out;
 }
-
-// Symbol dense_layer(const std::string& name, Symbol data, int num_hidden,
-//                    const std::string& act_type)
-// {
-//     Symbol w(name + "_w"), b(name + "_b");
-//     Symbol out = FullyConnected("fc_" + name, data, w, b, num_hidden);
-//     if (act_type != "None") out = Activation("act_" + name, out, act_type);
-//     return out;
-// }
-
-// Symbol convolution_layer(const std::string& name, Symbol data, int num_filter, Shape kernel,
-//                          Shape stride, Shape pad, bool use_act, bool use_bn = USE_BATCH_NORM)
-// {
-//     Symbol conv_w(name + "_w");
-//     Symbol conv_b(name + "_b");
-//     Symbol out = Convolution("conv_" + name, data, conv_w, conv_b, kernel, num_filter,
-//     stride,
-//                              Shape(1, 1), pad);
-//     if (use_bn) {
-//         Symbol gamma(name + "_bn_gamma");
-//         Symbol beta(name + "_bn_beta");
-//         Symbol mmean(name + "_bn_mmean");
-//         Symbol mvar(name + "_bn_mvar");
-//         out = BatchNorm("bn_" + name, out, gamma, beta, mmean, mvar);
-//     }
-//     if (use_act) out = Activation("relu_" + name, out, "relu");
-//     return out;
-// }
-
-// Symbol residual_layer(const std::string& name, Symbol data, int num_filter)
-// {
-//     Symbol conv1 = convolution_layer(name + "_conv1", data, num_filter, Shape(3, 3), Shape(1,
-//     1),
-//                                      Shape(1, 1), true);
-//     Symbol conv2 = convolution_layer(name + "_conv2", conv1, num_filter, Shape(3, 3),
-//     Shape(1, 1),
-//                                      Shape(1, 1), false);
-//     return Activation("relu_" + name, data + conv2, "relu");
-// }
-
-// Symbol residual_block(const std::string& name, Symbol data, int num_block, int num_filter)
-// {
-//     Symbol out = data;
-//     for (int i = 0; i < num_block; ++i)
-//         out = residual_layer(name + "_block" + std::to_string(i + 1), out, num_filter);
-//     return out;
-// }
-
-// Symbol middle_layer(Symbol data)
-// {
-//     Symbol middle_conv = convolution_layer("middle_conv", data, NET_NUM_FILTER, Shape(3, 3),
-//                                            Shape(1, 1), Shape(1, 1), true);
-//     Symbol middle_residual =
-//         residual_block("middle_res", middle_conv, NET_NUM_RESIDUAL_BLOCK, NET_NUM_FILTER);
-//     return middle_residual;
-// }
-
-// std::pair<Symbol, Symbol> plc_layer(Symbol data, Symbol label)
-// {
-//     Symbol plc_conv =
-//         convolution_layer("plc_conv", data, 2, Shape(1, 1), Shape(1, 1), Shape(0, 0), true);
-//     Symbol plc_logist_out = dense_layer("plc_logist_out", plc_conv, BOARD_SIZE, "None");
-//     Symbol plc_out = softmax("plc_out", plc_logist_out);
-//     Symbol plc_m_loss = -1 * elemwise_mul(label, log_softmax(plc_logist_out));
-//     Symbol plc_loss = MakeLoss(mean(sum(plc_m_loss, dmlc::optional<Shape>(Shape(1)))));
-//     return std::make_pair(plc_out, plc_loss);
-// }
-
-// std::pair<Symbol, Symbol> val_layer(Symbol data, Symbol label)
-// {
-//     Symbol val_conv =
-//         convolution_layer("val_conv", data, 1, Shape(1, 1), Shape(1, 1), Shape(0, 0), true);
-//     Symbol val_dense = dense_layer("val_dense", val_conv, NET_NUM_FILTER, "relu");
-//     Symbol val_out = dense_layer("val_logist_out", val_dense, 1, "tanh");
-//     Symbol val_loss = MakeLoss(mean(square(elemwise_sub(val_out, label))));
-//     return std::make_pair(val_out, val_loss);
-// }
 
 FIRNetModule::FIRNetModule()
     : conv1(torch::nn::Conv2dOptions(INPUT_FEATURE_NUM, 32, 3).padding(1)),
@@ -233,23 +145,6 @@ FIRNet::FIRNet(long long verno): update_cnt(verno), optimizer(module_.parameters
         load_param();
     }
     this->set_lr(calc_init_lr());
-
-    // MX_TRY
-    // build_graph();
-
-    // bind_train();
-    // if (update_cnt == 0) {
-    //     loss.InferArgsMap(ctx, &args_map, args_map);
-    //     auxs_map = loss_train->aux_dict();
-    //     init_param();
-    // }
-    // bind_predict();
-    // optimizer = OptimizerRegistry::Find("sgd");
-    // optimizer->SetParam("momentum", 0.9)
-    //     ->SetParam("clip_gradient", 10)
-    //     ->SetParam("lr", calc_init_lr())
-    //     ->SetParam("wd", WEIGHT_DECAY);
-    // MX_CATCH
 }
 
 float FIRNet::calc_init_lr()
@@ -301,60 +196,12 @@ void FIRNet::set_lr(float lr)
 
 FIRNet::~FIRNet() {}
 
-// void FIRNet::build_graph()
-// {
-//     auto middle = middle_layer(Symbol::Variable("data"));
-//     auto plc_pair = plc_layer(middle, Symbol::Variable("plc_label"));
-//     auto val_pair = val_layer(middle, Symbol::Variable("val_label"));
-//     plc = plc_pair.first;
-//     val = val_pair.first;
-//     loss = plc_pair.second + val_pair.second;
-//     loss_arg_names = loss.ListArguments();
-// }
-
-// void FIRNet::bind_train()
-// {
-//     args_map["data"] = data_train;
-//     args_map["plc_label"] = plc_label;
-//     args_map["val_label"] = val_label;
-//     loss_train = loss.SimpleBind(ctx, args_map, std::map<std::string, NDArray>(),
-//                                  std::map<std::string, OpReqType>(), auxs_map);
-// }
-
-// void FIRNet::bind_predict()
-// {
-//     args_map["data"] = data_predict;
-//     plc_predict = plc.SimpleBind(ctx, args_map, std::map<std::string, NDArray>(),
-//                                  std::map<std::string, OpReqType>(), auxs_map);
-//     val_predict = val.SimpleBind(ctx, args_map, std::map<std::string, NDArray>(),
-//                                  std::map<std::string, OpReqType>(), auxs_map);
-//     args_map.erase("data");
-//     args_map.erase("plc_label");
-//     args_map.erase("val_label");
-// }
-
-// void FIRNet::init_param()
-// {
-//     auto xavier_init = Xavier(Xavier::gaussian, Xavier::in, 2.34);
-//     for (auto& arg: args_map) {
-//         xavier_init(arg.first, &arg.second);
-//     }
-//     auto mean_init = Constant(0.0f);
-//     auto mvar_init = Constant(BN_MVAR_INIT);
-//     for (auto& aux: auxs_map) {
-//         if (aux.first.find("_bn_mmean") != -1)
-//             mean_init(aux.first, &aux.second);
-//         else if (aux.first.find("_bn_mvar") != -1)
-//             mvar_init(aux.first, &aux.second);
-//     }
-// }
-
 std::string FIRNet::make_param_file_name()
 {
     std::ostringstream filename;
-    filename << "FIR-" << BOARD_MAX_COL << "x" << NET_NUM_FILTER << "i" << NET_NUM_RESIDUAL_BLOCK
-             << "@" << update_cnt << ".pt";
-    return filename.str();
+    filename << "FIR-" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "@" << update_cnt << ".pt";
+
+    return utils::ws2s(utils::getExeDir()) + "\\" + filename.str();
 }
 
 void FIRNet::load_param()
@@ -374,33 +221,6 @@ void FIRNet::save_param()
     module_.save(output_archive);
     output_archive.save_to(file_name);
 }
-
-// void brief_NDArray(std::ostream& out, const std::string& name, const NDArray& nd)
-// {
-//     out << std::left << std::setw(40) << name << " (";
-//     auto shape = nd.GetShape();
-//     for (int i = 0; i < shape.size(); ++i) {
-//         out << shape[i];
-//         if (i != shape.size() - 1) out << ", ";
-//     }
-//     out << ") = [";
-//     auto data = nd.GetData();
-//     auto num = nd.Size() > 3 ? 3 : nd.Size();
-//     for (int i = 0; i < num; ++i) {
-//         out << data[i];
-//         if (i != num - 1) out << ", ";
-//     }
-//     if (num < nd.Size()) out << "...";
-//     out << "]\n";
-// }
-
-// void FIRNet::show_param(std::ostream& out)
-// {
-//     out << "=== trainable parameters ===\n";
-//     for (const auto& arg: args_map) brief_NDArray(out, arg.first, arg.second);
-//     out << "\n=== auxiliary parameters ===\n";
-//     for (const auto& aux: auxs_map) brief_NDArray(out, aux.first, aux.second);
-// }
 
 void mapping_data(int id, float data[INPUT_FEATURE_NUM * BOARD_SIZE])
 {
@@ -479,7 +299,7 @@ void FIRNet::evalState(const State& state, float value[1],
     float buf[INPUT_FEATURE_NUM * BOARD_SIZE] = {0.0f};
     state.fill_feature_array(buf);
     std::uniform_int_distribution<int> uniform(0, 7);
-    int transform_id = uniform(global_random_engine);
+    int transform_id = uniform(g_random_engine);
     mapping_data(transform_id, buf);
     auto data = torch::from_blob(
         buf, {1, INPUT_FEATURE_NUM, BOARD_MAX_ROW, BOARD_MAX_COL}, [](void* buf) {},
@@ -522,20 +342,4 @@ float FIRNet::train_step(MiniBatch* batch)
     adjust_lr();
     ++update_cnt;
     return loss.item<float>();
-
-    // data_train.SyncCopyFromCPU(batch->data, BATCH_SIZE * INPUT_FEATURE_NUM * BOARD_SIZE);
-    // plc_label.SyncCopyFromCPU(batch->p_label, BATCH_SIZE * BOARD_SIZE);
-    // val_label.SyncCopyFromCPU(batch->v_label, BATCH_SIZE);
-    // loss_train->Forward(true);
-    // loss_train->Backward();
-    // for (int i = 0; i < loss_arg_names.size(); ++i) {
-    //     if (loss_arg_names[i] == "data" || loss_arg_names[i] == "plc_label" ||
-    //         loss_arg_names[i] == "val_label")
-    //         continue;
-    //     optimizer->Update(i, loss_train->arg_arrays[i], loss_train->grad_arrays[i]);
-    // }
-    // ++update_cnt;
-    // adjust_lr();
-    // NDArray::WaitAll();
-    // return loss_train->outputs[0].GetData()[0];
 }

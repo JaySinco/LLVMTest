@@ -2,6 +2,14 @@
 #include "prec.h"
 #include "game.h"
 
+constexpr int BATCH_SIZE = 512;
+constexpr int BUFFER_SIZE = 10000;
+constexpr float INIT_LEARNING_RATE = 2e-3;
+constexpr float WEIGHT_DECAY = 1e-4;
+constexpr int LR_DROP_STEP1 = 2000;
+constexpr int LR_DROP_STEP2 = 8000;
+constexpr int LR_DROP_STEP3 = 10000;
+
 struct SampleData
 {
     float data[INPUT_FEATURE_NUM * BOARD_SIZE] = {0.0f};
@@ -66,20 +74,6 @@ private:
 
 class FIRNet
 {
-    // using Symbol = mxnet::cpp::Symbol;
-    // using Context = mxnet::cpp::Context;
-    // using NDArray = mxnet::cpp::NDArray;
-    // using Executor = mxnet::cpp::Executor;
-    // using Optimizer = mxnet::cpp::Optimizer;
-
-    // const Context ctx;
-    // std::map<std::string, NDArray> args_map;
-    // std::map<std::string, NDArray> auxs_map;
-    // std::vector<std::string> loss_arg_names;
-    // Symbol plc, val, loss;
-    // NDArray data_predict, data_train, plc_label, val_label;
-    // Executor *plc_predict, *val_predict, *loss_train;
-    // Optimizer* optimizer;
     long long update_cnt;
     FIRNetModule module_;
     torch::optim::Adam optimizer;
@@ -88,13 +82,8 @@ public:
     FIRNet(long long verno);
     ~FIRNet();
     long long verno() { return update_cnt; }
-    // void init_param();
     void save_param();
     void load_param();
-    // void show_param(std::ostream& out);
-    // void build_graph();
-    // void bind_train();
-    // void bind_predict();
     void set_lr(float lr);
     float calc_init_lr();
     void adjust_lr();

@@ -1,11 +1,10 @@
 #pragma once
-
+#include "utils/base.h"
+#include <random>
 #include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <vector>
-
-#include "vars.h"
 
 /*
 3 * 3 board looks like:
@@ -17,6 +16,16 @@
  |
 Row  => move z(5) = (x(1), y(2))
 */
+
+constexpr int FIVE_IN_ROW = 5;
+constexpr int BOARD_MAX_COL = 8;
+constexpr int BOARD_MAX_ROW = BOARD_MAX_COL;
+constexpr int BOARD_SIZE = BOARD_MAX_ROW * BOARD_MAX_COL;
+constexpr int INPUT_FEATURE_NUM = 4;  // self, opponent[[, lastmove], color]
+constexpr int NO_MOVE_YET = -1;
+constexpr int COLOR_OCCUPY_SPACE = 1;
+
+extern std::mt19937 g_random_engine;
 
 #define ON_BOARD(row, col) (row >= 0 && row < BOARD_MAX_ROW && col >= 0 && col < BOARD_MAX_COL)
 

@@ -1,7 +1,6 @@
-#include <chrono>
-
 #include "train.h"
 #include "mcts.h"
+#include <chrono>
 
 int selfplay(std::shared_ptr<FIRNet> net, DataSet& dataset, int itermax)
 {

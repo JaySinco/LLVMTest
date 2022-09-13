@@ -1,6 +1,5 @@
-#include <iomanip>
-
 #include "mcts.h"
+#include <iomanip>
 
 MCTSNode::~MCTSNode()
 {
@@ -78,7 +77,7 @@ Move MCTSNode::act_by_prob(float mcts_move_priors[BOARD_SIZE], float temp) const
     for (int i = 0; i < BOARD_SIZE; ++i) check_sum += mcts_move_priors[i];
     assert(check_sum > 0.99);
     std::discrete_distribution<int> discrete(mcts_move_priors, mcts_move_priors + BOARD_SIZE);
-    return Move(discrete(global_random_engine));
+    return Move(discrete(g_random_engine));
 }
 
 void MCTSNode::update(float leafValue)
@@ -99,7 +98,7 @@ void gen_ran_dirichlet(const size_t K, float alpha, float theta[])
     std::gamma_distribution<float> gamma(alpha, 1.0f);
     float norm = 0.0;
     for (size_t i = 0; i < K; i++) {
-        theta[i] = gamma(global_random_engine);
+        theta[i] = gamma(g_random_engine);
         norm += theta[i];
     }
     for (size_t i = 0; i < K; i++) {

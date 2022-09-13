@@ -1,10 +1,9 @@
+#include "game.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
 #include <sstream>
 #include <map>
-
-#include "game.h"
 
 Color operator~(const Color c)
 {
@@ -50,7 +49,7 @@ void Board::push_valid(std::vector<Move>& set) const
     for (int i = 0; i < BOARD_SIZE; ++i)
         if (get(Move(i)) == Color::Empty) set.push_back(Move(i));
 
-    std::shuffle(set.begin(), set.end(), global_random_engine);
+    std::shuffle(set.begin(), set.end(), g_random_engine);
 }
 
 bool Board::win_from(Move mv) const

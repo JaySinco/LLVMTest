@@ -52,8 +52,10 @@ class PrototypingConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY"] = os.path.join(
-            self.source_folder, "bin").replace("\\", "/")
+        tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG"] = self._normalize(
+            os.path.join(self.source_folder, "bin"))
+        tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE"] = self._normalize(
+            os.path.join(self.source_folder, "bin", "Release"))
         tc.variables["CMAKE_PREFIX_PATH"] = self._cmake_path()
         self._setup_pkg_root(tc)
         tc.generate()

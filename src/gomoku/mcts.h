@@ -1,9 +1,11 @@
 #pragma once
-
-#include <map>
-
 #include "game.h"
 #include "network.h"
+#include <map>
+
+constexpr float NOISE_RATE = 0.2;
+constexpr float DIRICHLET_ALPHA = 0.3;
+constexpr bool DEBUG_MCTS_PROB = false;
 
 class MCTSNode
 {
