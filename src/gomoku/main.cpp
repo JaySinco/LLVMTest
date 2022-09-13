@@ -54,7 +54,6 @@ int main(int argc, char* argv[])
             long long verno = std::atoi(argv[2]);
             std::shared_ptr<FIRNet> net = std::make_shared<FIRNet>(verno);
             show_global_cfg(std::cout);
-            net->show_param(std::cout);
             train(net);
             return 0;
         }

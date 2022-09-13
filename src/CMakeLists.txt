@@ -1,5 +1,6 @@
 add_subdirectory(utils)
 add_subdirectory(gym)
+add_subdirectory(gomoku)
 add_subdirectory(parser)
 add_subdirectory(widgets)
 add_subdirectory(clrs)

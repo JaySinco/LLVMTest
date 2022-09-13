@@ -1,7 +1,5 @@
 #pragma once
-
-#include <mxnet-cpp/MxNetCpp.h>
-
+#include "prec.h"
 #include "game.h"
 
 struct SampleData
@@ -49,39 +47,59 @@ public:
 };
 std::ostream& operator<<(std::ostream& out, const DataSet& set);
 
+class FIRNetModule: public torch::nn::Module
+{
+public:
+    FIRNetModule();
+    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x);
+
+private:
+    torch::nn::Conv2d conv1;
+    torch::nn::Conv2d conv2;
+    torch::nn::Conv2d conv3;
+    torch::nn::Conv2d act_conv1;
+    torch::nn::Linear act_fc1;
+    torch::nn::Conv2d val_conv1;
+    torch::nn::Linear val_fc1;
+    torch::nn::Linear val_fc2;
+};
+
 class FIRNet
 {
-    using Symbol = mxnet::cpp::Symbol;
-    using Context = mxnet::cpp::Context;
-    using NDArray = mxnet::cpp::NDArray;
-    using Executor = mxnet::cpp::Executor;
-    using Optimizer = mxnet::cpp::Optimizer;
+    // using Symbol = mxnet::cpp::Symbol;
+    // using Context = mxnet::cpp::Context;
+    // using NDArray = mxnet::cpp::NDArray;
+    // using Executor = mxnet::cpp::Executor;
+    // using Optimizer = mxnet::cpp::Optimizer;
 
-    const Context ctx;
-    std::map<std::string, NDArray> args_map;
-    std::map<std::string, NDArray> auxs_map;
-    std::vector<std::string> loss_arg_names;
-    Symbol plc, val, loss;
-    NDArray data_predict, data_train, plc_label, val_label;
-    Executor *plc_predict, *val_predict, *loss_train;
-    Optimizer* optimizer;
+    // const Context ctx;
+    // std::map<std::string, NDArray> args_map;
+    // std::map<std::string, NDArray> auxs_map;
+    // std::vector<std::string> loss_arg_names;
+    // Symbol plc, val, loss;
+    // NDArray data_predict, data_train, plc_label, val_label;
+    // Executor *plc_predict, *val_predict, *loss_train;
+    // Optimizer* optimizer;
     long long update_cnt;
+    FIRNetModule module_;
+    torch::optim::Adam optimizer;
 
 public:
     FIRNet(long long verno);
     ~FIRNet();
     long long verno() { return update_cnt; }
-    void init_param();
+    // void init_param();
     void save_param();
     void load_param();
-    void show_param(std::ostream& out);
-    void build_graph();
-    void bind_train();
-    void bind_predict();
+    // void show_param(std::ostream& out);
+    // void build_graph();
+    // void bind_train();
+    // void bind_predict();
+    void set_lr(float lr);
     float calc_init_lr();
     void adjust_lr();
     std::string make_param_file_name();
-    float train_step(const MiniBatch* batch);
-    void forward(const State& state, float value[1],
-                 std::vector<std::pair<Move, float>>& move_priors);
+    float train_step(MiniBatch* batch);
+    void evalState(const State& state, float value[1],
+                   std::vector<std::pair<Move, float>>& move_priors);
 };

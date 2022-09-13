@@ -52,7 +52,7 @@ bool trigger_timer(std::chrono::time_point<std::chrono::system_clock>& last, int
 
 void train(std::shared_ptr<FIRNet> net)
 {
-    LOG(INFO) << "start training...";
+    spdlog::info("start training...");
 
     auto last_log = std::chrono::system_clock::now();
     auto last_save = std::chrono::system_clock::now();
@@ -76,17 +76,17 @@ void train(std::shared_ptr<FIRNet> net)
                 dataset.make_mini_batch(batch);
                 float loss = net->train_step(batch);
                 if (trigger_timer(last_log, MINUTE_PER_LOG)) {
-                    LOG(INFO) << "loss=" << loss << ", dataset_total=" << dataset.total()
-                              << ", update_cnt=" << net->verno() << ", avg_turn=" << avg_turn
-                              << ", game_cnt=" << game_cnt;
+                    spdlog::info(
+                        "loss={}, dataset_total={}, update_cnt={}, avg_turn={}, game_cnt={}", loss,
+                        dataset.total(), net->verno(), avg_turn, game_cnt);
                 }
                 delete batch;
             }
         }
         if (trigger_timer(last_benchmark, MINUTE_PER_BENCHMARK)) {
             float lose_prob = 1 - benchmark(net_player, test_player, 10);
-            LOG(INFO) << "benchmark 10 games against " << test_player.name()
-                      << ", lose_prob=" << lose_prob;
+            spdlog::info("benchmark 10 games against {}, lose_prob={}", test_player.name(),
+                         lose_prob);
             if (lose_prob < 1e-3 && test_itermax < 15 * TEST_PURE_ITERMAX) {
                 test_itermax += TEST_PURE_ITERMAX;
                 test_player.set_itermax(test_itermax);

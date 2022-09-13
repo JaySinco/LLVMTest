@@ -238,7 +238,7 @@ void MCTSDeepPlayer::think(int itermax, float c_puct, const State& state,
         float leaf_value;
         if (!state_copied.over()) {
             std::vector<std::pair<Move, float>> net_move_priors;
-            net->forward(state_copied, &leaf_value, net_move_priors);
+            net->evalState(state_copied, &leaf_value, net_move_priors);
             node->expand(net_move_priors);
             leaf_value *= -1;
         } else {
