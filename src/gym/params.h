@@ -1,7 +1,7 @@
 #pragma once
-#include "env/hopper.h"
-#include "policy/inaction.h"
-#include "policy/pg.h"
+#include "hopper.h"
+#include "inaction.h"
+#include "pg.h"
 
 namespace params
 {

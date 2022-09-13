@@ -1,5 +1,5 @@
 #pragma once
-#include "gym/prec.h"
+#include "prec.h"
 #include "utils/base.h"
 #include "mujoco/mujoco.h"
 #include "GLFW/glfw3.h"

@@ -3,9 +3,9 @@ set(imgui_BINGINGS_DIR ${imgui_ROOT}/res/bindings)
 set(TESTING ${CURRENT_DIR_NAME}-testing)
 
 add_executable(${TESTING}
-    env/env.cpp
-    policy/policy.cpp
-    policy/pg.cpp
+    env.cpp
+    policy.cpp
+    pg.cpp
     testing.cpp
     ${imgui_BINGINGS_DIR}/imgui_impl_glfw.cpp
     ${imgui_BINGINGS_DIR}/imgui_impl_opengl2.cpp

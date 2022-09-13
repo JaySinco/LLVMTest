@@ -203,7 +203,6 @@ void Env::render()
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
-    io.Fonts->AddFontFromFileTTF((__DIRNAME__ / "cascadia-code.ttf").string().c_str(), 13.0);
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL2_Init();

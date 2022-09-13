@@ -6,7 +6,7 @@
 constexpr int FIVE_IN_ROW = 5;
 constexpr int BOARD_MAX_COL = 8;
 constexpr int BOARD_MAX_ROW = BOARD_MAX_COL;
-constexpr int INPUT_FEATURE_NUM = 4; // self, opponent[[, lastmove], color]
+constexpr int INPUT_FEATURE_NUM = 4;  // self, opponent[[, lastmove], color]
 constexpr int BATCH_SIZE = 512;
 constexpr int BUFFER_SIZE = 10000;
 constexpr int EPOCH_PER_GAME = 1;
@@ -38,8 +38,10 @@ constexpr int BOARD_SIZE = BOARD_MAX_ROW * BOARD_MAX_COL;
 constexpr int NO_MOVE_YET = -1;
 extern std::mt19937 global_random_engine;
 
-inline void show_global_cfg(std::ostream &out) {
-    out << "=== global configure ===" << "\ngame_mode=" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "by" << FIVE_IN_ROW
+inline void show_global_cfg(std::ostream& out)
+{
+    out << "=== global configure ==="
+        << "\ngame_mode=" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "by" << FIVE_IN_ROW
         << "\ninput_feature=" << INPUT_FEATURE_NUM << "\nbatch_size=" << BATCH_SIZE
         << "\nbuffer_size=" << BUFFER_SIZE << "\nepoch_per_game=" << EPOCH_PER_GAME
         << "\nc_puct=" << C_PUCT << "\ndirichlet_alpha=" << DIRICHLET_ALPHA
@@ -47,8 +49,9 @@ inline void show_global_cfg(std::ostream &out) {
         << "\nlr_drop_step1=" << LR_DROP_STEP1 << "\nlr_drop_step2=" << LR_DROP_STEP2
         << "\nlr_drop_step3=" << LR_DROP_STEP3 << "\nuse_batch_norm=" << USE_BATCH_NORM
         << "\nexplore_step=" << EXPLORE_STEP << "\nnoise_rate=" << NOISE_RATE
-        << "\nnet_num_filter=" << NET_NUM_FILTER << "\nnet_num_resudual_block=" << NET_NUM_RESIDUAL_BLOCK
+        << "\nnet_num_filter=" << NET_NUM_FILTER
+        << "\nnet_num_resudual_block=" << NET_NUM_RESIDUAL_BLOCK
         << "\ntest_pure_itermax=" << TEST_PURE_ITERMAX
-        << "\ntrain_deep_itermax=" << TRAIN_DEEP_ITERMAX
-        << "\n" << std::endl;
+        << "\ntrain_deep_itermax=" << TRAIN_DEEP_ITERMAX << "\n"
+        << std::endl;
 }
