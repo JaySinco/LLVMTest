@@ -5,11 +5,8 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/gomoku",
-            "args": [
-                "train",
-                "0"
-            ],
+            "program": "${workspaceFolder}/bin/clrs-testing",
+            "args": [],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
             "stopAtEntry": false,
