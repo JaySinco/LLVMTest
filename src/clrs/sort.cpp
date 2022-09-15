@@ -1,13 +1,6 @@
 #include "utils/base.h"
+#include <fmt/ranges.h>
 #include <catch2/catch.hpp>
-#define SORT_SECTION(x)               \
-    SECTION(#x)                       \
-    {                                 \
-        for (auto& [a, b]: samples) { \
-            x(a.data(), a.size());    \
-            REQUIRE(a == b);          \
-        }                             \
-    }
 
 void insertion_sort(int* arr, int n)
 {
@@ -71,6 +64,96 @@ void merge_sort(int* arr, int n)
     merge_sort_merge(arr, n, half);
 }
 
+int calc_inversions_merge(int* arr, int n, int half)
+{
+    int inv = 0;
+    int* copy = new int[n];
+    std::memcpy(copy, arr, n * sizeof(int));
+    int* ha = copy;
+    int* hb = copy + half;
+    int i = 0;
+    while (i < n) {
+        bool is_a = true;
+        if (ha == copy + half || (hb != copy + n && *ha > *hb)) {
+            is_a = false;
+        }
+        if (is_a) {
+            arr[i] = *ha++;
+        } else {
+            arr[i] = *hb++;
+            inv += (copy + half - ha);
+        }
+        ++i;
+    }
+    delete[] copy;
+    return inv;
+}
+
+int calc_inversions(int* arr, int n)
+{
+    if (n <= 1) {
+        return 0;
+    }
+    int half = n / 2;
+    int left = n - half;
+    int i1 = calc_inversions(arr, half);
+    int i2 = calc_inversions(arr + half, left);
+    int i3 = calc_inversions_merge(arr, n, half);
+    return i1 + i2 + i3;
+}
+
+void bubble_sort(int* arr, int n)
+{
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = n - 1; j > i; --j) {
+            if (arr[j] < arr[j - 1]) {
+                std::swap(arr[j], arr[j - 1]);
+            }
+        }
+    }
+}
+
+void quick_sort(int* arr, int n)
+{
+    if (n <= 1) {
+        return;
+    }
+    int piv = 0;
+    int i = piv + 1;
+    while (i < n) {
+        if (arr[i] < arr[piv]) {
+            if (piv + 1 == i) {
+                std::swap(arr[piv], arr[i]);
+            } else {
+                std::swap(arr[piv], arr[piv + 1]);
+                std::swap(arr[piv], arr[i]);
+            }
+            ++piv;
+        }
+        ++i;
+    }
+    quick_sort(arr, piv);
+    quick_sort(arr + piv + 1, n - piv - 1);
+}
+
+TEST_CASE("calc_inversions")
+{
+    std::vector<std::pair<std::vector<int>, int>> samples = {
+        {{}, 0},
+        {{2}, 0},
+        {{3, 2}, 1},
+        {{3, 2, 1}, 3},
+        {{5, 2, 4, 1}, 5},
+        {{2, 3, 8, 6, 1}, 5},
+        {{1, 2, 3, 4, 5, 6, 7, 8}, 0},
+    };
+    for (auto& [a, b]: samples) {
+        CAPTURE(a);
+        int i = calc_inversions(a.data(), a.size());
+        REQUIRE(i == b);
+    }
+}
+
 TEST_CASE("sort")
 {
     std::vector<std::pair<std::vector<int>, std::vector<int>>> samples = {
@@ -96,7 +179,19 @@ TEST_CASE("sort")
         samples.push_back({copy, origin});
     }
 
+#define SORT_SECTION(x)                        \
+    SECTION(#x)                                \
+    {                                          \
+        for (auto& [a, b]: samples) {          \
+            INFO(fmt::format("arr := {}", a)); \
+            x(a.data(), a.size());             \
+            REQUIRE(a == b);                   \
+        }                                      \
+    }
+
     SORT_SECTION(insertion_sort);
     SORT_SECTION(selection_sort);
     SORT_SECTION(merge_sort);
+    SORT_SECTION(bubble_sort);
+    SORT_SECTION(quick_sort);
 }
