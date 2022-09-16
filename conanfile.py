@@ -41,6 +41,7 @@ class PrototypingConan(ConanFile):
         self.requires("mujoco/2.2.2@jaysinco/stable")
         self.requires("torch/1.8.2@jaysinco/stable")
         self.requires("qt/5.15.3@jaysinco/stable")
+        self.requires("folly/v2022.01.31.00@jaysinco/stable")
 
     def layout(self):
         build_folder = "out"

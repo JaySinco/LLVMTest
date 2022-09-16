@@ -1,0 +1,5 @@
+get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(MAIN ${CURRENT_DIR_NAME})
+
+add_executable(${MAIN} main.cpp)
+target_link_libraries(${MAIN} utils Folly::folly ${Boost_LIBRARIES})
