@@ -25,7 +25,6 @@ find_package(Catch2 REQUIRED CONFIG)
 find_package(mujoco REQUIRED CONFIG)
 find_package(Torch REQUIRED CONFIG)
 find_package(folly REQUIRED CONFIG)
-find_package(Qt5Widgets REQUIRED CONFIG)
 find_package(Boost REQUIRED CONFIG COMPONENTS context thread)
 
 include_directories(src)
