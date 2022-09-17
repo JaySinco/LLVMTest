@@ -53,11 +53,10 @@ class PrototypingConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG"] = self._normalize(
+        tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG"] = self._normalize_path(
             os.path.join(self.source_folder, "bin"))
-        tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE"] = self._normalize(
+        tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE"] = self._normalize_path(
             os.path.join(self.source_folder, "bin", "Release"))
-        tc.variables["CMAKE_PREFIX_PATH"] = self._cmake_path()
         self._setup_pkg_root(tc)
         tc.generate()
         cmake_deps = CMakeDeps(self)
@@ -71,22 +70,10 @@ class PrototypingConan(ConanFile):
     def _setup_pkg_root(self, tc):
         for pkg in self.deps_cpp_info._dependencies:
             root = "{}_ROOT".format(pkg)
-            tc.variables[root] = self._normalize(
+            tc.variables[root] = self._normalize_path(
                 self.deps_cpp_info[pkg].cpp_info.rootpath)
 
-    def _cmake_path(self):
-        prefix_path = []
-        cmake_dir = {
-            "boost" : "lib/cmake",
-            "qt" : "lib/cmake",
-        }
-        for pkg in cmake_dir:
-            prefix_path.append(self._normalize(
-                os.path.join(self.deps_cpp_info[pkg].cpp_info.rootpath, cmake_dir[pkg])))
-
-        return "%s;${CMAKE_PREFIX_PATH}" % (";".join(prefix_path))
-
-    def _normalize(self, path):
+    def _normalize_path(self, path):
         if self.settings.os == "Windows":
             return path.replace("\\", "/")
         else:
