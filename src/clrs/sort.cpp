@@ -136,6 +136,55 @@ void quick_sort(int* arr, int n)
     quick_sort(arr + piv + 1, n - piv - 1);
 }
 
+class Heap
+{
+public:
+    using Comp = std::function<bool(int, int)>;
+    Heap(int* arr, int n, Comp op = std::greater<int>()): arr(arr), n(n), op(std::move(op)) {}
+    void resize(int dn) { this->n += dn; }
+    int parent(int i) { return (i + 1) / 2 - 1; }
+    int left_child(int i) { return (i + 1) * 2 - 1; }
+    int right_child(int i) { return left_child(i) + 1; }
+    bool is_leaf(int i) { return left_child(i) >= n; }
+    void pull_down(int i)
+    {
+        while (!is_leaf(i)) {
+            int lc = left_child(i);
+            int rc = right_child(i);
+            int idx = i;
+            if (lc < n && op(arr[lc], arr[idx])) idx = lc;
+            if (rc < n && op(arr[rc], arr[idx])) idx = rc;
+            if (idx == i) break;
+            std::swap(arr[idx], arr[i]);
+            i = idx;
+        }
+    }
+    void build_heap()
+    {
+        for (int i = n / 2 - 1; i >= 0; --i) {
+            pull_down(i);
+        }
+    }
+
+private:
+    int* arr;
+    int n;
+    Comp op;
+};
+
+void heap_sort(int* arr, int n)
+{
+    Heap hp(arr, n);
+    hp.build_heap();
+    for (int i = n - 1; i > 0; --i) {
+        std::swap(arr[0], arr[i]);
+        hp.resize(-1);
+        hp.pull_down(0);
+    }
+}
+
+std::default_random_engine g_random_engine;
+
 TEST_CASE("calc_inversions")
 {
     std::vector<std::pair<std::vector<int>, int>> samples = {
@@ -172,10 +221,9 @@ TEST_CASE("sort")
     for (int i = 0; i < 1024; ++i) {
         origin[i] = i;
     }
-    auto rng = std::default_random_engine{};
     for (int i = 0; i < 100; ++i) {
         std::vector<int> copy(origin);
-        std::shuffle(std::begin(copy), std::end(copy), rng);
+        std::shuffle(std::begin(copy), std::end(copy), g_random_engine);
         samples.push_back({copy, origin});
     }
 
@@ -194,4 +242,22 @@ TEST_CASE("sort")
     SORT_SECTION(merge_sort);
     SORT_SECTION(bubble_sort);
     SORT_SECTION(quick_sort);
+    SORT_SECTION(heap_sort);
+}
+
+TEST_CASE("sort_benchmark", "[benchmark]")
+{
+    std::vector<int> bcArr(10240);
+    for (int i = 0; i < 10240; ++i) {
+        bcArr[i] = i;
+    }
+    std::shuffle(std::begin(bcArr), std::end(bcArr), g_random_engine);
+
+#define SORT_BENCHMARK(x) \
+    BENCHMARK(#x) { return x(bcArr.data(), bcArr.size()); };
+
+    SORT_BENCHMARK(insertion_sort);
+    SORT_BENCHMARK(merge_sort);
+    SORT_BENCHMARK(quick_sort);
+    SORT_BENCHMARK(heap_sort);
 }

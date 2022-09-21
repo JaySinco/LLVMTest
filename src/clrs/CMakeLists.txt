@@ -3,5 +3,6 @@ set(TESTING ${CURRENT_DIR_NAME}-testing)
 
 add_executable(${TESTING}
     sort.cpp
+    testing.cpp
 )
 target_link_libraries(${TESTING} utils Catch2::Catch2WithMain)
