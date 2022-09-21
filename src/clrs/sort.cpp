@@ -247,17 +247,21 @@ TEST_CASE("sort")
 
 TEST_CASE("sort_benchmark", "[benchmark]")
 {
-    std::vector<int> bcArr(10240);
-    for (int i = 0; i < 10240; ++i) {
-        bcArr[i] = i;
+#define SORT_BENCHMARK(x)                                              \
+    BENCHMARK_ADVANCED(#x)(Catch::Benchmark::Chronometer meter)        \
+    {                                                                  \
+        std::vector<int> vec(10240);                                   \
+        for (int i = 0; i < 10240; ++i) {                              \
+            vec[i] = i;                                                \
+        }                                                              \
+        std::shuffle(std::begin(vec), std::end(vec), g_random_engine); \
+        meter.measure([&] { return x(vec.data(), vec.size()); });      \
     }
-    std::shuffle(std::begin(bcArr), std::end(bcArr), g_random_engine);
-
-#define SORT_BENCHMARK(x) \
-    BENCHMARK(#x) { return x(bcArr.data(), bcArr.size()); };
 
     SORT_BENCHMARK(insertion_sort);
+    SORT_BENCHMARK(selection_sort);
     SORT_BENCHMARK(merge_sort);
+    SORT_BENCHMARK(bubble_sort);
     SORT_BENCHMARK(quick_sort);
     SORT_BENCHMARK(heap_sort);
 }
