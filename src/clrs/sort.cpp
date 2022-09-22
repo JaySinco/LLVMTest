@@ -140,7 +140,7 @@ class Heap
 {
 public:
     using Comp = std::function<bool(int, int)>;
-    Heap(int* arr, int n, Comp op = std::greater<int>()): arr(arr), n(n), op(std::move(op)) {}
+    Heap(int* arr, int n, Comp op = std::greater<int>()): arr(arr), n(n), op(op) {}
     void resize(int dn) { this->n += dn; }
     int parent(int i) { return (i + 1) / 2 - 1; }
     int left_child(int i) { return (i + 1) * 2 - 1; }
@@ -157,6 +157,18 @@ public:
             if (idx == i) break;
             std::swap(arr[idx], arr[i]);
             i = idx;
+        }
+    }
+    void lift_up(int i)
+    {
+        while (i > 0) {
+            int p = parent(i);
+            if (op(arr[i], arr[p])) {
+                std::swap(arr[i], arr[p]);
+                i = p;
+            } else {
+                break;
+            }
         }
     }
     void build_heap()
@@ -183,7 +195,91 @@ void heap_sort(int* arr, int n)
     }
 }
 
+class PriorityQueue
+{
+public:
+    PriorityQueue(const std::vector<int>& data, Heap::Comp op = std::greater<int>())
+        : vec(data), op(op)
+    {
+        Heap hp(vec.data(), vec.size(), op);
+        hp.build_heap();
+    }
+    int top()
+    {
+        if (!vec.empty()) {
+            return vec[0];
+        }
+        throw std::runtime_error("queue is empty!");
+    }
+    void pop_top()
+    {
+        std::swap(vec[0], vec.back());
+        vec.pop_back();
+        Heap hp(vec.data(), vec.size(), op);
+        hp.pull_down(0);
+    }
+    void change(int i, int v)
+    {
+        int old = vec.at(i);
+        vec[i] = v;
+        Heap hp(vec.data(), vec.size(), op);
+        if (!op(v, old)) {
+            hp.pull_down(i);
+        } else if (op(v, old)) {
+            hp.lift_up(i);
+        }
+    }
+    void insert(int x)
+    {
+        vec.push_back(x);
+        Heap hp(vec.data(), vec.size(), op);
+        hp.lift_up(vec.size() - 1);
+    }
+    int size() { return vec.size(); }
+
+private:
+    std::vector<int> vec;
+    Heap::Comp op;
+};
+
 std::default_random_engine g_random_engine;
+
+TEST_CASE("priority_queue")
+{
+    std::vector<int> data{5, 6, 27, 1, 2, 3, 9, 10, 20, 23, 49};
+    SECTION("max_heap")
+    {
+        PriorityQueue queue(data, std::greater<int>());
+        CHECK(queue.top() == 49);
+        queue.pop_top();
+        CHECK(queue.top() == 27);
+        queue.pop_top();
+        queue.insert(199);
+        CHECK(queue.top() == 199);
+        int last = 200;
+        while (queue.size() > 0) {
+            CHECK(last > queue.top());
+            last = queue.top();
+            queue.pop_top();
+        }
+    }
+    SECTION("min_heap")
+    {
+        PriorityQueue queue(data, std::less<int>());
+        CHECK(queue.top() == 1);
+        queue.pop_top();
+        CHECK(queue.top() == 2);
+        queue.pop_top();
+        queue.insert(199);
+        CHECK(queue.top() == 3);
+        int last = 2;
+        while (queue.size() > 0) {
+            CHECK(last < queue.top());
+            last = queue.top();
+            queue.pop_top();
+        }
+    }
+}
 
 TEST_CASE("calc_inversions")
 {
