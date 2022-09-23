@@ -3,9 +3,9 @@
     "configurations": [
         {
             "name": "Debug",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/clrs-testing",
+            "program": "${workspaceFolder}/bin/clrs",
             "args": [],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
@@ -13,21 +13,7 @@
             "logging": {
                 "moduleLoad": true,
                 "trace": true
-            },
-            "linux": {
-                "MIMode": "gdb",
-                "setupCommands": [
-                    {
-                        "description": "Enable pretty-printing for gdb",
-                        "text": "-enable-pretty-printing",
-                        "ignoreFailures": true
-                    }
-                ],
-                "miDebuggerPath": "/usr/bin/gdb"
-            },
-            "windows": {
-                "type": "cppvsdbg",
-            },
+            }
         }
     ]
 }

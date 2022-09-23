@@ -1,8 +1,8 @@
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-set(TESTING ${CURRENT_DIR_NAME}-testing)
+set(MAIN ${CURRENT_DIR_NAME})
 
-add_executable(${TESTING}
+add_executable(${MAIN}
     sort.cpp
-    testing.cpp
+    main.cpp
 )
-target_link_libraries(${TESTING} utils Catch2::Catch2WithMain)
+target_link_libraries(${MAIN} utils Catch2::Catch2WithMain)
