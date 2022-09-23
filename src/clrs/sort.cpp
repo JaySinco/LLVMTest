@@ -118,22 +118,18 @@ void quick_sort(int* arr, int n)
     if (n <= 1) {
         return;
     }
-    int piv = 0;
-    int i = piv + 1;
-    while (i < n) {
-        if (arr[i] < arr[piv]) {
-            if (piv + 1 == i) {
-                std::swap(arr[piv], arr[i]);
-            } else {
-                std::swap(arr[piv], arr[piv + 1]);
-                std::swap(arr[piv], arr[i]);
-            }
-            ++piv;
+    int x = arr[n - 1];
+    int p = -1;
+    for (int i = 0; i < n - 1; ++i) {
+        if (arr[i] < x) {
+            ++p;
+            std::swap(arr[p], arr[i]);
         }
-        ++i;
     }
-    quick_sort(arr, piv);
-    quick_sort(arr + piv + 1, n - piv - 1);
+    ++p;
+    std::swap(arr[n - 1], arr[p]);
+    quick_sort(arr, p);
+    quick_sort(arr + p + 1, n - p - 1);
 }
 
 class Heap
