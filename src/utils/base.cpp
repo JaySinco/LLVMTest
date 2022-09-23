@@ -13,13 +13,13 @@
 
 namespace utils
 {
-std::string ws2s(std::wstring_view ws, bool utf8)
+std::string ws2s(std::wstring_view ws, code_page cp)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.to_bytes(ws.data(), ws.data() + ws.size());
 #elif _WIN32
-    UINT page = utf8 ? CP_UTF8 : CP_ACP;
+    UINT page = cp == UTF8 ? CP_UTF8 : CP_ACP;
     int len = WideCharToMultiByte(page, 0, ws.data(), ws.size(), nullptr, 0, nullptr, nullptr);
     if (len <= 0) return "";
     std::string s(len, '\0');
@@ -28,13 +28,13 @@ std::string ws2s(std::wstring_view ws, bool utf8)
 #endif
 }
 
-std::wstring s2ws(std::string_view s, bool utf8)
+std::wstring s2ws(std::string_view s, code_page cp)
 {
 #ifdef __linux__
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.from_bytes(s.data(), s.data() + s.size());
 #elif _WIN32
-    UINT page = utf8 ? CP_UTF8 : CP_ACP;
+    UINT page = cp == UTF8 ? CP_UTF8 : CP_ACP;
     int len = MultiByteToWideChar(page, 0, s.data(), s.size(), nullptr, 0);
     if (len <= 0) return L"";
     std::wstring ws(len, L'\0');

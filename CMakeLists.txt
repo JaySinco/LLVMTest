@@ -18,6 +18,7 @@ elseif(WIN32)
 endif()
 
 find_package(spdlog REQUIRED CONFIG)
+find_package(argparse REQUIRED CONFIG)
 find_package(glfw3 REQUIRED CONFIG)
 find_package(implot REQUIRED CONFIG)
 find_package(expected-lite REQUIRED CONFIG)

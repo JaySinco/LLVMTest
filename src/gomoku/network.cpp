@@ -1,5 +1,6 @@
 #include "network.h"
 #include <iomanip>
+#include <filesystem>
 
 void SampleData::flip_verticing()
 {
@@ -200,7 +201,6 @@ std::string FIRNet::make_param_file_name()
 {
     std::ostringstream filename;
     filename << "FIR-" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "@" << update_cnt << ".pt";
-
     return utils::ws2s(utils::getExeDir()) + "\\" + filename.str();
 }
 
@@ -208,6 +208,9 @@ void FIRNet::load_param()
 {
     auto file_name = make_param_file_name();
     spdlog::info("loading parameters from {}", file_name);
+    if (!std::filesystem::exists(file_name)) {
+        throw std::runtime_error(fmt::format("file not exist: {}", file_name));
+    }
     torch::serialize::InputArchive input_archive;
     input_archive.load_from(file_name);
     module_.load(input_archive);

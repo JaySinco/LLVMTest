@@ -20,7 +20,7 @@ class PrototypingConan(ConanFile):
     default_options = {
         "shared": False,
         "fPIC": True,
-        "gflags:nothreads": False,
+        "spdlog:no_exceptions": False,
     }
 
     def config_options(self):
@@ -32,16 +32,17 @@ class PrototypingConan(ConanFile):
             del self.options.fPIC
 
     def requirements(self):
-        self.requires("spdlog/1.10.0@jaysinco/stable")
-        self.requires("boost/1.79.0@jaysinco/stable")
-        self.requires("glfw/3.3.7@jaysinco/stable")
-        self.requires("implot/0.13@jaysinco/stable")
-        self.requires("expected-lite/0.5.0@jaysinco/stable")
-        self.requires("catch2/2.13.9@jaysinco/stable")
-        self.requires("mujoco/2.2.2@jaysinco/stable")
-        self.requires("torch/1.8.2@jaysinco/stable")
-        self.requires("qt/5.15.3@jaysinco/stable")
-        self.requires("folly/v2022.01.31.00@jaysinco/stable")
+        self.requires(self._ref_pkg("spdlog/1.10.0"))
+        self.requires(self._ref_pkg("argparse/2.9"))
+        self.requires(self._ref_pkg("boost/1.79.0"))
+        self.requires(self._ref_pkg("glfw/3.3.7"))
+        self.requires(self._ref_pkg("implot/0.13"))
+        self.requires(self._ref_pkg("expected-lite/0.5.0"))
+        self.requires(self._ref_pkg("catch2/2.13.9"))
+        self.requires(self._ref_pkg("mujoco/2.2.2"))
+        self.requires(self._ref_pkg("torch/1.8.2"))
+        self.requires(self._ref_pkg("qt/5.15.3"))
+        self.requires(self._ref_pkg("folly/v2022.01.31.00"))
 
     def layout(self):
         build_folder = "out"
@@ -84,6 +85,9 @@ class PrototypingConan(ConanFile):
                 os.path.join(self.deps_cpp_info[pkg].cpp_info.rootpath, cmake_dir[pkg])))
 
         return "%s;${CMAKE_PREFIX_PATH}" % (";".join(prefix_path))
+
+    def _ref_pkg(self, pkgname: str):
+        return f"{pkgname}@jaysinco/stable"
 
     def _normalize_path(self, path):
         if self.settings.os == "Windows":

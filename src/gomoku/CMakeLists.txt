@@ -12,6 +12,7 @@ add_executable(${MAIN}
 target_precompile_headers(${MAIN} PRIVATE prec.h)
 
 target_link_libraries(${MAIN} utils
+    argparse::argparse
     Torch::torch
     $<IF:$<BOOL:${UNIX}>,,-INCLUDE:?warp_size@cuda@at@@YAHXZ>
     $<IF:$<BOOL:${UNIX}>,,-INCLUDE:?searchsorted_cuda@native@at@@YA?AVTensor@2@AEBV32@0_N1@Z>

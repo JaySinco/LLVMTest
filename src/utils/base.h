@@ -52,7 +52,13 @@ std::wstring getExeDir();
 
 expected<std::string> readFile(std::wstring_view path);
 
-std::string ws2s(std::wstring_view ws, bool utf8 = false);
-std::wstring s2ws(std::string_view s, bool utf8 = false);
+enum code_page
+{
+    ANSI,
+    UTF8,
+};
+
+std::string ws2s(std::wstring_view ws, code_page cp = ANSI);
+std::wstring s2ws(std::string_view s, code_page cp = ANSI);
 
 }  // namespace utils
