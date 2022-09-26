@@ -2,6 +2,8 @@
 #include <fmt/ranges.h>
 #include <catch2/catch.hpp>
 
+std::default_random_engine g_random_engine;
+
 void insertion_sort(int* arr, int n)
 {
     int bar = 1;
@@ -118,6 +120,8 @@ void quick_sort(int* arr, int n)
     if (n <= 1) {
         return;
     }
+    std::uniform_int_distribution<int> dis(0, n - 1);
+    std::swap(arr[dis(g_random_engine)], arr[n - 1]);
     int x = arr[n - 1];
     int p = -1;
     for (int i = 0; i < n - 1; ++i) {
@@ -191,6 +195,36 @@ void heap_sort(int* arr, int n)
     }
 }
 
+void count_sort(int* arr, int n)
+{
+    constexpr int k = 10240 + 1;
+    std::vector<int> count(k, 0);
+    for (int i = 0; i < n; ++i) {
+        assert(arr[i] > 0 && arr[i] < k);
+        ++count[arr[i]];
+    }
+    for (int i = 1; i < k; ++i) {
+        count[i] += count[i - 1];
+    }
+    int j = n - 1;
+    while (j >= 0) {
+        if (arr[j] < 0) {
+            arr[j] *= -1;
+            --j;
+            continue;
+        }
+        int i = count[arr[j]] - 1;
+        assert(i <= j);
+        --count[arr[j]];
+        if (i == j) {
+            --j;
+            continue;
+        }
+        std::swap(arr[j], arr[i]);
+        arr[i] *= -1;
+    }
+}
+
 class PriorityQueue
 {
 public:
@@ -237,8 +271,6 @@ private:
     std::vector<int> vec;
     Heap::Comp op;
 };
-
-std::default_random_engine g_random_engine;
 
 TEST_CASE("priority_queue")
 {
@@ -303,15 +335,14 @@ TEST_CASE("sort")
         {{5, 4, 2, 1, 2}, {1, 2, 2, 4, 5}},
         {{1, 2, 3, 4, 5, 6, 7, 8}, {1, 2, 3, 4, 5, 6, 7, 8}},
         {{10000, 1000, 100, 10, 1}, {1, 10, 100, 1000, 10000}},
-        {{16, 4, 2, 0, 8}, {0, 2, 4, 8, 16}},
-        {{1024, 64, 256, 65536, 8}, {8, 64, 256, 1024, 65536}},
+        {{16, 4, 2, 1, 8}, {1, 2, 4, 8, 16}},
+        {{1024, 64, 256, 6553, 8}, {8, 64, 256, 1024, 6553}},
         {{5, 1, 1, 1, 5}, {1, 1, 1, 5, 5}},
-        {{1, 0, 0, 2, 1}, {0, 0, 1, 1, 2}},
-        {{-1, 0, -10, -5, -3, 10}, {-10, -5, -3, -1, 0, 10}},
+        {{1, 2, 1, 2, 1}, {1, 1, 1, 2, 2}},
     };
     std::vector<int> origin(1024);
     for (int i = 0; i < 1024; ++i) {
-        origin[i] = i;
+        origin[i] = i + 1;
     }
     for (int i = 0; i < 100; ++i) {
         std::vector<int> copy(origin);
@@ -335,6 +366,7 @@ TEST_CASE("sort")
     SORT_SECTION(bubble_sort);
     SORT_SECTION(quick_sort);
     SORT_SECTION(heap_sort);
+    SORT_SECTION(count_sort);
 }
 
 TEST_CASE("sort_benchmark", "[benchmark]")
@@ -344,7 +376,7 @@ TEST_CASE("sort_benchmark", "[benchmark]")
     {                                                                  \
         std::vector<int> vec(10240);                                   \
         for (int i = 0; i < 10240; ++i) {                              \
-            vec[i] = i;                                                \
+            vec[i] = i + 1;                                            \
         }                                                              \
         std::shuffle(std::begin(vec), std::end(vec), g_random_engine); \
         meter.measure([&] { return x(vec.data(), vec.size()); });      \
@@ -356,4 +388,5 @@ TEST_CASE("sort_benchmark", "[benchmark]")
     SORT_BENCHMARK(bubble_sort);
     SORT_BENCHMARK(quick_sort);
     SORT_BENCHMARK(heap_sort);
+    SORT_BENCHMARK(count_sort);
 }

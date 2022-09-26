@@ -7,6 +7,7 @@ int main(int argc, char* argv[])
     auto& config = session.configData();
     config.benchmarkSamples = 10;
     config.benchmarkNoAnalysis = true;
+    config.shouldDebugBreak = true;
     int returnCode = session.applyCommandLine(argc, argv);
     if (returnCode != 0) return returnCode;
     int numFailed = session.run();
