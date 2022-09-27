@@ -272,6 +272,62 @@ private:
     Heap::Comp op;
 };
 
+int select_ith_order(int* arr, int n, int i)
+{
+    assert(i >= 1 && i <= n);
+    if (n <= 1) {
+        return arr[0];
+    }
+    std::uniform_int_distribution<int> dis(0, n - 1);
+    std::swap(arr[dis(g_random_engine)], arr[n - 1]);
+    int k = arr[n - 1];
+    int p = -1;
+    for (int i = 0; i < n - 1; ++i) {
+        if (arr[i] < k) {
+            ++p;
+            std::swap(arr[p], arr[i]);
+        }
+    }
+    ++p;
+    std::swap(arr[p], arr[n - 1]);
+    if (p + 1 == i) {
+        return arr[p];
+    } else if (p + 1 > i) {
+        return select_ith_order(arr, p, i);
+    } else {
+        return select_ith_order(arr + p + 1, n - p - 1, i - (p + 1));
+    }
+}
+
+TEST_CASE("select_ith_order")
+{
+    std::vector<std::tuple<std::vector<int>, int, int>> samples = {
+        {{2}, 1, 2},
+        {{3, 2}, 1, 2},
+        {{3, 2}, 2, 3},
+        {{3, 2, 1}, 3, 3},
+        {{5, 2, 4, 1}, 2, 2},
+        {{5, 2, 4, 1}, 4, 5},
+        {{2, 3, 8, 6, 1}, 1, 1},
+        {{2, 3, 8, 6, 1}, 5, 8},
+        {{2, 3, 8, 6, 1}, 4, 6},
+    };
+    for (auto& [a, b, c]: samples) {
+        INFO(fmt::format("arr={}, i={}", a, b));
+        int i = select_ith_order(a.data(), a.size(), b);
+        REQUIRE(i == c);
+    }
+    std::vector<int> vec(1024);
+    for (int i = 0; i < 1024; ++i) {
+        vec[i] = i + 1;
+    }
+    for (int i = 1; i <= 1024; ++i) {
+        std::shuffle(std::begin(vec), std::end(vec), g_random_engine);
+        int j = select_ith_order(vec.data(), vec.size(), i);
+        REQUIRE(i == j);
+    }
+}
+
 TEST_CASE("priority_queue")
 {
     std::vector<int> data{5, 6, 27, 1, 2, 3, 9, 10, 20, 23, 49};
@@ -350,14 +406,14 @@ TEST_CASE("sort")
         samples.push_back({copy, origin});
     }
 
-#define SORT_SECTION(x)                        \
-    SECTION(#x)                                \
-    {                                          \
-        for (auto& [a, b]: samples) {          \
-            INFO(fmt::format("arr := {}", a)); \
-            x(a.data(), a.size());             \
-            REQUIRE(a == b);                   \
-        }                                      \
+#define SORT_SECTION(x)                     \
+    SECTION(#x)                             \
+    {                                       \
+        for (auto& [a, b]: samples) {       \
+            INFO(fmt::format("arr={}", a)); \
+            x(a.data(), a.size());          \
+            REQUIRE(a == b);                \
+        }                                   \
     }
 
     SORT_SECTION(insertion_sort);
