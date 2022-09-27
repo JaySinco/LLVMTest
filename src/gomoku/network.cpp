@@ -316,7 +316,7 @@ void FIRNet::evalState(const State& state, float value[1],
         priors_sum += prior;
     }
     if (priors_sum < 1e-8) {
-        spdlog::info("wield policy probality, lr might be too large: sum={}, available_move_n={}",
+        spdlog::info("wield policy prob, lr might be too large: sum={}, available_move_n={}",
                      priors_sum, net_move_priors.size());
         for (auto& item: net_move_priors) item.second = 1.0f / float(net_move_priors.size());
     } else {
