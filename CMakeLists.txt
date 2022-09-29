@@ -26,6 +26,7 @@ find_package(Catch2 REQUIRED CONFIG)
 find_package(mujoco REQUIRED CONFIG)
 find_package(Torch REQUIRED CONFIG)
 find_package(Boost REQUIRED CONFIG)
+find_package(range-v3 REQUIRED CONFIG)
 
 include_directories(src)
 add_subdirectory(src)
