@@ -48,7 +48,7 @@ if [ $build_release -eq 1 ]; then
     build_type=Release
 fi
 
-conan_profile=$git_root/profiles/$arch-$os.profile
+conan_profile=$git_root/../dev-setup/profiles/$arch-$os.profile
 build_folder=$git_root/out/$build_type
 
 if [ $do_clean -eq 1 ]; then

@@ -11,7 +11,6 @@ add_executable(${MAIN}
     ${imgui_BINGINGS_DIR}/imgui_impl_opengl2.cpp
 )
 
-set_property(TARGET ${MAIN} PROPERTY CXX_STANDARD 17)
 target_include_directories(${MAIN} PRIVATE ${imgui_BINGINGS_DIR})
 target_precompile_headers(${MAIN} PRIVATE prec.h)
 

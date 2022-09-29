@@ -9,7 +9,6 @@ add_executable(${MAIN}
     main.cpp
 )
 
-set_property(TARGET ${MAIN} PROPERTY CXX_STANDARD 17)
 target_precompile_headers(${MAIN} PRIVATE prec.h)
 
 target_link_libraries(${MAIN} utils

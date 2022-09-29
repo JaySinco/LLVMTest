@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(Prototyping C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(UNIX)
@@ -25,7 +25,6 @@ find_package(expected-lite REQUIRED CONFIG)
 find_package(Catch2 REQUIRED CONFIG)
 find_package(mujoco REQUIRED CONFIG)
 find_package(Torch REQUIRED CONFIG)
-find_package(folly REQUIRED CONFIG)
 find_package(Boost REQUIRED CONFIG)
 
 include_directories(src)
