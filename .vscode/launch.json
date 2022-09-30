@@ -12,7 +12,7 @@
             "stopAtEntry": false,
             "logging": {
                 "moduleLoad": true,
-                "trace": true
+                "trace": false
             },
             "windows": {
                 "type": "cppvsdbg",
