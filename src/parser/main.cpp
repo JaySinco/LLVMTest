@@ -34,10 +34,10 @@ struct error_handler
         typedef void type;
     };
 
-    error_handler(const std::filesystem::path& source_file): source_file(source_file) {}
+    error_handler(std::filesystem::path const& source_file): source_file(source_file) {}
 
     void operator()(Iterator first, Iterator last, Iterator err_pos,
-                    const boost::spirit::info& what) const
+                    boost::spirit::info const& what) const
     {
         Iterator ln_start = boost::spirit::get_line_start(first, err_pos);
         Iterator ln_end = boost::spirit::get_line_end(err_pos, last);
@@ -54,7 +54,7 @@ struct error_handler
 template <typename Iterator>
 struct expression: qi::grammar<Iterator, ast::employee()>
 {
-    expression(const std::filesystem::path& source_file)
+    expression(std::filesystem::path const& source_file)
         : expression::base_type(start), err_handler(source_file)
     {
         quoted = qi::lexeme['"' > *(enc::char_ - '"') > '"'];
@@ -74,7 +74,7 @@ struct expression: qi::grammar<Iterator, ast::employee()>
 
 }  // namespace parser
 
-void parsing(const std::filesystem::path& source_file)
+void parsing(std::filesystem::path const& source_file)
 {
     using iterator = boost::spirit::line_pos_iterator<std::wstring::const_iterator>;
     auto raw = utils::readFile(source_file.wstring());

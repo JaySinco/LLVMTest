@@ -32,7 +32,7 @@ void SampleData::transpose()
     }
 }
 
-std::ostream& operator<<(std::ostream& out, const SampleData& sample)
+std::ostream& operator<<(std::ostream& out, SampleData const& sample)
 {
     Move last(NO_MOVE_YET);
     float first = -1.0f;
@@ -76,7 +76,7 @@ std::ostream& operator<<(std::ostream& out, const SampleData& sample)
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const MiniBatch& batch)
+std::ostream& operator<<(std::ostream& out, MiniBatch const& batch)
 {
     for (int i = 0; i < BATCH_SIZE; ++i) {
         SampleData item;
@@ -114,7 +114,7 @@ void DataSet::make_mini_batch(MiniBatch* batch) const
     }
 }
 
-std::ostream& operator<<(std::ostream& out, const DataSet& set)
+std::ostream& operator<<(std::ostream& out, DataSet const& set)
 {
     for (int i = 0; i < set.size(); ++i) out << set.get(i) << std::endl;
     return out;
@@ -294,7 +294,7 @@ std::pair<torch::Tensor, torch::Tensor> FIRNetModule::forward(torch::Tensor inpu
     return {x_act, x_val};
 }
 
-void FIRNet::evalState(const State& state, float value[1],
+void FIRNet::evalState(State const& state, float value[1],
                        std::vector<std::pair<Move, float>>& net_move_priors)
 {
     torch::NoGradGuard no_grad;
@@ -309,7 +309,7 @@ void FIRNet::evalState(const State& state, float value[1],
         torch::kFloat32);
     auto&& [x_act, x_val] = module_.forward(data);
     float priors_sum = 0.0f;
-    for (const auto mv: state.get_options()) {
+    for (auto const mv: state.get_options()) {
         Move mapped = mapping_move(transform_id, mv);
         float prior = x_act[0][mapped.z()].item<float>();
         net_move_priors.push_back(std::make_pair(mv, prior));

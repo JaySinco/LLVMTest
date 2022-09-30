@@ -43,7 +43,7 @@ std::wstring s2ws(std::string_view s, code_page cp)
 #endif
 }
 
-nonstd::unexpected_type<error> make_unexpected(const std::string& s)
+nonstd::unexpected_type<error> make_unexpected(std::string const& s)
 {
     return nonstd::unexpected_type<error>(s);
 }

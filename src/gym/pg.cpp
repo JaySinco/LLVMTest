@@ -19,7 +19,7 @@ torch::Tensor Actor::forward(torch::Tensor x)
     return mu;
 }
 
-PG::PG(env::Env& env, const HyperParams& hp)
+PG::PG(env::Env& env, HyperParams const& hp)
     : Policy(env),
       actor(env.ob_space(), env.act_space(), hp.hidden),
       opt(actor.parameters(), hp.lr),

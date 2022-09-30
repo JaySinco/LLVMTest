@@ -19,7 +19,7 @@ struct SampleData
     void flip_verticing();
     void transpose();
 };
-std::ostream& operator<<(std::ostream& out, const SampleData& sample);
+std::ostream& operator<<(std::ostream& out, SampleData const& sample);
 
 struct MiniBatch
 {
@@ -27,7 +27,7 @@ struct MiniBatch
     float p_label[BATCH_SIZE * BOARD_SIZE] = {0.0f};
     float v_label[BATCH_SIZE * 1] = {0.0f};
 };
-std::ostream& operator<<(std::ostream& out, const MiniBatch& batch);
+std::ostream& operator<<(std::ostream& out, MiniBatch const& batch);
 
 class DataSet
 {
@@ -40,20 +40,20 @@ public:
     ~DataSet() { delete[] buf; }
     int size() const { return (index > BUFFER_SIZE) ? BUFFER_SIZE : index; }
     long long total() const { return index; }
-    void push_back(const SampleData* data)
+    void push_back(SampleData const* data)
     {
         buf[index % BUFFER_SIZE] = *data;
         ++index;
     }
     void push_with_transform(SampleData* data);
-    const SampleData& get(int i) const
+    SampleData const& get(int i) const
     {
         assert(i < size());
         return buf[i];
     }
     void make_mini_batch(MiniBatch* batch) const;
 };
-std::ostream& operator<<(std::ostream& out, const DataSet& set);
+std::ostream& operator<<(std::ostream& out, DataSet const& set);
 
 class FIRNetModule: public torch::nn::Module
 {
@@ -89,6 +89,6 @@ public:
     void adjust_lr();
     std::string make_param_file_name();
     float train_step(MiniBatch* batch);
-    void evalState(const State& state, float value[1],
+    void evalState(State const& state, float value[1],
                    std::vector<std::pair<Move, float>>& move_priors);
 };

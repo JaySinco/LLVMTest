@@ -78,7 +78,7 @@ bool Board::win_from(Move mv) const
     return false;
 }
 
-std::ostream& operator<<(std::ostream& out, const Board& board)
+std::ostream& operator<<(std::ostream& out, Board const& board)
 {
     if (COLOR_OCCUPY_SPACE == 2) out << " ";
     out << "# ";
@@ -141,7 +141,7 @@ Color State::next_rand_till_end()
     return winner;
 }
 
-std::ostream& operator<<(std::ostream& out, const State& state)
+std::ostream& operator<<(std::ostream& out, State const& state)
 {
     if (state.last.z() == NO_MOVE_YET)
         return out << state.board << "last move: None";
@@ -220,7 +220,7 @@ bool HumanPlayer::get_move(int& row, int& col)
     return true;
 }
 
-Move HumanPlayer::play(const State& state)
+Move HumanPlayer::play(State const& state)
 {
     int col, row;
     while (true) {

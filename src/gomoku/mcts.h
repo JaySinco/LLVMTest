@@ -9,7 +9,7 @@ constexpr bool DEBUG_MCTS_PROB = false;
 
 class MCTSNode
 {
-    friend std::ostream& operator<<(std::ostream& out, const MCTSNode& node);
+    friend std::ostream& operator<<(std::ostream& out, MCTSNode const& node);
     MCTSNode* parent;
     std::map<Move, MCTSNode*> children;
     int visits;
@@ -21,7 +21,7 @@ public:
     {
     }
     ~MCTSNode();
-    void expand(const std::vector<std::pair<Move, float>>& set);
+    void expand(std::vector<std::pair<Move, float>> const& set);
     MCTSNode* cut(Move occurred);
     std::pair<Move, MCTSNode*> select(float c_puct) const;
     Move act_by_most_visted() const;
@@ -33,7 +33,7 @@ public:
     bool is_leaf() const { return children.size() == 0; }
     bool is_root() const { return parent == nullptr; }
 };
-std::ostream& operator<<(std::ostream& out, const MCTSNode& node);
+std::ostream& operator<<(std::ostream& out, MCTSNode const& node);
 
 class MCTSPurePlayer: public Player
 {
@@ -50,11 +50,11 @@ class MCTSPurePlayer: public Player
 public:
     MCTSPurePlayer(int itermax, float c_puct);
     ~MCTSPurePlayer() { delete root; }
-    const std::string& name() const override { return id; }
+    std::string const& name() const override { return id; }
     void set_itermax(int n);
     void make_id();
     void reset() override;
-    Move play(const State& state) override;
+    Move play(State const& state) override;
 };
 
 class MCTSDeepPlayer: public Player
@@ -73,10 +73,10 @@ class MCTSDeepPlayer: public Player
 public:
     MCTSDeepPlayer(std::shared_ptr<FIRNet> nn, int itermax, float c_puct);
     ~MCTSDeepPlayer() { delete root; }
-    const std::string& name() const override { return id; }
+    std::string const& name() const override { return id; }
     void make_id();
     void reset() override;
-    Move play(const State& state) override;
-    static void think(int itermax, float c_puct, const State& state, std::shared_ptr<FIRNet> net,
+    Move play(State const& state) override;
+    static void think(int itermax, float c_puct, State const& state, std::shared_ptr<FIRNet> net,
                       MCTSNode* root, bool add_noise_to_root = false);
 };

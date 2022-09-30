@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
     // parse args
     try {
         prog.parse_args(argc, argv);
-    } catch (const std::exception& err) {
+    } catch (std::exception const& err) {
         spdlog::error("{}\n", err.what());
         if (prog.is_subcommand_used("train")) {
             std::cerr << train_cmd;

@@ -68,7 +68,7 @@ void glfw_cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
     mjv_moveCamera(this_->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &this_->scn, &this_->cam);
 }
 
-Env::Env(const std::string& model_path, int frame_skip, bool show_ui)
+Env::Env(std::string const& model_path, int frame_skip, bool show_ui)
     : frame_skip(frame_skip), show_ui(show_ui)
 {
     this_ = this;
@@ -108,7 +108,7 @@ torch::Tensor Env::get_observe()
     std::memcpy(buf, d->qpos, sizeof(mjtNum) * m->nq);
     std::memcpy(buf + m->nq, d->qvel, sizeof(mjtNum) * m->nv);
     auto ob = torch::from_blob(
-        buf, {1, m->nq + m->nv}, [](void* buf) { delete[](mjtNum*) buf; }, torch::kFloat64);
+        buf, {1, m->nq + m->nv}, [](void* buf) { delete[] (mjtNum*)buf; }, torch::kFloat64);
     ob = ob.to(torch::kFloat32);
     return ob;
 }
@@ -128,7 +128,7 @@ void Env::do_step(torch::Tensor action)
     }
 }
 
-void Env::report(const Progress& data)
+void Env::report(Progress const& data)
 {
     std::lock_guard guard(mtx);
     progress_data.push_back(data);
@@ -146,8 +146,8 @@ void Env::reset(bool clear_progress)
 
 void Env::ui_sync(std::function<void()> step_func)
 {
-    const double syncmisalign = 0.1;
-    const double refreshfactor = 0.7;
+    double const syncmisalign = 0.1;
+    double const refreshfactor = 0.7;
     double cpusync = 0;
     mjtNum simsync = 0;
     while (!ui_exited()) {

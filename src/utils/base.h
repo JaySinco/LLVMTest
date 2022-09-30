@@ -9,21 +9,24 @@
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #define THROW_(s) throw utils::error(fmt::format("[{}:{}] {}", __FILENAME__, __LINE__, (s)));
 #define TRY_ try {
-#define CATCH_ \
-    }          \
-    catch (const std::exception& err) { spdlog::error(err.what()); }
+#define CATCH_                        \
+    }                                 \
+    catch (const std::exception& err) \
+    {                                 \
+        spdlog::error(err.what());    \
+    }
 
 namespace utils
 {
 struct error: public std::runtime_error
 {
-    explicit error(const std::string& s): std::runtime_error(s){};
+    explicit error(std::string const& s): std::runtime_error(s){};
 };
 
 template <typename T>
 using expected = nonstd::expected<T, error>;
 
-nonstd::unexpected_type<error> make_unexpected(const std::string& s);
+nonstd::unexpected_type<error> make_unexpected(std::string const& s);
 
 template <typename T>
 struct scope_exit

@@ -66,5 +66,4 @@ pushd $git_root \
     --settings=build_type=$build_type \
     --build=never \
 && conan build --install-folder=$build_folder . \
-&& cp $build_folder/compile_commands.json $git_root \
 && echo done!

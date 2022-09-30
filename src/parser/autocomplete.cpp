@@ -112,7 +112,7 @@ struct once_t
 namespace Ast
 {
 
-static inline std::ostream& operator<<(std::ostream& os, std::vector<Expression> const& args)
+inline static std::ostream& operator<<(std::ostream& os, std::vector<Expression> const& args)
 {
     os << "(";
     once_t first;
@@ -120,11 +120,11 @@ static inline std::ostream& operator<<(std::ostream& os, std::vector<Expression>
     return os << ")";
 }
 
-static inline std::ostream& operator<<(std::ostream& os, BinaryExpression const& e)
+inline static std::ostream& operator<<(std::ostream& os, BinaryExpression const& e)
 {
     return os << boost::fusion::as_vector(e);
 }
-static inline std::ostream& operator<<(std::ostream& os, CallExpression const& e)
+inline static std::ostream& operator<<(std::ostream& os, CallExpression const& e)
 {
     return os << boost::fusion::as_vector(e);
 }

@@ -19,13 +19,13 @@ struct Progress
 class Env
 {
 public:
-    Env(const std::string& model_path, int frame_skip, bool show_ui);
+    Env(std::string const& model_path, int frame_skip, bool show_ui);
     virtual ~Env();
     virtual int act_space() const;
     virtual int ob_space() const;
     virtual torch::Tensor get_observe();
     virtual bool step(torch::Tensor action, double& reward) = 0;
-    void report(const Progress& data);
+    void report(Progress const& data);
     void reset(bool clear_progress = false);
     void ui_sync(std::function<void()> step_func);
 

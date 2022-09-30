@@ -228,7 +228,7 @@ void count_sort(int* arr, int n)
 class PriorityQueue
 {
 public:
-    PriorityQueue(const std::vector<int>& data, Heap::Comp op = std::greater<int>())
+    PriorityQueue(std::vector<int> const& data, Heap::Comp op = std::greater<int>())
         : vec(data), op(op)
     {
         Heap hp(vec.data(), vec.size(), op);

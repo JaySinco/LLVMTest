@@ -32,7 +32,7 @@ private:
 class PG: public Policy
 {
 public:
-    PG(env::Env& env, const HyperParams& hp);
+    PG(env::Env& env, HyperParams const& hp);
     torch::Tensor get_action(torch::Tensor observe) override;
     void train() override;
 

@@ -12,6 +12,8 @@ SpaceBeforeCtorInitializerColon: false
 SpaceBeforeRangeBasedForLoopColon: false
 SpaceBeforeInheritanceColon: false
 PointerAlignment: Left
+QualifierAlignment: Custom
+QualifierOrder: ['inline', 'static', 'type', 'const']
 BraceWrapping:
   AfterClass: true
   AfterControlStatement: false

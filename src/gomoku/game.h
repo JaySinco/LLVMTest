@@ -49,7 +49,7 @@ public:
         assert(ON_BOARD(row, col));
         index = row * BOARD_MAX_COL + col;
     }
-    Move(const Move& mv): index(mv.z()) {}
+    Move(Move const& mv): index(mv.z()) {}
     int z() const { return index; }
     int r() const
     {
@@ -61,8 +61,8 @@ public:
         assert(index >= 0 && index < BOARD_SIZE);
         return index % BOARD_MAX_COL;
     }
-    bool operator<(const Move& right) const { return index < right.index; }
-    bool operator==(const Move& right) const { return index == right.index; }
+    bool operator<(Move const& right) const { return index < right.index; }
+    bool operator==(Move const& right) const { return index == right.index; }
 };
 std::ostream& operator<<(std::ostream& out, Move mv);
 
@@ -81,11 +81,11 @@ public:
     void push_valid(std::vector<Move>& set) const;
     bool win_from(Move mv) const;
 };
-std::ostream& operator<<(std::ostream& out, const Board& board);
+std::ostream& operator<<(std::ostream& out, Board const& board);
 
 class State
 {
-    friend std::ostream& operator<<(std::ostream& out, const State& state);
+    friend std::ostream& operator<<(std::ostream& out, State const& state);
     Board board;
     Move last;
     Color winner;
@@ -93,13 +93,13 @@ class State
 
 public:
     State(): last(NO_MOVE_YET), winner(Color::Empty) { board.push_valid(opts); }
-    State(const State& state) = default;
+    State(State const& state) = default;
     Move get_last() const { return last; }
     Color get_winner() const { return winner; }
     Color current() const;
     bool first_hand() const { return current() == Color::Black; }
     void fill_feature_array(float data[INPUT_FEATURE_NUM * BOARD_SIZE]) const;
-    const std::vector<Move>& get_options() const
+    std::vector<Move> const& get_options() const
     {
         assert(!over());
         return opts;
@@ -109,14 +109,14 @@ public:
     void next(Move mv);
     Color next_rand_till_end();
 };
-std::ostream& operator<<(std::ostream& out, const State& state);
+std::ostream& operator<<(std::ostream& out, State const& state);
 
 struct Player
 {
     Player() {}
     virtual void reset() = 0;
-    virtual const std::string& name() const = 0;
-    virtual Move play(const State& state) = 0;
+    virtual std::string const& name() const = 0;
+    virtual Move play(State const& state) = 0;
     virtual ~Player(){};
 };
 
@@ -128,10 +128,10 @@ class RandomPlayer: public Player
     std::string id;
 
 public:
-    RandomPlayer(const std::string& name): id(name) {}
+    RandomPlayer(std::string const& name): id(name) {}
     void reset() override {}
-    const std::string& name() const override { return id; }
-    Move play(const State& state) override { return state.get_options()[0]; }
+    std::string const& name() const override { return id; }
+    Move play(State const& state) override { return state.get_options()[0]; }
     ~RandomPlayer(){};
 };
 
@@ -141,9 +141,9 @@ class HumanPlayer: public Player
     bool get_move(int& row, int& col);
 
 public:
-    HumanPlayer(const std::string& name): id(name) {}
+    HumanPlayer(std::string const& name): id(name) {}
     void reset() override {}
-    const std::string& name() const override { return id; }
-    Move play(const State& state) override;
+    std::string const& name() const override { return id; }
+    Move play(State const& state) override;
     ~HumanPlayer(){};
 };
