@@ -5,7 +5,6 @@ set -e
 build_release=0
 
 do_clean=0
-do_run_docker=0
 do_rm_cmake_cache=0
 
 while [[ $# -gt 0 ]]; do
@@ -16,7 +15,6 @@ while [[ $# -gt 0 ]]; do
             echo
             echo "Options:"
             echo "  -c   clean output"
-            echo "  -r   run docker"
             echo "  -l   build release version"
             echo "  -f   remove cmake cache before build"
             echo "  -h   print command line options"
@@ -24,7 +22,6 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -c) do_clean=1 && shift ;;
-        -r) do_run_docker=1 && shift ;;
         -l) build_release=1 && shift ;;
         -f) do_rm_cmake_cache=1 && shift ;;
         -*) echo "Unknown option: $1" && exit 1 ;;
@@ -53,11 +50,6 @@ build_folder=$git_root/out/$build_type
 
 if [ $do_clean -eq 1 ]; then
     rm -rf $git_root/out $git_root/bin
-    exit 0
-fi
-
-if [ $do_run_docker -eq 1 ]; then
-    $git_root/../dev-setup/build.sh -r
     exit 0
 fi
 
