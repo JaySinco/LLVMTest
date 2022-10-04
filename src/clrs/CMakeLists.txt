@@ -3,6 +3,7 @@ set(MAIN ${CURRENT_DIR_NAME})
 
 add_executable(${MAIN}
     sort.cpp
+    tree.cpp
     main.cpp
 )
 target_link_libraries(${MAIN} utils Catch2::Catch2WithMain)

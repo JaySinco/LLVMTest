@@ -6,7 +6,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/clrs",
-            "args": [],
+            "args": [
+                "~[benchmark]"
+            ],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
             "stopAtEntry": false,
