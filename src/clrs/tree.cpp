@@ -1,5 +1,6 @@
 #include "utils/base.h"
 #include <fmt/ranges.h>
+#include <functional>
 #include <stack>
 #include <catch2/catch.hpp>
 
@@ -17,20 +18,14 @@ struct BinaryTree
         this->parent = parent;
         this->key = key;
     }
-
-    ~BinaryTree()
-    {
-        if (left != nullptr) delete left;
-        if (right != nullptr) delete right;
-    }
 };
 
 struct BinarySearchTree
 {
     BinaryTree* root;
-    bool shouldDelete;
+    std::set<BinaryTree*> pool;
 
-    static BinaryTree* build_up(int* arr, int n, BinaryTree* parent = nullptr)
+    BinaryTree* build_up(int* arr, int n, BinaryTree* parent = nullptr)
     {
         if (n <= 0) {
             return nullptr;
@@ -46,6 +41,7 @@ struct BinarySearchTree
         ++p;
         std::swap(arr[p], arr[n - 1]);
         auto tr = new BinaryTree;
+        pool.insert(tr);
         tr->key = arr[p];
         tr->parent = parent;
         tr->left = build_up(arr, p, tr);
@@ -53,16 +49,11 @@ struct BinarySearchTree
         return tr;
     }
 
-    BinarySearchTree(int* arr, int n): root(build_up(arr, n)), shouldDelete(true) {}
-
-    BinarySearchTree(BinaryTree* root, bool shouldDelete = false)
-        : root(root), shouldDelete(shouldDelete)
-    {
-    }
+    BinarySearchTree(int* arr, int n): root(build_up(arr, n)) {}
 
     ~BinarySearchTree()
     {
-        if (shouldDelete && root) delete root;
+        for (auto p: pool) delete p;
     }
 
     void inorder_walk(std::vector<int>& vec)
@@ -88,7 +79,7 @@ struct BinarySearchTree
             int j = a->key;
             if (j == i) {
                 return a;
-            } else if (i > j) {
+            } else if (i >= j) {
                 a = a->right;
             } else {
                 a = a->left;
@@ -97,9 +88,8 @@ struct BinarySearchTree
         return nullptr;
     }
 
-    BinaryTree* max()
+    static BinaryTree* max(BinaryTree* a)
     {
-        BinaryTree* a = root;
         if (a == nullptr) return a;
         while (a->right) {
             a = a->right;
@@ -107,9 +97,10 @@ struct BinarySearchTree
         return a;
     }
 
-    BinaryTree* min()
+    BinaryTree* max() { return max(root); }
+
+    static BinaryTree* min(BinaryTree* a)
     {
-        BinaryTree* a = root;
         if (a == nullptr) return a;
         while (a->left) {
             a = a->left;
@@ -117,10 +108,12 @@ struct BinarySearchTree
         return a;
     }
 
+    BinaryTree* min() { return min(root); }
+
     static BinaryTree* successor(BinaryTree* tr)
     {
         if (!tr) return nullptr;
-        auto a = BinarySearchTree(tr->right).min();
+        auto a = min(tr->right);
         if (a) return a;
         auto p = tr->parent;
         auto c = tr;
@@ -134,7 +127,7 @@ struct BinarySearchTree
     static BinaryTree* predecessor(BinaryTree* tr)
     {
         if (!tr) return nullptr;
-        auto a = BinarySearchTree(tr->left).max();
+        auto a = max(tr->left);
         if (a) return a;
         auto p = tr->parent;
         auto c = tr;
@@ -151,7 +144,7 @@ struct BinarySearchTree
             return true;
         }
         std::function<bool(int, int)> op = std::greater<int>();
-        if (!greater) op = std::less<int>();
+        if (!greater) op = std::less_equal<int>();
         if (op(k, a->key)) return false;
         return check_all(a->left, k, greater) && check_all(a->right, k, greater);
     }
@@ -171,26 +164,21 @@ struct BinarySearchTree
         BinaryTree* b = this->root;
         while (b != nullptr) {
             a = b;
-            if (key > b->key) {
+            if (key >= b->key) {
                 b = b->right;
             } else {
                 b = b->left;
             }
         }
         auto n = new BinaryTree(key, a);
-        if (key > a->key) {
+        pool.insert(n);
+        if (key >= a->key) {
             a->right = n;
         } else {
             a->left = n;
         }
         return n;
     };
-
-    void detach(BinaryTree* a, BinaryTree* b)
-    {
-        if (a == b) {
-        }
-    }
 
     void transplant(BinaryTree* a, BinaryTree* b)
     {
@@ -203,13 +191,26 @@ struct BinarySearchTree
             p->right = b;
         }
         if (b) b->parent = p;
-        delete a;
+        a->parent = nullptr;
     }
 
     void erase(BinaryTree* node)
     {
+        if (!node) return;
         if (!node->left) {
             transplant(node, node->right);
+        } else if (!node->right) {
+            transplant(node, node->left);
+        } else {
+            auto s = successor(node);
+            if (node->right != s) {
+                transplant(s, s->right);
+                s->right = node->right;
+                node->right->parent = s;
+            }
+            transplant(node, s);
+            s->left = node->left;
+            node->left->parent = s;
         }
     }
 };
@@ -264,4 +265,13 @@ TEST_CASE("binary_search_tree")
     REQUIRE(bt.check());
     REQUIRE(BinarySearchTree::successor(nb)->key == 1024);
     REQUIRE(BinarySearchTree::predecessor(nb)->key == 92);
+    vec.push_back(93);
+    std::sort(vec.begin(), vec.end());
+    for (int i = 0; i < vec.size(); ++i) {
+        bt.erase(bt.get(vec[i]));
+        std::vector<int> aft;
+        bt.inorder_walk(aft);
+        std::vector<int> ans(vec.begin() + i + 1, vec.end());
+        REQUIRE(aft == ans);
+    }
 }
