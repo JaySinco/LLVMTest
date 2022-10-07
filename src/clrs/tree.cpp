@@ -10,13 +10,12 @@ struct BinaryTree
     BinaryTree* parent;
     BinaryTree* left;
     BinaryTree* right;
+    bool black;  // red or black
 
-    BinaryTree(int key = 0, BinaryTree* parent = nullptr)
+    BinaryTree(int key = 0, BinaryTree* parent = nullptr, BinaryTree* left = nullptr,
+               BinaryTree* right = nullptr, bool black = true)
+        : key(key), parent(parent), left(left), right(right), black(black)
     {
-        this->left = nullptr;
-        this->right = nullptr;
-        this->parent = parent;
-        this->key = key;
     }
 };
 
@@ -25,41 +24,23 @@ struct BinarySearchTree
     BinaryTree* root;
     std::set<BinaryTree*> pool;
 
-    BinaryTree* build_up(int* arr, int n, BinaryTree* parent = nullptr)
-    {
-        if (n <= 0) {
-            return nullptr;
-        }
-        int k = arr[n - 1];
-        int p = -1;
-        for (int i = 0; i < n - 1; ++i) {
-            if (arr[i] < k) {
-                ++p;
-                std::swap(arr[p], arr[i]);
-            }
-        }
-        ++p;
-        std::swap(arr[p], arr[n - 1]);
-        auto tr = new BinaryTree;
-        pool.insert(tr);
-        tr->key = arr[p];
-        tr->parent = parent;
-        tr->left = build_up(arr, p, tr);
-        tr->right = build_up(arr + p + 1, n - p - 1, tr);
-        return tr;
-    }
+    BinarySearchTree(): root(nullptr) {}
 
-    BinarySearchTree(int* arr, int n): root(build_up(arr, n)) {}
+    BinarySearchTree(int* arr, int n): BinarySearchTree()
+    {
+        for (int i = 0; i < n; ++i) {
+            insert(arr[i]);
+        }
+    }
 
     ~BinarySearchTree()
     {
         for (auto p: pool) delete p;
     }
 
-    void inorder_walk(std::vector<int>& vec)
+    static void inorder_walk(BinaryTree* a, std::vector<int>& vec)
     {
         std::stack<BinaryTree*> sk;
-        BinaryTree* a = root;
         while (a != nullptr || !sk.empty()) {
             while (a != nullptr) {
                 sk.push(a);
@@ -72,9 +53,10 @@ struct BinarySearchTree
         }
     }
 
-    BinaryTree* get(int i)
+    void inorder_walk(std::vector<int>& vec) { inorder_walk(root, vec); }
+
+    static BinaryTree* get(BinaryTree* a, int i)
     {
-        BinaryTree* a = root;
         while (a != nullptr) {
             int j = a->key;
             if (j == i) {
@@ -87,6 +69,8 @@ struct BinarySearchTree
         }
         return nullptr;
     }
+
+    BinaryTree* get(int i) { return get(root, i); }
 
     static BinaryTree* max(BinaryTree* a)
     {
@@ -158,7 +142,7 @@ struct BinarySearchTree
 
     bool check() { return check(this->root); }
 
-    BinaryTree* insert(int key)
+    virtual BinaryTree* insert(int key)
     {
         BinaryTree* a = nullptr;
         BinaryTree* b = this->root;
@@ -172,7 +156,9 @@ struct BinarySearchTree
         }
         auto n = new BinaryTree(key, a);
         pool.insert(n);
-        if (key >= a->key) {
+        if (a == nullptr) {
+            root = n;
+        } else if (key >= a->key) {
             a->right = n;
         } else {
             a->left = n;
@@ -194,7 +180,7 @@ struct BinarySearchTree
         a->parent = nullptr;
     }
 
-    void erase(BinaryTree* node)
+    virtual void erase(BinaryTree* node)
     {
         if (!node) return;
         if (!node->left) {
@@ -215,6 +201,174 @@ struct BinarySearchTree
     }
 };
 
+struct RedBlackTree
+{
+    BinaryTree* root;
+    std::set<BinaryTree*> pool;
+    BinaryTree* nil;
+
+    RedBlackTree(int* arr, int n): RedBlackTree()
+    {
+        for (int i = 0; i < n; ++i) {
+            insert(arr[i]);
+        }
+    }
+
+    RedBlackTree()
+    {
+        nil = new BinaryTree;
+        pool.insert(nil);
+        nil->black = true;
+        root = nil;
+    }
+
+    ~RedBlackTree() {}
+
+    void inorder_walk(BinaryTree* a, std::vector<int>& vec)
+    {
+        std::stack<BinaryTree*> sk;
+        while (a != nil || !sk.empty()) {
+            while (a != nil) {
+                sk.push(a);
+                a = a->left;
+            }
+            BinaryTree* b = sk.top();
+            sk.pop();
+            vec.push_back(b->key);
+            a = b->right;
+        }
+    }
+
+    void inorder_walk(std::vector<int>& vec) { inorder_walk(root, vec); }
+
+    bool check_all(BinaryTree* a, int k, bool greater = true)
+    {
+        if (a == nil) {
+            return true;
+        }
+        std::function<bool(int, int)> op = std::greater<int>();
+        if (!greater) op = std::less<int>();
+        if (op(k, a->key)) return false;
+        return check_all(a->left, k, greater) && check_all(a->right, k, greater);
+    }
+
+    bool check(BinaryTree* a)
+    {
+        if (a == nil) return true;
+        return check_all(a->left, a->key, false) && check_all(a->right, a->key, true) &&
+               check(a->left) && check(a->right);
+    }
+
+    bool check() { return check(this->root); }
+
+    void left_rotate(BinaryTree* x)
+    {
+        assert(x->right != nil && root->parent == nil);
+        auto y = x->right;
+        x->right = y->left;
+        if (y->left != nil) {
+            y->left->parent = x;
+        }
+        y->parent = x->parent;
+        if (x->parent == nil) {
+            root = y;
+        } else if (x->parent->left == x) {
+            x->parent->left = y;
+        } else if (x->parent->right == x) {
+            x->parent->right = y;
+        }
+        y->left = x;
+        x->parent = y;
+    }
+
+    void right_rotate(BinaryTree* y)
+    {
+        assert(y->left != nil && root->parent == nil);
+        auto x = y->left;
+        y->left = x->right;
+        if (x->right != nil) {
+            x->right->parent = y;
+        }
+        x->parent = y->parent;
+        if (y->parent == nil) {
+            root = x;
+        } else if (y->parent->left == y) {
+            y->parent->left = x;
+        } else if (y->parent->right == y) {
+            y->parent->right = x;
+        }
+        x->right = y;
+        y->parent = x;
+    }
+
+    void insert_fixup(BinaryTree* z)
+    {
+        while (!z->parent->black) {
+            if (z->parent == z->parent->parent->left) {
+                auto y = z->parent->parent->right;
+                if (!y->black) {
+                    z->parent->black = true;
+                    y->black = true;
+                    z->parent->parent->black = false;
+                    z = z->parent->parent;
+                } else {
+                    if (z == z->parent->right) {
+                        z = z->parent;
+                        left_rotate(z);
+                    }
+                    z->parent->black = true;
+                    z->parent->parent->black = false;
+                    right_rotate(z->parent->parent);
+                }
+            } else {
+                auto y = z->parent->parent->left;
+                if (!y->black) {
+                    z->parent->black = true;
+                    y->black = true;
+                    z->parent->parent->black = false;
+                    z = z->parent->parent;
+                } else {
+                    if (z == z->parent->left) {
+                        z = z->parent;
+                        right_rotate(z);
+                    }
+                    z->parent->black = true;
+                    z->parent->parent->black = false;
+                    left_rotate(z->parent->parent);
+                }
+            }
+        }
+        root->black = true;
+    }
+
+    BinaryTree* insert(int key)
+    {
+        BinaryTree* a = nil;
+        BinaryTree* b = root;
+        while (b != nil) {
+            a = b;
+            if (key >= b->key) {
+                b = b->right;
+            } else {
+                b = b->left;
+            }
+        }
+        BinaryTree* n = new BinaryTree(key, a, nil, nil, false);
+        pool.insert(n);
+        if (a == nil) {
+            root = n;
+        } else if (key >= a->key) {
+            a->right = n;
+        } else {
+            a->left = n;
+        }
+        insert_fixup(n);
+        return n;
+    }
+
+    void erase(BinaryTree* node) {}
+};
+
 TEST_CASE("binary_search_tree")
 {
     std::vector<std::pair<std::vector<int>, std::vector<int>>> samples = {
@@ -227,51 +381,69 @@ TEST_CASE("binary_search_tree")
         {{1024, 64, 256, 6553, 8}, {8, 64, 256, 1024, 6553}},
         {{5, 1, -1, 1, 5}, {-1, 1, 1, 5, 5}},
         {{1, 2, 1, 2, 1}, {1, 1, 1, 2, 2}},
+        {{1024, 64, -256, 6553, 8, -1, 92, 3, 3, -78, 23},
+         {-256, -78, -1, 3, 3, 8, 23, 64, 92, 1024, 6553}},
     };
-    for (auto& [a, b]: samples) {
-        INFO(fmt::format("arr={}", a));
-        BinarySearchTree bt(a.data(), a.size());
-        REQUIRE(bt.check());
-        std::vector<int> c;
-        bt.inorder_walk(c);
-        REQUIRE(c == b);
-        if (a.size() == 0) continue;
-        auto node = bt.min();
-        REQUIRE(node->key == b[0]);
-        for (int i = 1; i < b.size(); ++i) {
-            node = BinarySearchTree::successor(node);
-            REQUIRE(node->key == b[i]);
+
+    SECTION("red_black")
+    {
+        for (auto& [a, b]: samples) {
+            INFO(fmt::format("arr={}", a));
+            RedBlackTree rb(a.data(), a.size());
+            REQUIRE(rb.check());
+            std::vector<int> c;
+            rb.inorder_walk(c);
+            REQUIRE(c == b);
         }
-        REQUIRE(BinarySearchTree::successor(node) == nullptr);
-        node = bt.max();
-        REQUIRE(node->key == b.back());
-        for (int i = b.size() - 2; i >= 0; --i) {
-            node = BinarySearchTree::predecessor(node);
-            REQUIRE(node->key == b[i]);
-        }
-        REQUIRE(BinarySearchTree::predecessor(node) == nullptr);
     }
-    std::vector<int> vec = {1024, 64, -256, 6553, 8, -1, 92, 3, 3, -78, 23};
-    BinarySearchTree bt(vec.data(), vec.size());
-    REQUIRE(bt.check());
-    REQUIRE(bt.get(92)->key == 92);
-    REQUIRE(bt.get(2) == nullptr);
-    REQUIRE(bt.get(93) == nullptr);
-    REQUIRE(bt.get(-78)->key == -78);
-    REQUIRE(bt.get(64)->key == 64);
-    REQUIRE(bt.max()->key == 6553);
-    REQUIRE(bt.min()->key == -256);
-    auto nb = bt.insert(93);
-    REQUIRE(bt.check());
-    REQUIRE(BinarySearchTree::successor(nb)->key == 1024);
-    REQUIRE(BinarySearchTree::predecessor(nb)->key == 92);
-    vec.push_back(93);
-    std::sort(vec.begin(), vec.end());
-    for (int i = 0; i < vec.size(); ++i) {
-        bt.erase(bt.get(vec[i]));
-        std::vector<int> aft;
-        bt.inorder_walk(aft);
-        std::vector<int> ans(vec.begin() + i + 1, vec.end());
-        REQUIRE(aft == ans);
+
+    SECTION("plain")
+    {
+        for (auto& [a, b]: samples) {
+            INFO(fmt::format("arr={}", a));
+            BinarySearchTree bt(a.data(), a.size());
+            REQUIRE(bt.check());
+            std::vector<int> c;
+            bt.inorder_walk(c);
+            REQUIRE(c == b);
+            if (a.size() == 0) continue;
+            auto node = bt.min();
+            REQUIRE(node->key == b[0]);
+            for (int i = 1; i < b.size(); ++i) {
+                node = BinarySearchTree::successor(node);
+                REQUIRE(node->key == b[i]);
+            }
+            REQUIRE(BinarySearchTree::successor(node) == nullptr);
+            node = bt.max();
+            REQUIRE(node->key == b.back());
+            for (int i = b.size() - 2; i >= 0; --i) {
+                node = BinarySearchTree::predecessor(node);
+                REQUIRE(node->key == b[i]);
+            }
+            REQUIRE(BinarySearchTree::predecessor(node) == nullptr);
+        }
+        std::vector<int> vec = {1024, 64, -256, 6553, 8, -1, 92, 3, 3, -78, 23};
+        BinarySearchTree bt(vec.data(), vec.size());
+        REQUIRE(bt.check());
+        REQUIRE(bt.get(92)->key == 92);
+        REQUIRE(bt.get(2) == nullptr);
+        REQUIRE(bt.get(93) == nullptr);
+        REQUIRE(bt.get(-78)->key == -78);
+        REQUIRE(bt.get(64)->key == 64);
+        REQUIRE(bt.max()->key == 6553);
+        REQUIRE(bt.min()->key == -256);
+        auto nb = bt.insert(93);
+        REQUIRE(bt.check());
+        REQUIRE(BinarySearchTree::successor(nb)->key == 1024);
+        REQUIRE(BinarySearchTree::predecessor(nb)->key == 92);
+        vec.push_back(93);
+        std::sort(vec.begin(), vec.end());
+        for (int i = 0; i < vec.size(); ++i) {
+            bt.erase(bt.get(vec[i]));
+            std::vector<int> aft;
+            bt.inorder_walk(aft);
+            std::vector<int> ans(vec.begin() + i + 1, vec.end());
+            REQUIRE(aft == ans);
+        }
     }
 }
