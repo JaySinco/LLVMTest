@@ -62,11 +62,10 @@ public:
             case code_page::GBK:
                 return "GBK";
             case code_page::WCHAR:
-                switch (sizeof(wchar_t)) {
-                    case 2:
-                        return "UTF-16LE";
-                    default:
-                        return "UTF-32LE";
+                if constexpr (sizeof(wchar_t) == 2) {
+                    return "UTF-16LE";
+                } else {
+                    return "UTF-32LE";
                 }
             default:
                 return "";
