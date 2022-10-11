@@ -5,4 +5,5 @@ add_library(${LIB} base.cpp)
 target_link_libraries(${LIB} PUBLIC
     spdlog::spdlog
     nonstd::expected-lite
+    Iconv::Iconv
 )

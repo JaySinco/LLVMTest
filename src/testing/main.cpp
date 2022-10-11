@@ -1,5 +1,6 @@
 #include "utils/base.h"
 #include <range/v3/all.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 
 int main(int argc, char** argv)
 {
@@ -16,4 +17,9 @@ int main(int argc, char** argv)
     auto trim = trim_front | trim_back;
     std::string s = "  ABC D  ";
     std::cout << (s | trim | ranges::to<std::string>);
+
+    using namespace boost::multiprecision;
+    int r = 0;
+    auto u = cpp_int(pow(cpp_int(2), 1000)).str();
+    std::cout << u << std::endl;
 }

@@ -55,13 +55,15 @@ std::wstring getExeDir();
 
 expected<std::string> readFile(std::wstring_view path);
 
-enum code_page
+enum class code_page
 {
-    ANSI,
+    LOCAL,
     UTF8,
+    GBK,
+    WCHAR,
 };
 
-std::string ws2s(std::wstring_view ws, code_page cp = ANSI);
-std::wstring s2ws(std::string_view s, code_page cp = ANSI);
+std::string ws2s(std::wstring_view ws, code_page cp = code_page::LOCAL);
+std::wstring s2ws(std::string_view s, code_page cp = code_page::LOCAL);
 
 }  // namespace utils
