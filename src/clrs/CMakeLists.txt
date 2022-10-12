@@ -7,4 +7,8 @@ add_executable(${MAIN}
     dp.cpp
     main.cpp
 )
-target_link_libraries(${MAIN} utils Catch2::Catch2WithMain range-v3::range-v3)
+target_link_libraries(${MAIN} utils
+    Catch2::Catch2WithMain
+    range-v3::range-v3
+    Boost::headers
+)

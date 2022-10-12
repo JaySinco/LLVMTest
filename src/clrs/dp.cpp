@@ -4,6 +4,9 @@
 #include <functional>
 #include <stack>
 #include <catch2/catch.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
+
+using namespace boost::multiprecision;
 
 std::vector<int> rod_cutting(int* prices, int n, int cut_cost = 0)
 {
@@ -35,22 +38,21 @@ std::vector<int> rod_cutting(int* prices, int n, int cut_cost = 0)
     return ans;
 }
 
-long long matrix_chain_multi(int* dims, int n)
+cpp_int matrix_chain_multi(int* dims, int n)
 {
     struct Record
     {
-        long long v;
+        cpp_int v;
         int i;
     };
     std::vector<std::vector<Record>> dp(n + 1, std::vector<Record>(n + 1, {0, 0}));
     for (int k = 1; k < n; ++k) {
         for (int i = 1; i + k <= n; ++i) {
             int j = i + k;
-            dp[i][j].v = std::numeric_limits<long long>::max();
             for (int m = i; m < j; ++m) {
                 auto v =
                     dp[i][m].v + dp[m + 1][j].v + dims[i - 1] * dims[m + 1 - 1] * dims[j + 1 - 1];
-                if (v < dp[i][j].v) {
+                if (m == i || v < dp[i][j].v) {
                     dp[i][j].v = v;
                     dp[i][j].i = m;
                 }
@@ -92,7 +94,7 @@ TEST_CASE("dynamic_programming")
 
     SECTION("matrix_chain_multi")
     {
-        std::vector<std::pair<std::vector<int>, long long>> samples = {
+        std::vector<std::pair<std::vector<int>, cpp_int>> samples = {
             {{30, 35, 15, 5, 10, 20, 25}, 15125},
         };
         for (auto& [a, b]: samples) {
