@@ -59,18 +59,64 @@ cpp_int matrix_chain_multi(int* dims, int n)
             }
         }
     }
-    std::function<std::string(int, int)> printFunc = [&](int i, int j) -> std::string {
-        std::string s = "";
-        if (i == j) {
-            s = fmt::format("A{}", i);
-        } else {
-            auto k = dp[i][j].i;
-            s = fmt::format("({}{})", printFunc(i, k), printFunc(k + 1, j));
-        }
-        return s;
+    auto ans = [&](int i, int j) -> std::string {
+        auto la = [&](int i, int j, auto& la_) -> std::string {
+            std::string s = "";
+            if (i == j) {
+                s = fmt::format("A{}", i);
+            } else {
+                auto k = dp[i][j].i;
+                s = fmt::format("({}{})", la_(i, k, la_), la_(k + 1, j, la_));
+            }
+            return s;
+        };
+        return la(i, j, la);
     };
-    // spdlog::info(printFunc(1, n));
+    spdlog::debug("ans={}", ans(1, n));
     return dp[1][n].v;
+}
+
+std::string longest_common_subseq(std::string_view sv1, std::string_view sv2)
+{
+    struct Record
+    {
+        int v;
+        char a;
+    };
+    int na = sv1.size();
+    int nb = sv2.size();
+    std::vector<std::vector<Record>> dp(na + 1, std::vector<Record>(nb + 1, {0, ' '}));
+    for (int i = 1; i <= na; ++i) {
+        for (int j = 1; j <= nb; ++j) {
+            if (sv1[i - 1] == sv2[j - 1]) {
+                dp[i][j].v = dp[i - 1][j - 1].v + 1;
+                dp[i][j].a = '*';
+            } else if (dp[i][j - 1].v > dp[i - 1][j].v) {
+                dp[i][j].v = dp[i][j - 1].v;
+                dp[i][j].a = '>';
+            } else {
+                dp[i][j].v = dp[i - 1][j].v;
+                dp[i][j].a = '<';
+            }
+        }
+    }
+    std::string ans;
+    auto build_ans = [&](int i, int j) {
+        auto la = [&](int i, int j, auto& la_) {
+            if (i == 0 || j == 0) return;
+            if (dp[i][j].a == '*') {
+                la_(i - 1, j - 1, la_);
+                ans.push_back(sv1[i - 1]);
+            } else if (dp[i][j].a == '>') {
+                la_(i, j - 1, la_);
+            } else if (dp[i][j].a == '<') {
+                la_(i - 1, j, la_);
+            }
+        };
+        return la(i, j, la);
+    };
+    build_ans(na, nb);
+    return ans;
 }
 
 TEST_CASE("dynamic_programming")
@@ -101,6 +147,18 @@ TEST_CASE("dynamic_programming")
             INFO(fmt::format("arr={}", a));
             auto c = matrix_chain_multi(a.data(), a.size() - 1);
             CHECK(c == b);
+        }
+    }
+
+    SECTION("longest_common_subseq")
+    {
+        std::vector<std::tuple<std::string, std::string, std::string>> samples = {
+            {"ABCBDAB", "BDCABA", "BCBA"},
+        };
+        for (auto& [a, b, c]: samples) {
+            INFO(fmt::format("a={}, b={}", a, b));
+            auto r = longest_common_subseq(a, b);
+            CHECK(r == c);
         }
     }
 }
