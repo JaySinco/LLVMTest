@@ -3,6 +3,7 @@
 #include <range/v3/all.hpp>
 #include <functional>
 #include <stack>
+#include <iterator>
 #include <catch2/catch.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -119,6 +120,86 @@ std::string longest_common_subseq(std::string_view sv1, std::string_view sv2)
     return ans;
 }
 
+std::vector<int> longest_increasing_subseq(int* arr, int n)
+{
+    struct Record
+    {
+        int v;
+        int i;
+    };
+    std::vector<Record> dp(n);
+    for (int i = 0; i < n; ++i) {
+        dp[i].v = 1;
+        dp[i].i = -1;
+        for (int k = 0; k < i; ++k) {
+            if (arr[k] < arr[i] && dp[k].v + 1 > dp[i].v) {
+                dp[i].v = dp[k].v + 1;
+                dp[i].i = k;
+            }
+        }
+    }
+    std::vector<int> ans;
+    auto mi =
+        ranges::max_element(dp, [](Record const& r1, Record const& r2) { return r1.v < r2.v; });
+    int j = std::distance(dp.begin(), mi);
+    while (j >= 0) {
+        ans.push_back(arr[j]);
+        j = dp[j].i;
+    }
+    ranges::reverse(ans);
+    return ans;
+}
+
+std::string longest_palindrome_subseq(std::string const& s)
+{
+    struct Record
+    {
+        int v;
+        char c;
+    };
+    int n = s.size();
+    std::vector<std::vector<Record>> dp(n, std::vector<Record>(n, {0, 0}));
+    for (int i = 0; i < n; ++i) {
+        dp[i][i] = {1, '*'};
+    }
+    for (int k = 1; k < n; ++k) {
+        for (int i = 0; i + k < n; ++i) {
+            int j = i + k;
+            if (s[i] == s[j]) {
+                dp[i][j].v = (k == 1 ? 0 : dp[i + 1][j - 1].v) + 2;
+                dp[i][j].c = '-';
+            } else if (dp[i][j - 1].v > dp[i + 1][j].v) {
+                dp[i][j].v = dp[i][j - 1].v;
+                dp[i][j].c = '<';
+            } else {
+                dp[i][j].v = dp[i + 1][j].v;
+                dp[i][j].c = '>';
+            }
+        }
+    }
+    std::string ans;
+    auto build_ans = [&](int i, int j) {
+        auto la = [&](int i, int j, auto& la_) {
+            if (i > j) {
+                return;
+            } else if (dp[i][j].c == '*') {
+                ans.push_back(s[i]);
+            } else if (dp[i][j].c == '-') {
+                ans.push_back(s[i]);
+                la_(i + 1, j - 1, la_);
+                ans.push_back(s[j]);
+            } else if (dp[i][j].c == '<') {
+                la_(i, j - 1, la_);
+            } else if (dp[i][j].c == '>') {
+                la_(i + 1, j, la_);
+            }
+        };
+        return la(i, j, la);
+    };
+    build_ans(0, n - 1);
+    return ans;
+}
+
 TEST_CASE("dynamic_programming")
 {
     SECTION("rod_cutting")
@@ -159,6 +240,38 @@ TEST_CASE("dynamic_programming")
             INFO(fmt::format("a={}, b={}", a, b));
             auto r = longest_common_subseq(a, b);
             CHECK(r == c);
+        }
+    }
+
+    SECTION("longest_increasing_subseq")
+    {
+        std::vector<std::pair<std::vector<int>, std::vector<int>>> samples = {
+            {{1}, {1}},
+            {{2, 1}, {2}},
+            {{1, 2, 3, 4, 5, 6, 7}, {1, 2, 3, 4, 5, 6, 7}},
+            {{7, 6, 5, 4, 3, 2, 1}, {7}},
+            {{3, 0, 5, 1, 2, 23, 43, 12, 31, 2, 3, 44, 5, 45, 46, 9},
+             {0, 1, 2, 23, 43, 44, 45, 46}},
+        };
+        for (auto& [a, b]: samples) {
+            INFO(fmt::format("arr={}", a));
+            auto c = longest_increasing_subseq(a.data(), a.size());
+            CHECK(b == c);
+        }
+    }
+
+    SECTION("longest_palindrome_subseq")
+    {
+        std::vector<std::pair<std::string, std::string>> samples = {
+            {"character", "carac"},
+            {"xckiiqc", "ciic"},
+            {"aibohphobia", "aibohphobia"},
+            {"xrbascedceafrhd", "raecear"},
+        };
+        for (auto& [a, b]: samples) {
+            INFO(fmt::format("s={}", a));
+            auto c = longest_palindrome_subseq(a);
+            CHECK(b == c);
         }
     }
 }
