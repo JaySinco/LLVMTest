@@ -44,6 +44,7 @@ class PrototypingConan(ConanFile):
         self.requires(self._ref_pkg("qt/5.15.6"))
         self.requires(self._ref_pkg("range-v3/0.12.0"))
         self.requires(self._ref_pkg("libiconv/1.17"))
+        self.requires(self._ref_pkg("raylib/4.2.0"))
 
     def layout(self):
         build_folder = "out"
