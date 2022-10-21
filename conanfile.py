@@ -61,6 +61,8 @@ class PrototypingConan(ConanFile):
         tc.variables["CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE"] = self._normalize_path(
             os.path.join(self.source_folder, "bin", "Release"))
         tc.variables["CMAKE_PREFIX_PATH"] = self._cmake_path()
+        tc.variables["SOURCE_REPO"] = self._normalize_path(
+            os.getenv('JAYSINCO_SOURCE_REPO'))
         self._setup_pkg_root(tc)
         tc.generate()
         cmake_deps = CMakeDeps(self)

@@ -18,6 +18,9 @@
 
 namespace utils
 {
+
+extern std::filesystem::path const source_repo;
+
 struct error: public std::runtime_error
 {
     explicit error(std::string const& s): std::runtime_error(s){};

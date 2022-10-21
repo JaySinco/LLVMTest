@@ -40,6 +40,14 @@ esac
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 git_root="$(git rev-parse --show-toplevel)"
 
+if [ $os = "linux" ]; then
+    source_repo=$git_root/../dev-setup/linux/src
+elif [ $os = "windows" ]; then
+    source_repo=$USERPROFILE/OneDrive/src
+fi
+
+export JAYSINCO_SOURCE_REPO=$source_repo
+
 build_type=Debug
 if [ $build_release -eq 1 ]; then
     build_type=Release

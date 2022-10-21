@@ -15,6 +15,8 @@
 namespace utils
 {
 
+std::filesystem::path const source_repo(SOURCE_REPO);
+
 class iconv_wrapper
 {
 public:
