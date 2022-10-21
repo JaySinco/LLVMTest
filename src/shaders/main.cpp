@@ -16,20 +16,20 @@ int main(int argc, char** argv)
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
-    auto modelPath = utils::source_repo / "models/watermill.obj";
-    Model model = LoadModel(modelPath.string().c_str());
+    // auto modelPath = utils::source_repo / "models/watermill.obj";
+    // Model model = LoadModel(modelPath.string().c_str());
 
-    auto texturePath = utils::source_repo / "models/watermill_diffuse.png";
-    Texture2D texture = LoadTexture(texturePath.string().c_str());
+    // auto texturePath = utils::source_repo / "models/watermill_diffuse.png";
+    // Texture2D texture = LoadTexture(texturePath.string().c_str());
 
     auto vertexShaderPath = __DIRNAME__ / "base.vs";
-    auto fragShaderPath = __DIRNAME__ / "grayscale.fs";
+    auto fragShaderPath = __DIRNAME__ / "raymarch.fs";
     Shader shader = LoadShader(vertexShaderPath.string().c_str(), fragShaderPath.string().c_str());
 
-    model.materials[0].shader = shader;
-    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
+    // model.materials[0].shader = shader;
+    // model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 
-    Vector3 position = {0.0f, 0.0f, 0.0f};
+    // Vector3 position = {0.0f, 0.0f, 0.0f};
 
     SetCameraMode(camera, CAMERA_FREE);
     SetTargetFPS(60);
@@ -38,17 +38,20 @@ int main(int argc, char** argv)
         UpdateCamera(&camera);
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        BeginMode3D(camera);
-        DrawModel(model, position, 0.2f, WHITE);
-        DrawGrid(10, 1.0f);
-        EndMode3D();
+        // BeginMode3D(camera);
+        // DrawModel(model, position, 0.2f, WHITE);
+        // DrawGrid(10, 1.0f);
+        // EndMode3D();
+        BeginShaderMode(shader);
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
+        EndShaderMode();
         DrawFPS(10, 10);
         EndDrawing();
     }
 
     UnloadShader(shader);
-    UnloadTexture(texture);
-    UnloadModel(model);
+    // UnloadTexture(texture);
+    // UnloadModel(model);
     CloseWindow();
 
     return 0;
