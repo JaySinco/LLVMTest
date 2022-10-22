@@ -9,7 +9,9 @@ uniform vec4 iDate;
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 st = fragCoord.xy / iResolution.xy;
-    fragColor = vec4(st.x, st.y, 0.0, 1.0);
+    float y = st.x;
+    float z = smoothstep(y - 0.02, y, st.y) - smoothstep(y, y + 0.02, st.y);
+    fragColor = vec4(vec3(z), 1);
 }
 
 void main() {
