@@ -1,6 +1,11 @@
 #version 330
 
-const vec2 iResolution = vec2(800, 450);
+uniform vec3 iResolution;
+uniform float iTime;
+uniform float iTimeDelta;
+uniform int iFrame;
+uniform vec4 iMouse;
+uniform vec4 iDate;
 
 float map(vec3 p) {
     float d = distance(p, vec3(-1, 0, -5)) - 1.;     // sphere at (-1,0,5) with radius 1
