@@ -1,5 +1,6 @@
 #include "utils/base.h"
 #include <raylib.h>
+#include <rlgl.h>
 #include <argparse/argparse.hpp>
 #include <ctime>
 
@@ -99,6 +100,59 @@ void ShaderToy::set_channel_texture(ChannelIndex idx, std::filesystem::path cons
     iChannel[idx].text = LoadTexture(texture.string().c_str());
 }
 
+RenderTexture2D load_buffer_texture(int width, int height)
+{
+    RenderTexture2D target = {0};
+
+    target.id = rlLoadFramebuffer(width, height);  // Load an empty framebuffer
+
+    if (target.id > 0) {
+        rlEnableFramebuffer(target.id);
+
+        // Create color texture (default to RGBA)
+        target.texture.id =
+            rlLoadTexture(NULL, width, height, PIXELFORMAT_UNCOMPRESSED_R32G32B32A32, 1);
+        target.texture.width = width;
+        target.texture.height = height;
+        target.texture.format = PIXELFORMAT_UNCOMPRESSED_R32G32B32A32;
+        target.texture.mipmaps = 1;
+
+        // Create depth renderbuffer/texture
+        target.depth.id = rlLoadTextureDepth(width, height, true);
+        target.depth.width = width;
+        target.depth.height = height;
+        target.depth.format = 19;  // DEPTH_COMPONENT_24BIT?
+        target.depth.mipmaps = 1;
+
+        // Attach color texture and depth renderbuffer/texture to FBO
+        rlFramebufferAttach(target.id, target.texture.id, RL_ATTACHMENT_COLOR_CHANNEL0,
+                            RL_ATTACHMENT_TEXTURE2D, 0);
+        rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH,
+                            RL_ATTACHMENT_RENDERBUFFER, 0);
+
+        // Check if fbo is complete with attachments (valid)
+        if (rlFramebufferComplete(target.id)) {
+            spdlog::info("FBO: [ID {}] Framebuffer object created successfully", target.id);
+        }
+        rlDisableFramebuffer();
+    } else {
+        spdlog::error("FBO: Framebuffer object can not be created");
+    }
+
+    return target;
+}
+
+void ShaderToy::set_channel_shader(ChannelIndex idx, std::filesystem::path const& fragShader)
+{
+    iChannel[idx].type = CHANNEL_SHADER;
+    iChannel[idx].buffer = load_buffer_texture(screenWidth, screenHeight);
+    BeginTextureMode(iChannel[idx].buffer);
+    ClearBackground(BLACK);
+    EndTextureMode();
+    iChannel[idx].shader = LoadShader(vertexShader.string().c_str(), fragShader.string().c_str());
+    get_location(iChannel[idx].shader);
+}
+
 void ShaderToy::get_location(Shader shader)
 {
     shaderLoc[shader.id]["iResolution"] = GetShaderLocation(shader, "iResolution");
@@ -111,17 +165,6 @@ void ShaderToy::get_location(Shader shader)
         std::string s = fmt::format("iChannel{}", i);
         shaderLoc[shader.id][s] = GetShaderLocation(shader, s.c_str());
     }
-}
-
-void ShaderToy::set_channel_shader(ChannelIndex idx, std::filesystem::path const& fragShader)
-{
-    iChannel[idx].type = CHANNEL_SHADER;
-    iChannel[idx].buffer = LoadRenderTexture(screenWidth, screenHeight);
-    BeginTextureMode(iChannel[idx].buffer);
-    ClearBackground(BLACK);
-    EndTextureMode();
-    iChannel[idx].shader = LoadShader(vertexShader.string().c_str(), fragShader.string().c_str());
-    get_location(iChannel[idx].shader);
 }
 
 void ShaderToy::update_uniform()
@@ -157,8 +200,6 @@ void ShaderToy::update_uniform()
 
 void ShaderToy::bind_shader_uniform(Shader shader)
 {
-    update_uniform();
-
     SetShaderValue(shader, shaderLoc[shader.id]["iResolution"], iResolution, SHADER_UNIFORM_VEC3);
     SetShaderValue(shader, shaderLoc[shader.id]["iTime"], &iTime, SHADER_UNIFORM_FLOAT);
     SetShaderValue(shader, shaderLoc[shader.id]["iTimeDelta"], &iTimeDelta, SHADER_UNIFORM_FLOAT);
@@ -192,6 +233,8 @@ void ShaderToy::draw_rect(Shader shader)
 
 void ShaderToy::render()
 {
+    update_uniform();
+
     for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
         if (iChannel[i].type == CHANNEL_SHADER) {
             BeginTextureMode(iChannel[i].buffer);
@@ -231,8 +274,8 @@ int main(int argc, char** argv)
         std::exit(1);
     }
 
-    int const screenWidth = 800;
-    int const screenHeight = 450;
+    int const screenWidth = 640;
+    int const screenHeight = 360;
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(screenWidth, screenHeight, "pixel shader");
