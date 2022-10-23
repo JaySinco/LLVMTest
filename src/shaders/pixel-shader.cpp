@@ -1,6 +1,7 @@
 #include "utils/base.h"
 #include <raylib.h>
 #include <rlgl.h>
+#include <glad.h>
 #include <argparse/argparse.hpp>
 #include <ctime>
 
@@ -28,6 +29,7 @@ public:
         ChannelType type;
         Texture text;
         RenderTexture2D buffer;
+        RenderTexture2D bufferPrev;
         Shader shader;
     };
 
@@ -87,17 +89,12 @@ ShaderToy::~ShaderToy()
                 break;
             case CHANNEL_SHADER:
                 UnloadRenderTexture(iChannel[i].buffer);
+                UnloadRenderTexture(iChannel[i].bufferPrev);
                 UnloadShader(iChannel[i].shader);
                 break;
         }
     }
     UnloadShader(mainShader);
-}
-
-void ShaderToy::set_channel_texture(ChannelIndex idx, std::filesystem::path const& texture)
-{
-    iChannel[idx].type = CHANNEL_TEXTURE;
-    iChannel[idx].text = LoadTexture(texture.string().c_str());
 }
 
 RenderTexture2D load_buffer_texture(int width, int height)
@@ -142,6 +139,12 @@ RenderTexture2D load_buffer_texture(int width, int height)
     return target;
 }
 
+void ShaderToy::set_channel_texture(ChannelIndex idx, std::filesystem::path const& texture)
+{
+    iChannel[idx].type = CHANNEL_TEXTURE;
+    iChannel[idx].text = LoadTexture(texture.string().c_str());
+}
+
 void ShaderToy::set_channel_shader(ChannelIndex idx, std::filesystem::path const& fragShader)
 {
     iChannel[idx].type = CHANNEL_SHADER;
@@ -149,6 +152,7 @@ void ShaderToy::set_channel_shader(ChannelIndex idx, std::filesystem::path const
     BeginTextureMode(iChannel[idx].buffer);
     ClearBackground(BLACK);
     EndTextureMode();
+    iChannel[idx].bufferPrev = load_buffer_texture(screenWidth, screenHeight);
     iChannel[idx].shader = LoadShader(vertexShader.string().c_str(), fragShader.string().c_str());
     get_location(iChannel[idx].shader);
 }
@@ -216,7 +220,8 @@ void ShaderToy::bind_shader_uniform(Shader shader)
                 SetShaderValueTexture(shader, shaderLoc[shader.id][s], iChannel[i].text);
                 break;
             case CHANNEL_SHADER:
-                SetShaderValueTexture(shader, shaderLoc[shader.id][s], iChannel[i].buffer.texture);
+                SetShaderValueTexture(shader, shaderLoc[shader.id][s],
+                                      iChannel[i].bufferPrev.texture);
                 break;
         }
     }
@@ -240,6 +245,9 @@ void ShaderToy::render()
             BeginTextureMode(iChannel[i].buffer);
             draw_rect(iChannel[i].shader);
             EndTextureMode();
+            glCopyImageSubData(iChannel[i].buffer.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                               iChannel[i].bufferPrev.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                               screenWidth, screenHeight, 1);
         }
     }
 
