@@ -1,0 +1,23 @@
+{
+    "watermill": {
+        "type": "uber",
+        "screenWidth": 640,
+        "screenHeight": 360,
+        "vertexShader": "mvp.vs",
+        "fragmentShader": "diffuse.fs",
+        "model": "watermill.obj",
+        "texture": "watermill_diffuse.png"
+    },
+    "raytracer": {
+        "type": "pixel",
+        "screenWidth": 640,
+        "screenHeight": 360,
+        "vertexShader": "identity.vs",
+        "fragmentShader": "raytracer.fs",
+        "channel0": {
+            "type": "shader",
+            "vertexShader": "identity.vs",
+            "fragmentShader": "raytracer-c0.fs"
+        }
+    }
+}

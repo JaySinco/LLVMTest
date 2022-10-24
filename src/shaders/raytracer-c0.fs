@@ -603,17 +603,10 @@ void mainImage(out vec4 frag_color, in vec2 frag_coord) {
         ray r = camera_get_ray(cam, uv);
         vec3 col = color(r);
 
-        // if(texelFetch(iChannel0, ivec2(0), 0).xy == iResolution.xy) {
-        //     frag_color = vec4(col, 1) + texelFetch(iChannel0, ivec2(frag_coord), 0);
-        // } else {
-        //     frag_color = vec4(col, 1);
-        // }
-
-        if(iFrame >= 1) {
-            vec3 old = texelFetch(iChannel0, ivec2(frag_coord), 0).rgb;
-            frag_color = vec4((old * (iFrame - 1) + col) / iFrame, 1.0);
+        if(texelFetch(iChannel0, ivec2(0), 0).xy == iResolution.xy) {
+            frag_color = vec4(col, 1) + texelFetch(iChannel0, ivec2(frag_coord), 0);
         } else {
-            frag_color = vec4(col, 1.0);
+            frag_color = vec4(col, 1);
         }
     }
 }

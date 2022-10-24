@@ -1,36 +1,28 @@
-#include "utils/base.h"
-#include <raylib.h>
-#include <argparse/argparse.hpp>
+#include "./uber-shader.h"
 
-int main(int argc, char** argv)
+UberShader::UberShader() {}
+
+UberShader::~UberShader()
 {
-    argparse::ArgumentParser prog("uber-shader");
-    prog.add_argument("-t", "--vertex-shader")
-        .default_value(std::string("mvp"))
-        .required()
-        .help("vertex shader name");
-    prog.add_argument("-f", "--fragment-shader")
-        .default_value(std::string("diffuse"))
-        .required()
-        .help("fragment shader name");
-    prog.add_argument("-m", "--model")
-        .default_value(std::string("watermill"))
-        .required()
-        .help("model name");
+    UnloadShader(shader);
+    UnloadTexture(texture);
+    UnloadModel(model);
+}
 
-    try {
-        prog.parse_args(argc, argv);
-    } catch (std::exception const& err) {
-        spdlog::error("{}\n", err.what());
-        std::cerr << prog;
-        std::exit(1);
-    }
+void UberShader::load_manifest(nlohmann::json const& j)
+{
+    shader = load_shader(j["vertexShader"], j["fragmentShader"]);
+    texture = load_texture(j["texture"]);
+    model = load_model(j["model"]);
+    model.materials[0].shader = shader;
+    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
+}
 
-    int const screenWidth = 800;
-    int const screenHeight = 450;
-
+void UberShader::render(nlohmann::json const& j)
+{
+    BaseShader::load_manifest(j);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(screenWidth, screenHeight, "uber shader");
+    InitWindow(screenWidth, screenHeight, "Uber Shader");
 
     Camera camera = {0};
     camera.position = Vector3{4.0f, 4.0f, 4.0f};
@@ -39,25 +31,11 @@ int main(int argc, char** argv)
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
-    auto modelName = prog.get<std::string>("--model");
-    auto modelPath = utils::source_repo / fmt::format("models/{}.obj", modelName);
-    Model model = LoadModel(modelPath.string().c_str());
-    auto texturePath = utils::source_repo / fmt::format("models/{}_diffuse.png", modelName);
-    Texture2D texture = LoadTexture(texturePath.string().c_str());
-
-    auto vertexShaderPath =
-        __DIRNAME__ / fmt::format("{}.vs", prog.get<std::string>("--vertex-shader"));
-    auto fragShaderPath =
-        __DIRNAME__ / fmt::format("{}.fs", prog.get<std::string>("--fragment-shader"));
-    Shader shader = LoadShader(vertexShaderPath.string().c_str(), fragShaderPath.string().c_str());
-
-    model.materials[0].shader = shader;
-    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
-
     Vector3 position = {0.0f, 0.0f, 0.0f};
 
     SetCameraMode(camera, CAMERA_FREE);
     SetTargetFPS(60);
+    UberShader::load_manifest(j);
 
     while (!WindowShouldClose()) {
         UpdateCamera(&camera);
@@ -71,10 +49,5 @@ int main(int argc, char** argv)
         EndDrawing();
     }
 
-    UnloadShader(shader);
-    UnloadTexture(texture);
-    UnloadModel(model);
     CloseWindow();
-
-    return 0;
 }

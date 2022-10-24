@@ -1,7 +1,15 @@
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(MAIN ${CURRENT_DIR_NAME})
 
-add_executable(uber-shader uber-shader.cpp)
-target_link_libraries(uber-shader utils raylib argparse::argparse)
+add_executable(${MAIN}
+    base-shader.cpp
+    uber-shader.cpp
+    pixel-shader.cpp
+    main.cpp
+)
 
-add_executable(pixel-shader pixel-shader.cpp)
-target_link_libraries(pixel-shader utils raylib argparse::argparse)
+target_link_libraries(${MAIN} utils
+    nlohmann-json
+    argparse::argparse
+    raylib
+)

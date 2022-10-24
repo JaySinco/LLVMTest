@@ -1,84 +1,11 @@
-#include "utils/base.h"
-#include <raylib.h>
+#include "./pixel-shader.h"
 #include <rlgl.h>
 #include <glad.h>
-#include <argparse/argparse.hpp>
 #include <ctime>
 
-class ShaderToy
-{
-public:
-    enum ChannelIndex
-    {
-        CHANNEL_0,
-        CHANNEL_1,
-        CHANNEL_2,
-        CHANNEL_3,
-        CHANNEL_MAX,
-    };
+PixelShader::PixelShader() {}
 
-    enum ChannelType
-    {
-        CHANNEL_UNUSED,
-        CHANNEL_TEXTURE,
-        CHANNEL_SHADER,
-    };
-
-    struct Channel
-    {
-        ChannelType type;
-        Texture text;
-        RenderTexture2D buffer;
-        RenderTexture2D bufferPrev;
-        Shader shader;
-    };
-
-    ShaderToy(int screenWidth, int screenHeight, std::filesystem::path const& fragShader);
-    ~ShaderToy();
-    void set_channel_texture(ChannelIndex idx, std::filesystem::path const& texture);
-    void set_channel_shader(ChannelIndex idx, std::filesystem::path const& fragShader);
-    void render();
-
-private:
-    void update_uniform();
-    void get_location(Shader shader);
-    void bind_shader_uniform(Shader shader);
-    void draw_rect(Shader shader);
-
-    std::filesystem::path const vertexShader;
-    std::map<decltype(std::declval<Shader>().id), std::map<std::string, int>> shaderLoc;
-    int screenWidth;
-    int screenHeight;
-    Shader mainShader;
-
-    float iResolution[3];
-    float iTime;
-    float iTimeDelta;
-    int iFrame;
-    float iMouse[4];
-    float iDate[4];
-    Channel iChannel[CHANNEL_MAX];
-};
-
-ShaderToy::ShaderToy(int screenWidth, int screenHeight, std::filesystem::path const& fragShader)
-    : vertexShader{__DIRNAME__ / "identity.vs"}, iMouse{0}, iDate{0}
-{
-    this->screenWidth = screenWidth;
-    this->screenHeight = screenHeight;
-    mainShader = LoadShader(vertexShader.string().c_str(), fragShader.string().c_str());
-    get_location(mainShader);
-    iResolution[0] = screenWidth;
-    iResolution[1] = screenHeight;
-    iResolution[2] = 1.0;
-    iTime = 0;
-    iTimeDelta = 0;
-    iFrame = 0;
-    for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
-        iChannel[i].type = CHANNEL_UNUSED;
-    }
-}
-
-ShaderToy::~ShaderToy()
+PixelShader::~PixelShader()
 {
     for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
         switch (iChannel[i].type) {
@@ -97,7 +24,7 @@ ShaderToy::~ShaderToy()
     UnloadShader(mainShader);
 }
 
-RenderTexture2D load_buffer_texture(int width, int height)
+static RenderTexture2D load_buffer_texture(int width, int height)
 {
     RenderTexture2D target = {0};
 
@@ -139,13 +66,14 @@ RenderTexture2D load_buffer_texture(int width, int height)
     return target;
 }
 
-void ShaderToy::set_channel_texture(ChannelIndex idx, std::filesystem::path const& texture)
+void PixelShader::set_channel_texture(ChannelIndex idx, std::string const& texture)
 {
     iChannel[idx].type = CHANNEL_TEXTURE;
-    iChannel[idx].text = LoadTexture(texture.string().c_str());
+    iChannel[idx].text = load_texture(texture);
 }
 
-void ShaderToy::set_channel_shader(ChannelIndex idx, std::filesystem::path const& fragShader)
+void PixelShader::set_channel_shader(ChannelIndex idx, std::string const& vertex,
+                                     std::string const& fragment)
 {
     iChannel[idx].type = CHANNEL_SHADER;
     iChannel[idx].buffer = load_buffer_texture(screenWidth, screenHeight);
@@ -153,11 +81,11 @@ void ShaderToy::set_channel_shader(ChannelIndex idx, std::filesystem::path const
     ClearBackground(BLACK);
     EndTextureMode();
     iChannel[idx].bufferPrev = load_buffer_texture(screenWidth, screenHeight);
-    iChannel[idx].shader = LoadShader(vertexShader.string().c_str(), fragShader.string().c_str());
+    iChannel[idx].shader = load_shader(vertex, fragment);
     get_location(iChannel[idx].shader);
 }
 
-void ShaderToy::get_location(Shader shader)
+void PixelShader::get_location(Shader shader)
 {
     shaderLoc[shader.id]["iResolution"] = GetShaderLocation(shader, "iResolution");
     shaderLoc[shader.id]["iTime"] = GetShaderLocation(shader, "iTime");
@@ -171,7 +99,7 @@ void ShaderToy::get_location(Shader shader)
     }
 }
 
-void ShaderToy::update_uniform()
+void PixelShader::update_uniform()
 {
     iTimeDelta = GetFrameTime();
     iTime += iTimeDelta;
@@ -202,7 +130,7 @@ void ShaderToy::update_uniform()
     iDate[3] = gt.tm_hour * 3600 + gt.tm_min * 60 + gt.tm_sec;
 }
 
-void ShaderToy::bind_shader_uniform(Shader shader)
+void PixelShader::bind_shader_uniform(Shader shader)
 {
     SetShaderValue(shader, shaderLoc[shader.id]["iResolution"], iResolution, SHADER_UNIFORM_VEC3);
     SetShaderValue(shader, shaderLoc[shader.id]["iTime"], &iTime, SHADER_UNIFORM_FLOAT);
@@ -227,7 +155,7 @@ void ShaderToy::bind_shader_uniform(Shader shader)
     }
 }
 
-void ShaderToy::draw_rect(Shader shader)
+void PixelShader::draw_rect(Shader shader)
 {
     BeginShaderMode(shader);
     bind_shader_uniform(shader);
@@ -236,76 +164,63 @@ void ShaderToy::draw_rect(Shader shader)
     EndShaderMode();
 }
 
-void ShaderToy::render()
+void PixelShader::load_manifest(nlohmann::json const& j)
 {
-    update_uniform();
-
+    iResolution[0] = screenWidth;
+    iResolution[1] = screenHeight;
+    iResolution[2] = 1.0;
+    iTime = 0;
+    iTimeDelta = 0;
+    iFrame = 0;
+    std::memset(iDate, 0, sizeof(iDate));
+    std::memset(iMouse, 0, sizeof(iMouse));
     for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
-        if (iChannel[i].type == CHANNEL_SHADER) {
-            BeginTextureMode(iChannel[i].buffer);
-            draw_rect(iChannel[i].shader);
-            EndTextureMode();
-            glCopyImageSubData(iChannel[i].buffer.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
-                               iChannel[i].bufferPrev.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
-                               screenWidth, screenHeight, 1);
+        std::string k = fmt::format("channel{}", i);
+        if (!j.contains(k)) {
+            iChannel[i].type = CHANNEL_UNUSED;
+        } else {
+            auto& ch = j[k];
+            if (ch["type"] == "shader") {
+                set_channel_shader(ChannelIndex(i), ch["vertexShader"], ch["fragmentShader"]);
+            } else if (ch["type"] == "texture") {
+                set_channel_texture(ChannelIndex(i), ch["texture"]);
+            }
         }
     }
-
-    BeginDrawing();
-    ClearBackground(RAYWHITE);
-    draw_rect(mainShader);
-    DrawFPS(10, 10);
-    EndDrawing();
+    mainShader = load_shader(j["vertexShader"], j["fragmentShader"]);
+    get_location(mainShader);
 }
 
-int main(int argc, char** argv)
+void PixelShader::render(nlohmann::json const& j)
 {
-    argparse::ArgumentParser prog("pixel-shader");
-    prog.add_argument("-f", "--fragment-shader")
-        .default_value(std::string("testing"))
-        .required()
-        .help("fragment shader name");
-    prog.add_argument("-cs0", "--channel-0-shader")
-        .default_value(std::string(""))
-        .required()
-        .help("channel-0 shader name");
-    prog.add_argument("-ct0", "--channel-0-texture")
-        .default_value(std::string(""))
-        .required()
-        .help("channel-0 texture name");
-
-    try {
-        prog.parse_args(argc, argv);
-    } catch (std::exception const& err) {
-        spdlog::error("{}\n", err.what());
-        std::cerr << prog;
-        std::exit(1);
-    }
-
-    int const screenWidth = 640;
-    int const screenHeight = 360;
-
+    BaseShader::load_manifest(j);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(screenWidth, screenHeight, "pixel shader");
-
-    auto fragShader =
-        __DIRNAME__ / fmt::format("{}.fs", prog.get<std::string>("--fragment-shader"));
-
-    auto cs0 = prog.get<std::string>("--channel-0-shader");
-    auto ct0 = prog.get<std::string>("--channel-0-texture");
-    auto sha = std::make_unique<ShaderToy>(screenWidth, screenHeight, fragShader);
-    if (cs0.size() > 0) {
-        sha->set_channel_shader(ShaderToy::CHANNEL_0, __DIRNAME__ / fmt::format("{}.fs", cs0));
-
-    } else if (ct0.size() > 0) {
-        sha->set_channel_texture(ShaderToy::CHANNEL_0,
-                                 utils::source_repo / fmt::format("models/{}_diffuse.png", ct0));
-    }
+    InitWindow(screenWidth, screenHeight, "Pixel Shader");
 
     SetTargetFPS(60);
+    PixelShader::load_manifest(j);
+
     while (!WindowShouldClose()) {
-        sha->render();
+        update_uniform();
+        for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
+            if (iChannel[i].type == CHANNEL_SHADER) {
+                BeginTextureMode(iChannel[i].buffer);
+                glDisable(GL_BLEND);
+                draw_rect(iChannel[i].shader);
+                glEnable(GL_BLEND);
+                EndTextureMode();
+                glCopyImageSubData(iChannel[i].buffer.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                                   iChannel[i].bufferPrev.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                                   screenWidth, screenHeight, 1);
+            }
+        }
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        draw_rect(mainShader);
+        DrawFPS(10, 10);
+        DrawText(TextFormat("%8i", iFrame), screenWidth - 65, screenHeight - 20, 18, GRAY);
+        EndDrawing();
     }
+
     CloseWindow();
-    return 0;
 }
