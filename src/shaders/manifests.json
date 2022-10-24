@@ -6,7 +6,10 @@
         "vertexShader": "mvp.vs",
         "fragmentShader": "diffuse.fs",
         "model": "watermill.obj",
-        "texture": "watermill_diffuse.png"
+        "texture": {
+            "cube": false,
+            "file": "watermill_diffuse.png"
+        }
     },
     "raytracer": {
         "type": "pixel",
@@ -18,6 +21,44 @@
             "type": "shader",
             "vertexShader": "identity.vs",
             "fragmentShader": "raytracer-c0.fs"
+        }
+    },
+    "elemental": {
+        "type": "pixel",
+        "screenWidth": 640,
+        "screenHeight": 360,
+        "vertexShader": "identity.vs",
+        "fragmentShader": "ocean-elemental.fs",
+        "channel0": {
+            "type": "shader",
+            "vertexShader": "identity.vs",
+            "fragmentShader": "ocean-elemental-c0.fs"
+        },
+        "channel1": {
+            "type": "shader",
+            "vertexShader": "identity.vs",
+            "fragmentShader": "ocean-elemental-c1.fs"
+        },
+        "channel2": {
+            "type": "texture",
+            "texture": {
+                "cube": true,
+                "file": "dresden_square_2k.hdr"
+            }
+        }
+    },
+    "testing": {
+        "type": "pixel",
+        "screenWidth": 640,
+        "screenHeight": 360,
+        "vertexShader": "identity.vs",
+        "fragmentShader": "testing.fs",
+        "channel2": {
+            "type": "texture",
+            "texture": {
+                "cube": true,
+                "file": "dresden_square_2k.hdr"
+            }
         }
     }
 }

@@ -66,10 +66,10 @@ static RenderTexture2D load_buffer_texture(int width, int height)
     return target;
 }
 
-void PixelShader::set_channel_texture(ChannelIndex idx, std::string const& texture)
+void PixelShader::set_channel_texture(ChannelIndex idx, std::string const& texture, bool cube)
 {
     iChannel[idx].type = CHANNEL_TEXTURE;
-    iChannel[idx].text = load_texture(texture);
+    iChannel[idx].text = load_texture(texture, cube);
 }
 
 void PixelShader::set_channel_shader(ChannelIndex idx, std::string const& vertex,
@@ -183,7 +183,7 @@ void PixelShader::load_manifest(nlohmann::json const& j)
             if (ch["type"] == "shader") {
                 set_channel_shader(ChannelIndex(i), ch["vertexShader"], ch["fragmentShader"]);
             } else if (ch["type"] == "texture") {
-                set_channel_texture(ChannelIndex(i), ch["texture"]);
+                set_channel_texture(ChannelIndex(i), ch["texture"]["file"], ch["texture"]["cube"]);
             }
         }
     }

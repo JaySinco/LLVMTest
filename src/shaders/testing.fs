@@ -6,6 +6,7 @@ uniform float iTimeDelta;
 uniform int iFrame;
 uniform vec4 iMouse;
 uniform vec4 iDate;
+uniform samplerCube iChannel2;
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 st = fragCoord.xy / iResolution.xy;
@@ -15,5 +16,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 }
 
 void main() {
-    mainImage(gl_FragColor, gl_FragCoord.xy);
+    // mainImage(gl_FragColor, gl_FragCoord.xy);
+    gl_FragColor = texture(iChannel2, vec3(gl_FragCoord.xy / iResolution.xy, 0.0));
 }

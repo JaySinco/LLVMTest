@@ -36,7 +36,7 @@ private:
     };
 
     void load_manifest(nlohmann::json const& j);
-    void set_channel_texture(ChannelIndex idx, std::string const& texture);
+    void set_channel_texture(ChannelIndex idx, std::string const& texture, bool cube);
     void set_channel_shader(ChannelIndex idx, std::string const& vertex,
                             std::string const& fragment);
     void update_uniform();

@@ -12,7 +12,7 @@ public:
 protected:
     void load_manifest(nlohmann::json const& j);
     Shader load_shader(std::string const& vertex, std::string const& fragment);
-    Texture load_texture(std::string const& texture);
+    Texture load_texture(std::string const& texture, bool cube);
     Model load_model(std::string const& model);
 
     int screenWidth;
