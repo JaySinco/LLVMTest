@@ -38,13 +38,6 @@
             "type": "shader",
             "vertexShader": "identity.vs",
             "fragmentShader": "ocean-elemental-c1.fs"
-        },
-        "channel2": {
-            "type": "texture",
-            "texture": {
-                "cube": true,
-                "file": "dresden_square_2k.hdr"
-            }
         }
     },
     "testing": {
@@ -52,13 +45,6 @@
         "screenWidth": 640,
         "screenHeight": 360,
         "vertexShader": "identity.vs",
-        "fragmentShader": "testing.fs",
-        "channel2": {
-            "type": "texture",
-            "texture": {
-                "cube": true,
-                "file": "dresden_square_2k.hdr"
-            }
-        }
+        "fragmentShader": "testing.fs"
     }
 }
