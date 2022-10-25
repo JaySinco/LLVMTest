@@ -79,9 +79,6 @@ void PixelShader::set_channel_shader(ChannelIndex idx, std::string const& vertex
 {
     iChannel[idx].type = CHANNEL_SHADER;
     iChannel[idx].buffer = load_buffer_texture(screenWidth, screenHeight);
-    BeginTextureMode(iChannel[idx].buffer);
-    ClearBackground(BLACK);
-    EndTextureMode();
     iChannel[idx].bufferPrev = load_buffer_texture(screenWidth, screenHeight);
     iChannel[idx].shader = load_shader(vertex, fragment);
     get_location(iChannel[idx].shader);

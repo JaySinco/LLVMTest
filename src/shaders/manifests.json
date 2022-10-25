@@ -42,21 +42,21 @@
         }
     },
     {
-        "name": "elemental",
+        "name": "elf",
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
         "vertexShader": "pixel.vs",
-        "fragmentShader": "ocean-elemental.fs",
+        "fragmentShader": "ocean-elf.fs",
         "channel0": {
             "type": "shader",
             "vertexShader": "pixel.vs",
-            "fragmentShader": "ocean-elemental-0.fs"
+            "fragmentShader": "ocean-elf-0.fs"
         },
         "channel1": {
             "type": "shader",
             "vertexShader": "pixel.vs",
-            "fragmentShader": "ocean-elemental-1.fs"
+            "fragmentShader": "ocean-elf-1.fs"
         },
         "channel2": {
             "type": "texture",
