@@ -9,7 +9,7 @@
         "model": "watermill.obj",
         "texture": {
             "type": "2d",
-            "file": "watermill_diffuse.png"
+            "file": "watermill-diffuse.png"
         }
     },
     {
@@ -62,7 +62,7 @@
             "type": "texture",
             "texture": {
                 "type": "cube",
-                "file": "uffizi_cross.png"
+                "file": "uffizi-cube.png"
             }
         }
     },
