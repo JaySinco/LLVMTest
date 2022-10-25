@@ -38,7 +38,9 @@
         "channel0": {
             "type": "shader",
             "vertexShader": "pixel.vs",
-            "fragmentShader": "sphere-raytracer-0.fs"
+            "fragmentShader": "sphere-raytracer-0.fs",
+            "filter": "linear",
+            "wrap": "clamp"
         }
     },
     {
@@ -51,18 +53,24 @@
         "channel0": {
             "type": "shader",
             "vertexShader": "pixel.vs",
-            "fragmentShader": "ocean-elf-0.fs"
+            "fragmentShader": "ocean-elf-0.fs",
+            "filter": "linear",
+            "wrap": "clamp"
         },
         "channel1": {
             "type": "shader",
             "vertexShader": "pixel.vs",
-            "fragmentShader": "ocean-elf-1.fs"
+            "fragmentShader": "ocean-elf-1.fs",
+            "filter": "linear",
+            "wrap": "repeat"
         },
         "channel2": {
             "type": "texture",
             "texture": {
                 "type": "cube",
-                "file": "uffizi-cube.png"
+                "file": "uffizi-cube.png",
+                "filter": "mipmap",
+                "wrap": "clamp"
             }
         }
     },
