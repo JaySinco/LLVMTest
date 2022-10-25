@@ -66,10 +66,12 @@ static RenderTexture2D load_buffer_texture(int width, int height)
     return target;
 }
 
-void PixelShader::set_channel_texture(ChannelIndex idx, std::string const& texture, bool cube)
+void PixelShader::set_channel_texture(ChannelIndex idx, std::string const& texture,
+                                      std::string const& type)
 {
     iChannel[idx].type = CHANNEL_TEXTURE;
-    iChannel[idx].text = load_texture(texture, cube);
+    iChannel[idx].text = load_texture(texture, type);
+    iChannel[idx].textType = type;
 }
 
 void PixelShader::set_channel_shader(ChannelIndex idx, std::string const& vertex,
@@ -144,9 +146,16 @@ void PixelShader::bind_shader_uniform(Shader shader)
         switch (iChannel[i].type) {
             case CHANNEL_UNUSED:
                 break;
-            case CHANNEL_TEXTURE:
-                SetShaderValueTexture(shader, shaderLoc[shader.id][s], iChannel[i].text);
+            case CHANNEL_TEXTURE: {
+                if (iChannel[i].textType == "2d") {
+                    SetShaderValueTexture(shader, shaderLoc[shader.id][s], iChannel[i].text);
+                } else if (iChannel[i].textType == "cube") {
+                    int sampler = 0;
+                    SetShaderValue(shader, shaderLoc[shader.id][s], &sampler, SHADER_UNIFORM_INT);
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, iChannel[i].text.id);
+                }
                 break;
+            }
             case CHANNEL_SHADER:
                 SetShaderValueTexture(shader, shaderLoc[shader.id][s],
                                       iChannel[i].bufferPrev.texture);
@@ -183,7 +192,7 @@ void PixelShader::load_manifest(nlohmann::json const& j)
             if (ch["type"] == "shader") {
                 set_channel_shader(ChannelIndex(i), ch["vertexShader"], ch["fragmentShader"]);
             } else if (ch["type"] == "texture") {
-                set_channel_texture(ChannelIndex(i), ch["texture"]["file"], ch["texture"]["cube"]);
+                set_channel_texture(ChannelIndex(i), ch["texture"]["file"], ch["texture"]["type"]);
             }
         }
     }

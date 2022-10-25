@@ -30,13 +30,14 @@ private:
     {
         ChannelType type;
         Texture text;
+        std::string textType;
         RenderTexture2D buffer;
         RenderTexture2D bufferPrev;
         Shader shader;
     };
 
     void load_manifest(nlohmann::json const& j);
-    void set_channel_texture(ChannelIndex idx, std::string const& texture, bool cube);
+    void set_channel_texture(ChannelIndex idx, std::string const& texture, std::string const& type);
     void set_channel_shader(ChannelIndex idx, std::string const& vertex,
                             std::string const& fragment);
     void update_uniform();

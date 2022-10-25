@@ -63,7 +63,7 @@ float saturate(float x) {
 #define ZERO (min(iFrame,0))
 
 // Comment out to remove environment map
-// #define CUBEMAP
+#define CUBEMAP
 
 // Index of refraction for water
 #define IOR 1.333

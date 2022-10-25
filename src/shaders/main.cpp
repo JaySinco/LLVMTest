@@ -20,11 +20,18 @@ int main(int argc, char** argv)
     auto manifests = nlohmann::json::parse(raw.value());
     if (prog.is_used("manifest")) {
         auto m = prog.get<std::string>("manifest");
-        if (!manifests.contains(m)) {
+        int idx = -1;
+        for (int i = 0; i < manifests.size(); ++i) {
+            if (manifests[i]["name"] == m) {
+                idx = i;
+                break;
+            }
+        }
+        if (idx < 0) {
             std::cerr << fmt::format("unknow manifest: {}", m) << std::endl;
             return 1;
         }
-        auto& j = manifests[m];
+        auto& j = manifests[idx];
         std::unique_ptr<BaseShader> shader = nullptr;
         if (j["type"] == "uber") {
             shader.reset(new UberShader);
@@ -34,8 +41,8 @@ int main(int argc, char** argv)
         shader->render(j);
     } else {
         std::cerr << "[manifests]" << std::endl;
-        for (auto& [key, value]: manifests.items()) {
-            std::cerr << " - " << key << std::endl;
+        for (auto& item: manifests) {
+            std::cerr << " - " << item["name"].get<std::string>() << std::endl;
         }
         return 0;
     }

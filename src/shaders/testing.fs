@@ -6,7 +6,6 @@ uniform float iTimeDelta;
 uniform int iFrame;
 uniform vec4 iMouse;
 uniform vec4 iDate;
-uniform samplerCube iChannel2;
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 st = fragCoord.xy / iResolution.xy;

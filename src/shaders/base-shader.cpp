@@ -1,6 +1,4 @@
 #include "base-shader.h"
-#include <rlgl.h>
-#include <raymath.h>
 
 BaseShader::~BaseShader() {}
 
@@ -20,13 +18,16 @@ Shader BaseShader::load_shader(std::string const& vertex, std::string const& fra
                       (__DIRNAME__ / fragment).string().c_str());
 }
 
-Texture BaseShader::load_texture(std::string const& texture, bool cube)
+Texture BaseShader::load_texture(std::string const& texture, std::string const& type)
 {
     auto abspath = (utils::source_repo / fmt::format("models/{}", texture)).string();
-    if (!cube) {
+    if (type == "2d") {
         return LoadTexture(abspath.c_str());
+    } else if (type == "cube") {
+        Image image = LoadImage(abspath.c_str());
+        return LoadTextureCubemap(image, CUBEMAP_LAYOUT_AUTO_DETECT);
     } else {
-        throw std::runtime_error("cube texture not support yet!");
+        throw std::runtime_error(fmt::format("texture type not support: {}", type));
     }
 }
 
