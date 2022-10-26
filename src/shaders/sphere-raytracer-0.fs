@@ -1,5 +1,7 @@
 #version 330
 
+out vec4 finalColor;
+
 uniform vec3 iResolution;
 uniform float iTime;
 uniform float iTimeDelta;
@@ -612,5 +614,5 @@ void mainImage(out vec4 frag_color, in vec2 frag_coord) {
 }
 
 void main() {
-    mainImage(gl_FragColor, gl_FragCoord.xy);
+    mainImage(finalColor, gl_FragCoord.xy);
 }

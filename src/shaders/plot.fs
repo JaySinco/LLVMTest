@@ -1,5 +1,7 @@
 #version 330
 
+out vec4 finalColor;
+
 uniform vec3 iResolution;
 uniform float iTime;
 uniform float iTimeDelta;
@@ -126,5 +128,5 @@ float grid(vec2 p) {
 }
 
 void main() {
-    mainImage(gl_FragColor, gl_FragCoord.xy);
+    mainImage(finalColor, gl_FragCoord.xy);
 }

@@ -5,10 +5,10 @@ in vec2 vertexTexCoord;
 in vec3 vertexNormal;
 in vec4 vertexColor;
 
-uniform mat4 mvp;
-
 out vec2 fragTexCoord;
 out vec4 fragColor;
+
+uniform mat4 mvp;
 
 void main() {
     fragTexCoord = vertexTexCoord;
