@@ -12,7 +12,8 @@ UberShader::~UberShader()
 void UberShader::load_manifest(nlohmann::json const& j)
 {
     shader = load_shader(j["vertexShader"], j["fragmentShader"]);
-    texture = load_texture(j["texture"]["file"], j["texture"]["type"]);
+    auto& text = j["texture"];
+    texture = load_texture(text["file"], text["type"], text["filter"], text["wrap"]);
     model = load_model(j["model"]);
     model.materials[0].shader = shader;
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;

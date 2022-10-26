@@ -9,7 +9,9 @@
         "model": "watermill.obj",
         "texture": {
             "type": "2d",
-            "file": "watermill-diffuse.png"
+            "file": "watermill-diffuse.png",
+            "filter": "linear",
+            "wrap": "clamp"
         }
     },
     {

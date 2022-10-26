@@ -24,72 +24,28 @@ PixelShader::~PixelShader()
     UnloadShader(mainShader);
 }
 
-static RenderTexture2D load_buffer_texture(int width, int height)
-{
-    RenderTexture2D target = {0};
-
-    target.id = rlLoadFramebuffer(width, height);  // Load an empty framebuffer
-
-    if (target.id > 0) {
-        rlEnableFramebuffer(target.id);
-
-        // Create color texture (default to RGBA)
-        target.texture.id =
-            rlLoadTexture(NULL, width, height, PIXELFORMAT_UNCOMPRESSED_R32G32B32A32, 1);
-        target.texture.width = width;
-        target.texture.height = height;
-        target.texture.format = PIXELFORMAT_UNCOMPRESSED_R32G32B32A32;
-        target.texture.mipmaps = 1;
-
-        // Create depth renderbuffer/texture
-        target.depth.id = rlLoadTextureDepth(width, height, true);
-        target.depth.width = width;
-        target.depth.height = height;
-        target.depth.format = 19;  // DEPTH_COMPONENT_24BIT?
-        target.depth.mipmaps = 1;
-
-        // Attach color texture and depth renderbuffer/texture to FBO
-        rlFramebufferAttach(target.id, target.texture.id, RL_ATTACHMENT_COLOR_CHANNEL0,
-                            RL_ATTACHMENT_TEXTURE2D, 0);
-        rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH,
-                            RL_ATTACHMENT_RENDERBUFFER, 0);
-
-        // Check if fbo is complete with attachments (valid)
-        if (rlFramebufferComplete(target.id)) {
-            spdlog::info("FBO: [ID {}] Framebuffer object created successfully", target.id);
-        }
-        rlDisableFramebuffer();
-    } else {
-        spdlog::error("FBO: Framebuffer object can not be created");
-    }
-
-    return target;
-}
-
 void PixelShader::set_channel_texture(ChannelIndex idx, std::string const& texture,
-                                      std::string const& type)
+                                      std::string const& type, std::string const& filter,
+                                      std::string const& wrap)
 {
     iChannel[idx].type = CHANNEL_TEXTURE;
-    iChannel[idx].text = load_texture(texture, type);
+    iChannel[idx].text = load_texture(texture, type, filter, wrap);
     iChannel[idx].textType = type;
+    iChannel[idx].filter = filter;
+    iChannel[idx].wrap = wrap;
 }
 
 void PixelShader::set_channel_shader(ChannelIndex idx, std::string const& vertex,
-                                     std::string const& fragment)
+                                     std::string const& fragment, std::string const& filter,
+                                     std::string const& wrap)
 {
     iChannel[idx].type = CHANNEL_SHADER;
-    iChannel[idx].buffer = load_buffer_texture(screenWidth, screenHeight);
-    iChannel[idx].bufferPrev = load_buffer_texture(screenWidth, screenHeight);
+    iChannel[idx].buffer = load_buffer_texture(screenWidth, screenHeight, filter, wrap);
+    iChannel[idx].bufferPrev = load_buffer_texture(screenWidth, screenHeight, filter, wrap);
     iChannel[idx].shader = load_shader(vertex, fragment);
+    iChannel[idx].filter = filter;
+    iChannel[idx].wrap = wrap;
     get_location(iChannel[idx].shader);
-    // glBindTexture(GL_TEXTURE_2D, iChannel[idx].bufferPrev.texture.id);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-    // glGenerateMipmap(GL_TEXTURE_2D);
-    // glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void PixelShader::get_location(Shader shader)
@@ -195,9 +151,12 @@ void PixelShader::load_manifest(nlohmann::json const& j)
         } else {
             auto& ch = j[k];
             if (ch["type"] == "shader") {
-                set_channel_shader(ChannelIndex(i), ch["vertexShader"], ch["fragmentShader"]);
+                set_channel_shader(ChannelIndex(i), ch["vertexShader"], ch["fragmentShader"],
+                                   ch["filter"], ch["wrap"]);
             } else if (ch["type"] == "texture") {
-                set_channel_texture(ChannelIndex(i), ch["texture"]["file"], ch["texture"]["type"]);
+                auto& text = ch["texture"];
+                set_channel_texture(ChannelIndex(i), text["file"], text["type"], text["filter"],
+                                    text["wrap"]);
             }
         }
     }
@@ -226,6 +185,11 @@ void PixelShader::render(nlohmann::json const& j)
                 glCopyImageSubData(iChannel[i].buffer.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
                                    iChannel[i].bufferPrev.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
                                    screenWidth, screenHeight, 1);
+                if (iChannel[i].filter == "mipmap") {
+                    glBindTexture(GL_TEXTURE_2D, iChannel[i].bufferPrev.texture.id);
+                    glGenerateMipmap(GL_TEXTURE_2D);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
             }
         }
         BeginDrawing();
