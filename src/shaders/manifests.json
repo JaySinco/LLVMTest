@@ -4,6 +4,7 @@
         "type": "uber",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "mvp.vs",
         "fragmentShader": "diffuse.fs",
         "model": "watermill.obj",
@@ -19,6 +20,7 @@
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "pixel.vs",
         "fragmentShader": "seascape.fs"
     },
@@ -27,6 +29,7 @@
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "pixel.vs",
         "fragmentShader": "plot.fs"
     },
@@ -35,6 +38,7 @@
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "pixel.vs",
         "fragmentShader": "sphere-raytracer.fs",
         "channel0": {
@@ -50,6 +54,7 @@
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "pixel.vs",
         "fragmentShader": "ocean-elf.fs",
         "channel0": {
@@ -81,6 +86,7 @@
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "pixel.vs",
         "fragmentShader": "floating-ball.fs"
     },
@@ -89,6 +95,7 @@
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "pixel.vs",
         "fragmentShader": "foamy-anger.fs",
         "channel0": {
@@ -121,10 +128,20 @@
         }
     },
     {
-        "name": "testing",
+        "name": "2d",
         "type": "pixel",
         "screenWidth": 640,
         "screenHeight": 360,
+        "targetFPS": 60,
+        "vertexShader": "pixel.vs",
+        "fragmentShader": "2d.fs"
+    },
+    {
+        "name": "test",
+        "type": "pixel",
+        "screenWidth": 640,
+        "screenHeight": 360,
+        "targetFPS": 60,
         "vertexShader": "pixel.vs",
         "fragmentShader": "testing.fs"
     }

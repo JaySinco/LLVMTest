@@ -162,6 +162,10 @@ void PixelShader::load_manifest(nlohmann::json const& j)
     }
     mainShader = load_shader(j["vertexShader"], j["fragmentShader"]);
     get_location(mainShader);
+    int fps = j["targetFPS"];
+    if (fps > 0) {
+        SetTargetFPS(fps);
+    }
 }
 
 void PixelShader::render(nlohmann::json const& j)
@@ -170,7 +174,6 @@ void PixelShader::render(nlohmann::json const& j)
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(screenWidth, screenHeight, "Pixel Shader");
 
-    SetTargetFPS(60);
     PixelShader::load_manifest(j);
 
     while (!WindowShouldClose()) {
