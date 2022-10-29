@@ -10,9 +10,10 @@ uniform vec4 iMouse;
 uniform vec4 iDate;
 
 #define PI 3.14159265
-#define d2a(d) (d / 180.0 * PI)
-#define ONE_PIXEL (1.0 / iResolution.y)
+#define COORD_SCALE 16.0
+#define ONE_PIXEL (COORD_SCALE / iResolution.y)
 #define SMOOTH_PIXEL (3.0 * ONE_PIXEL)
+#define d2a(d) (d / 180.0 * PI)
 
 vec2 translate(vec2 st, vec2 d) {
     return st - d;
@@ -70,21 +71,28 @@ float line(vec2 st, vec2 p1, vec2 p2, float lw) {
     return p > 0 ? p : (l1 > 0 ? l1 : l2);
 }
 
+void drawGrid(vec2 st, float lw) {
+    vec2 uv = fract(st);
+    float grid = smoothstep(0, lw, 0.5 - max(abs(uv.x - 0.5), abs(uv.y - 0.5)));
+    float axis = smoothstep(lw * 1.0, lw * 2.0, min(abs(st.x), abs(st.y)));
+    finalColor = vec4(vec3(min(grid, axis) * 0.25 + 0.75), 0.0);
+}
+
 void main() {
-    vec2 st = gl_FragCoord.xy * ONE_PIXEL;
+    vec2 st = (gl_FragCoord.xy - iResolution.xy / 2.0) * ONE_PIXEL;
     float lw = 5.0 * ONE_PIXEL;
 
-    finalColor = vec4(0.0, 0.0, 0.0, 1.0);
+    drawGrid(st, 1 * ONE_PIXEL);
 
-    draw(wireRect(rotate(translate(st, vec2(0.7, 0.7)), d2a(-18)), vec2(0.4, 0.4), lw), vec3(0.1, 0.8, 0.1));
+    draw(wireRect(translate(rotate(st, d2a(85.0)), vec2(3.0, 5.0)), vec2(4.0, 4.0), lw), vec3(0.1, 0.8, 0.1));
 
-    draw(solidCircle(translate(st, vec2(0.8, 0.25)), 0.2), vec3(0.93f, 0.56f, 0.02f));
-    draw(wireCircle(translate(st, vec2(0.8, 0.25)), 0.2, lw), vec3(0.85f, 0.84f, 0.03f));
+    draw(solidCircle(translate(st, vec2(-7, -4)), 3), vec3(0.93, 0.56, 0.02));
+    draw(wireCircle(translate(st, vec2(-7, -4)), 3, lw), vec3(0.85, 0.84, 0.03));
 
-    draw(line(st, vec2(0.2, 0.9), vec2(1.0, 0.4), lw), vec3(0.6, 0.2, 0.8));
-    draw(line(st, vec2(0.2, 0.9), vec2(1.2, 0.7), lw), vec3(0.6, 0.2, 0.8));
-    draw(line(st, vec2(1.0, 0.4), vec2(1.2, 0.7), lw), vec3(0.6, 0.2, 0.8));
+    draw(line(st, vec2(7.0, 5.0), vec2(2.0, -5.0), lw), vec3(0.6, 0.2, 0.8));
+    draw(line(st, vec2(7.0, 5.0), vec2(-8.0, 3.0), lw), vec3(0.6, 0.2, 0.8));
+    draw(line(st, vec2(2.0, -5.0), vec2(-8.0, 3.0), lw), vec3(0.6, 0.2, 0.8));
 
-    draw(solidRect(translate(rotate(st, d2a(18)), vec2(1.05, 0.5)), vec2(0.2, 0.1)), vec3(0.07f, 0.36f, 0.34f));
-    draw(wireRect(translate(rotate(st, d2a(18)), vec2(1.05, 0.5)), vec2(0.2, 0.1), lw), vec3(0.8, 0.2, 0.1));
+    draw(solidRect(translate(rotate(st, d2a(18)), vec2(-2.0, 1.0)), vec2(5, 2)), vec3(0.07f, 0.36f, 0.34f));
+    draw(wireRect(translate(rotate(st, d2a(18)), vec2(-2.0, 1.0)), vec2(5, 2), lw), vec3(0.8, 0.2, 0.1));
 }
