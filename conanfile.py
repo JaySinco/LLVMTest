@@ -46,6 +46,8 @@ class PrototypingConan(ConanFile):
         self.requires(self._ref_pkg("libiconv/1.17"))
         self.requires(self._ref_pkg("raylib/4.2.0"))
         self.requires(self._ref_pkg("nlohmann-json/3.11.2"))
+        self.requires(self._ref_pkg("cpr/1.9.2"))
+        self.requires(self._ref_pkg("uwebsockets/20.14.0"))
 
     def layout(self):
         build_folder = "out"
