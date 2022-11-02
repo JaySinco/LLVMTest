@@ -86,7 +86,11 @@ void PixelShader::update_uniform()
 
     time_t now = std::time(0);
     tm gt{0};
+#ifdef __linux__
+    localtime_r(&now, &gt);
+#elif _WIN32
     localtime_s(&gt, &now);
+#endif
     iDate[0] = gt.tm_year;
     iDate[1] = gt.tm_mon;
     iDate[2] = gt.tm_mday;
