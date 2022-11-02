@@ -30,8 +30,6 @@ find_package(range-v3 REQUIRED CONFIG)
 find_package(Iconv REQUIRED CONFIG)
 find_package(raylib REQUIRED CONFIG)
 find_package(nlohmann-json REQUIRED CONFIG)
-find_package(cpr REQUIRED CONFIG)
-find_package(uWebSockets REQUIRED CONFIG)
 
 include_directories(src)
 add_subdirectory(src)
