@@ -1,5 +1,6 @@
 #include "utils/base.h"
 #include <fmt/ranges.h>
+#define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
 std::default_random_engine g_random_engine;
@@ -445,4 +446,17 @@ TEST_CASE("sort_benchmark", "[benchmark]")
     SORT_BENCHMARK(quick_sort);
     SORT_BENCHMARK(heap_sort);
     SORT_BENCHMARK(count_sort);
+}
+
+int main(int argc, char* argv[])
+{
+    Catch::Session session;
+    auto& config = session.configData();
+    config.benchmarkSamples = 10;
+    config.benchmarkNoAnalysis = true;
+    config.shouldDebugBreak = true;
+    int returnCode = session.applyCommandLine(argc, argv);
+    if (returnCode != 0) return returnCode;
+    int numFailed = session.run();
+    return numFailed;
 }

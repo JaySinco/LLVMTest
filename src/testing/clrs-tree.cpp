@@ -2,6 +2,7 @@
 #include <fmt/ranges.h>
 #include <functional>
 #include <stack>
+#define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
 struct BinaryTree
@@ -446,4 +447,15 @@ TEST_CASE("binary_search_tree")
             REQUIRE(aft == ans);
         }
     }
+}
+
+int main(int argc, char* argv[])
+{
+    Catch::Session session;
+    auto& config = session.configData();
+    config.shouldDebugBreak = true;
+    int returnCode = session.applyCommandLine(argc, argv);
+    if (returnCode != 0) return returnCode;
+    int numFailed = session.run();
+    return numFailed;
 }

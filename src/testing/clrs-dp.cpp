@@ -4,6 +4,7 @@
 #include <functional>
 #include <stack>
 #include <iterator>
+#define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -274,4 +275,15 @@ TEST_CASE("dynamic_programming")
             CHECK(b == c);
         }
     }
+}
+
+int main(int argc, char* argv[])
+{
+    Catch::Session session;
+    auto& config = session.configData();
+    config.shouldDebugBreak = true;
+    int returnCode = session.applyCommandLine(argc, argv);
+    if (returnCode != 0) return returnCode;
+    int numFailed = session.run();
+    return numFailed;
 }
