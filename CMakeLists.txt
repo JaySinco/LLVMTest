@@ -31,6 +31,8 @@ find_package(Iconv REQUIRED CONFIG)
 find_package(raylib REQUIRED CONFIG)
 find_package(nlohmann-json REQUIRED CONFIG)
 find_package(uWebSockets REQUIRED CONFIG)
+find_package(concurrentqueue REQUIRED CONFIG)
+find_package(threadpool REQUIRED CONFIG)
 
 include_directories(src)
 add_subdirectory(src)
