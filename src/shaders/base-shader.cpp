@@ -2,7 +2,7 @@
 #include <rlgl.h>
 #include <glad.h>
 
-static unsigned int generate_cubemap_texture(void const* data, int size, int format)
+static unsigned int generateCubemapTexture(void const* data, int size, int format)
 {
     unsigned int id = 0;
     unsigned int dataSize = GetPixelDataSize(size, size, format);
@@ -44,7 +44,7 @@ static unsigned int generate_cubemap_texture(void const* data, int size, int for
     return id;
 }
 
-static TextureCubemap load_texture_cubemap(Image image, int layout)
+static TextureCubemap loadTextureCubemap(Image image, int layout)
 {
     TextureCubemap cubemap = {0};
 
@@ -141,7 +141,7 @@ static TextureCubemap load_texture_cubemap(Image image, int layout)
                       WHITE);
     }
 
-    cubemap.id = generate_cubemap_texture(faces.data, size, faces.format);
+    cubemap.id = generateCubemapTexture(faces.data, size, faces.format);
     if (cubemap.id == 0) spdlog::error("failed to load cubemap image");
 
     UnloadImage(faces);
@@ -149,70 +149,70 @@ static TextureCubemap load_texture_cubemap(Image image, int layout)
     return cubemap;
 }
 
-static void setup_texture_param(std::string const& type, Texture text, std::string const& filter,
-                                std::string const& wrap)
+static void setupTextureParam(std::string const& type, Texture text, std::string const& filter,
+                              std::string const& wrap)
 {
-    GLint gl_filter = 0;
+    GLint gFilter = 0;
     if (filter == "nearest") {
-        gl_filter = GL_NEAREST;
+        gFilter = GL_NEAREST;
     } else if (filter == "linear") {
-        gl_filter = GL_LINEAR;
+        gFilter = GL_LINEAR;
     } else if (filter == "mipmap") {
-        gl_filter = GL_LINEAR_MIPMAP_LINEAR;
+        gFilter = GL_LINEAR_MIPMAP_LINEAR;
     } else {
         throw std::runtime_error(fmt::format("texture filter not support: {}", filter));
     }
 
-    GLint gl_wrap = 0;
+    GLint gWrap = 0;
     if (wrap == "clamp") {
-        gl_wrap = GL_CLAMP_TO_EDGE;
+        gWrap = GL_CLAMP_TO_EDGE;
     } else if (wrap == "repeat") {
-        gl_wrap = GL_REPEAT;
+        gWrap = GL_REPEAT;
     } else {
         throw std::runtime_error(fmt::format("texture filter not support: {}", filter));
     }
 
-    GLenum gl_target = 0;
+    GLenum gTarget = 0;
     if (type == "2d") {
-        gl_target = GL_TEXTURE_2D;
+        gTarget = GL_TEXTURE_2D;
     } else if (type == "cube") {
-        gl_target = GL_TEXTURE_CUBE_MAP;
+        gTarget = GL_TEXTURE_CUBE_MAP;
     } else {
         throw std::runtime_error(fmt::format("texture type not support: {}", type));
     }
 
-    glBindTexture(gl_target, text.id);
-    glTexParameteri(gl_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(gl_target, GL_TEXTURE_MIN_FILTER, gl_filter);
-    glTexParameteri(gl_target, GL_TEXTURE_WRAP_S, gl_wrap);
-    glTexParameteri(gl_target, GL_TEXTURE_WRAP_T, gl_wrap);
-    glTexParameteri(gl_target, GL_TEXTURE_WRAP_R, gl_wrap);
+    glBindTexture(gTarget, text.id);
+    glTexParameteri(gTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(gTarget, GL_TEXTURE_MIN_FILTER, gFilter);
+    glTexParameteri(gTarget, GL_TEXTURE_WRAP_S, gWrap);
+    glTexParameteri(gTarget, GL_TEXTURE_WRAP_T, gWrap);
+    glTexParameteri(gTarget, GL_TEXTURE_WRAP_R, gWrap);
     if (filter == "mipmap") {
-        glGenerateMipmap(gl_target);
+        glGenerateMipmap(gTarget);
     }
-    glBindTexture(gl_target, 0);
+    glBindTexture(gTarget, 0);
 }
 
 BaseShader::~BaseShader() = default;
 
-void BaseShader::load_manifest(nlohmann::json const& j)
+void BaseShader::loadManifest(nlohmann::json const& j)
 {
     if (j.contains("screenWidth")) {
-        screenWidth = j["screenWidth"];
+        screenWidth_ = j["screenWidth"];
     }
     if (j.contains("screenHeight")) {
-        screenHeight = j["screenHeight"];
+        screenHeight_ = j["screenHeight"];
     }
 }
 
-Shader BaseShader::load_shader(std::string const& vertex, std::string const& fragment)
+Shader BaseShader::loadShader(std::string const& vertex, std::string const& fragment)
 {
     return LoadShader((__DIRNAME__ / vertex).string().c_str(),
                       (__DIRNAME__ / fragment).string().c_str());
 }
 
-RenderTexture2D BaseShader::load_buffer_texture(int width, int height, std::string const& filter,
-                                                std::string const& wrap)
+RenderTexture2D BaseShader::loadBufferTexture(int width, int height, std::string const& filter,
+                                              std::string const& wrap)
 {
     RenderTexture2D target = {0};
 
@@ -247,12 +247,12 @@ RenderTexture2D BaseShader::load_buffer_texture(int width, int height, std::stri
         spdlog::error("FBO: Framebuffer object can not be created");
     }
 
-    setup_texture_param("2d", target.texture, filter, wrap);
+    setupTextureParam("2d", target.texture, filter, wrap);
     return target;
 }
 
-Texture BaseShader::load_texture(std::string const& texture, std::string const& type,
-                                 std::string const& filter, std::string const& wrap)
+Texture BaseShader::loadTexture(std::string const& texture, std::string const& type,
+                                std::string const& filter, std::string const& wrap)
 {
     auto abspath = (utils::source_repo / fmt::format("models/{}", texture)).string();
     Texture text;
@@ -260,15 +260,15 @@ Texture BaseShader::load_texture(std::string const& texture, std::string const& 
         text = LoadTexture(abspath.c_str());
     } else if (type == "cube") {
         Image image = LoadImage(abspath.c_str());
-        text = load_texture_cubemap(image, CUBEMAP_LAYOUT_AUTO_DETECT);
+        text = loadTextureCubemap(image, CUBEMAP_LAYOUT_AUTO_DETECT);
     } else {
         throw std::runtime_error(fmt::format("texture type not support: {}", type));
     }
-    setup_texture_param(type, text, filter, wrap);
+    setupTextureParam(type, text, filter, wrap);
     return text;
 }
 
-Model BaseShader::load_model(std::string const& model)
+Model BaseShader::loadModel(std::string const& model)
 {
     return LoadModel((utils::source_repo / fmt::format("models/{}", model)).string().c_str());
 }

@@ -38,25 +38,24 @@ private:
         Shader shader;
     };
 
-    void load_manifest(nlohmann::json const& j);
-    void set_channel_texture(ChannelIndex idx, std::string const& texture, std::string const& type,
-                             std::string const& filter, std::string const& wrap);
-    void set_channel_shader(ChannelIndex idx, std::string const& vertex,
-                            std::string const& fragment, std::string const& filter,
-                            std::string const& wrap);
-    void update_uniform();
-    void get_location(Shader shader);
-    void bind_shader_uniform(Shader shader);
-    void draw_rect(Shader shader);
+    void loadManifest(nlohmann::json const& j);
+    void setChannelTexture(ChannelIndex idx, std::string const& texture, std::string const& type,
+                           std::string const& filter, std::string const& wrap);
+    void setChannelShader(ChannelIndex idx, std::string const& vertex, std::string const& fragment,
+                          std::string const& filter, std::string const& wrap);
+    void updateUniform();
+    void getLocation(Shader shader);
+    void bindShaderUniform(Shader shader);
+    void drawRect(Shader shader);
 
-    float iResolution[3];
-    float iTime;
-    float iTimeDelta;
-    int iFrame;
-    float iMouse[4];
-    float iDate[4];
-    Channel iChannel[CHANNEL_MAX];
+    float iResolution_[3];
+    float iTime_;
+    float iTimeDelta_;
+    int iFrame_;
+    float iMouse_[4];
+    float iDate_[4];
+    Channel iChannel_[CHANNEL_MAX];
 
-    std::map<decltype(std::declval<Shader>().id), std::map<std::string, int>> shaderLoc;
-    Shader mainShader;
+    std::map<decltype(std::declval<Shader>().id), std::map<std::string, int>> shaderLoc_;
+    Shader mainShader_;
 };

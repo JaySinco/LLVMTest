@@ -9,9 +9,9 @@ public:
     void render(nlohmann::json const& j) override;
 
 private:
-    void load_manifest(nlohmann::json const& j);
+    void loadManifest(nlohmann::json const& j);
 
-    Shader shader;
-    Texture texture;
-    Model model;
+    Shader shader_;
+    Texture texture_;
+    Model model_;
 };

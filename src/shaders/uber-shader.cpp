@@ -4,26 +4,26 @@ UberShader::UberShader() = default;
 
 UberShader::~UberShader()
 {
-    UnloadShader(shader);
-    UnloadTexture(texture);
-    UnloadModel(model);
+    UnloadShader(shader_);
+    UnloadTexture(texture_);
+    UnloadModel(model_);
 }
 
-void UberShader::load_manifest(nlohmann::json const& j)
+void UberShader::loadManifest(nlohmann::json const& j)
 {
-    shader = load_shader(j["vertexShader"], j["fragmentShader"]);
+    shader_ = loadShader(j["vertexShader"], j["fragmentShader"]);
     auto& text = j["texture"];
-    texture = load_texture(text["file"], text["type"], text["filter"], text["wrap"]);
-    model = load_model(j["model"]);
-    model.materials[0].shader = shader;
-    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
+    texture_ = loadTexture(text["file"], text["type"], text["filter"], text["wrap"]);
+    model_ = loadModel(j["model"]);
+    model_.materials[0].shader = shader_;
+    model_.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture_;
 }
 
 void UberShader::render(nlohmann::json const& j)
 {
-    BaseShader::load_manifest(j);
+    BaseShader::loadManifest(j);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(screenWidth, screenHeight, "Uber Shader");
+    InitWindow(screenWidth_, screenHeight_, "Uber Shader");
 
     Camera camera = {0};
     camera.position = Vector3{4.0f, 4.0f, 4.0f};
@@ -36,14 +36,14 @@ void UberShader::render(nlohmann::json const& j)
 
     SetCameraMode(camera, CAMERA_FREE);
     SetTargetFPS(60);
-    UberShader::load_manifest(j);
+    UberShader::loadManifest(j);
 
     while (!WindowShouldClose()) {
         UpdateCamera(&camera);
         BeginDrawing();
         ClearBackground(RAYWHITE);
         BeginMode3D(camera);
-        DrawModel(model, position, 0.2f, WHITE);
+        DrawModel(model_, position, 0.2f, WHITE);
         DrawGrid(10, 1.0f);
         EndMode3D();
         DrawFPS(10, 10);

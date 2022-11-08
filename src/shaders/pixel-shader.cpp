@@ -8,80 +8,80 @@ PixelShader::PixelShader() = default;
 PixelShader::~PixelShader()
 {
     for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
-        switch (iChannel[i].type) {
+        switch (iChannel_[i].type) {
             case CHANNEL_UNUSED:
                 break;
             case CHANNEL_TEXTURE:
-                UnloadTexture(iChannel[i].text);
+                UnloadTexture(iChannel_[i].text);
                 break;
             case CHANNEL_SHADER:
-                UnloadRenderTexture(iChannel[i].buffer);
-                UnloadRenderTexture(iChannel[i].bufferPrev);
-                UnloadShader(iChannel[i].shader);
+                UnloadRenderTexture(iChannel_[i].buffer);
+                UnloadRenderTexture(iChannel_[i].bufferPrev);
+                UnloadShader(iChannel_[i].shader);
                 break;
         }
     }
-    UnloadShader(mainShader);
+    UnloadShader(mainShader_);
 }
 
-void PixelShader::set_channel_texture(ChannelIndex idx, std::string const& texture,
-                                      std::string const& type, std::string const& filter,
-                                      std::string const& wrap)
+void PixelShader::setChannelTexture(ChannelIndex idx, std::string const& texture,
+                                    std::string const& type, std::string const& filter,
+                                    std::string const& wrap)
 {
-    iChannel[idx].type = CHANNEL_TEXTURE;
-    iChannel[idx].text = load_texture(texture, type, filter, wrap);
-    iChannel[idx].textType = type;
-    iChannel[idx].filter = filter;
-    iChannel[idx].wrap = wrap;
+    iChannel_[idx].type = CHANNEL_TEXTURE;
+    iChannel_[idx].text = loadTexture(texture, type, filter, wrap);
+    iChannel_[idx].textType = type;
+    iChannel_[idx].filter = filter;
+    iChannel_[idx].wrap = wrap;
 }
 
-void PixelShader::set_channel_shader(ChannelIndex idx, std::string const& vertex,
-                                     std::string const& fragment, std::string const& filter,
-                                     std::string const& wrap)
+void PixelShader::setChannelShader(ChannelIndex idx, std::string const& vertex,
+                                   std::string const& fragment, std::string const& filter,
+                                   std::string const& wrap)
 {
-    iChannel[idx].type = CHANNEL_SHADER;
-    iChannel[idx].buffer = load_buffer_texture(screenWidth, screenHeight, filter, wrap);
-    iChannel[idx].bufferPrev = load_buffer_texture(screenWidth, screenHeight, filter, wrap);
-    iChannel[idx].shader = load_shader(vertex, fragment);
-    iChannel[idx].filter = filter;
-    iChannel[idx].wrap = wrap;
-    get_location(iChannel[idx].shader);
+    iChannel_[idx].type = CHANNEL_SHADER;
+    iChannel_[idx].buffer = loadBufferTexture(screenWidth_, screenHeight_, filter, wrap);
+    iChannel_[idx].bufferPrev = loadBufferTexture(screenWidth_, screenHeight_, filter, wrap);
+    iChannel_[idx].shader = loadShader(vertex, fragment);
+    iChannel_[idx].filter = filter;
+    iChannel_[idx].wrap = wrap;
+    getLocation(iChannel_[idx].shader);
 }
 
-void PixelShader::get_location(Shader shader)
+void PixelShader::getLocation(Shader shader)
 {
-    shaderLoc[shader.id]["iResolution"] = GetShaderLocation(shader, "iResolution");
-    shaderLoc[shader.id]["iTime"] = GetShaderLocation(shader, "iTime");
-    shaderLoc[shader.id]["iTimeDelta"] = GetShaderLocation(shader, "iTimeDelta");
-    shaderLoc[shader.id]["iFrame"] = GetShaderLocation(shader, "iFrame");
-    shaderLoc[shader.id]["iMouse"] = GetShaderLocation(shader, "iMouse");
-    shaderLoc[shader.id]["iDate"] = GetShaderLocation(shader, "iDate");
+    shaderLoc_[shader.id]["iResolution"] = GetShaderLocation(shader, "iResolution");
+    shaderLoc_[shader.id]["iTime"] = GetShaderLocation(shader, "iTime");
+    shaderLoc_[shader.id]["iTimeDelta"] = GetShaderLocation(shader, "iTimeDelta");
+    shaderLoc_[shader.id]["iFrame"] = GetShaderLocation(shader, "iFrame");
+    shaderLoc_[shader.id]["iMouse"] = GetShaderLocation(shader, "iMouse");
+    shaderLoc_[shader.id]["iDate"] = GetShaderLocation(shader, "iDate");
     for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
         std::string s = fmt::format("iChannel{}", i);
-        shaderLoc[shader.id][s] = GetShaderLocation(shader, s.c_str());
+        shaderLoc_[shader.id][s] = GetShaderLocation(shader, s.c_str());
     }
 }
 
-void PixelShader::update_uniform()
+void PixelShader::updateUniform()
 {
-    iTimeDelta = GetFrameTime();
-    iTime += iTimeDelta;
-    ++iFrame;
+    iTimeDelta_ = GetFrameTime();
+    iTime_ += iTimeDelta_;
+    ++iFrame_;
 
     auto mpos = GetMousePosition();
-    mpos.y = screenHeight - mpos.y;
+    mpos.y = screenHeight_ - mpos.y;
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        iMouse[2] = mpos.x;
-        iMouse[3] = mpos.y;
+        iMouse_[2] = mpos.x;
+        iMouse_[3] = mpos.y;
     } else {
-        iMouse[3] = -1 * std::abs(iMouse[3]);
+        iMouse_[3] = -1 * std::abs(iMouse_[3]);
     }
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        iMouse[0] = mpos.x;
-        iMouse[1] = mpos.y;
-        iMouse[2] = std::abs(iMouse[2]);
+        iMouse_[0] = mpos.x;
+        iMouse_[1] = mpos.y;
+        iMouse_[2] = std::abs(iMouse_[2]);
     } else {
-        iMouse[2] = -1 * std::abs(iMouse[2]);
+        iMouse_[2] = -1 * std::abs(iMouse_[2]);
     }
 
     time_t now = std::time(nullptr);
@@ -91,81 +91,81 @@ void PixelShader::update_uniform()
 #elif _WIN32
     localtime_s(&gt, &now);
 #endif
-    iDate[0] = gt.tm_year;
-    iDate[1] = gt.tm_mon;
-    iDate[2] = gt.tm_mday;
-    iDate[3] = gt.tm_hour * 3600 + gt.tm_min * 60 + gt.tm_sec;
+    iDate_[0] = gt.tm_year;
+    iDate_[1] = gt.tm_mon;
+    iDate_[2] = gt.tm_mday;
+    iDate_[3] = gt.tm_hour * 3600 + gt.tm_min * 60 + gt.tm_sec;
 }
 
-void PixelShader::bind_shader_uniform(Shader shader)
+void PixelShader::bindShaderUniform(Shader shader)
 {
-    SetShaderValue(shader, shaderLoc[shader.id]["iResolution"], iResolution, SHADER_UNIFORM_VEC3);
-    SetShaderValue(shader, shaderLoc[shader.id]["iTime"], &iTime, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(shader, shaderLoc[shader.id]["iTimeDelta"], &iTimeDelta, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(shader, shaderLoc[shader.id]["iFrame"], &iFrame, SHADER_UNIFORM_INT);
-    SetShaderValue(shader, shaderLoc[shader.id]["iMouse"], iMouse, SHADER_UNIFORM_VEC4);
-    SetShaderValue(shader, shaderLoc[shader.id]["iDate"], iDate, SHADER_UNIFORM_VEC4);
+    SetShaderValue(shader, shaderLoc_[shader.id]["iResolution"], iResolution_, SHADER_UNIFORM_VEC3);
+    SetShaderValue(shader, shaderLoc_[shader.id]["iTime"], &iTime_, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(shader, shaderLoc_[shader.id]["iTimeDelta"], &iTimeDelta_, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(shader, shaderLoc_[shader.id]["iFrame"], &iFrame_, SHADER_UNIFORM_INT);
+    SetShaderValue(shader, shaderLoc_[shader.id]["iMouse"], iMouse_, SHADER_UNIFORM_VEC4);
+    SetShaderValue(shader, shaderLoc_[shader.id]["iDate"], iDate_, SHADER_UNIFORM_VEC4);
 
     for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
         std::string s = fmt::format("iChannel{}", i);
-        switch (iChannel[i].type) {
+        switch (iChannel_[i].type) {
             case CHANNEL_UNUSED:
                 break;
             case CHANNEL_TEXTURE: {
-                if (iChannel[i].textType == "2d") {
-                    SetShaderValueTexture(shader, shaderLoc[shader.id][s], iChannel[i].text);
-                } else if (iChannel[i].textType == "cube") {
+                if (iChannel_[i].textType == "2d") {
+                    SetShaderValueTexture(shader, shaderLoc_[shader.id][s], iChannel_[i].text);
+                } else if (iChannel_[i].textType == "cube") {
                     int sampler = 0;
-                    SetShaderValue(shader, shaderLoc[shader.id][s], &sampler, SHADER_UNIFORM_INT);
-                    glBindTexture(GL_TEXTURE_CUBE_MAP, iChannel[i].text.id);
+                    SetShaderValue(shader, shaderLoc_[shader.id][s], &sampler, SHADER_UNIFORM_INT);
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, iChannel_[i].text.id);
                 }
                 break;
             }
             case CHANNEL_SHADER:
-                SetShaderValueTexture(shader, shaderLoc[shader.id][s],
-                                      iChannel[i].bufferPrev.texture);
+                SetShaderValueTexture(shader, shaderLoc_[shader.id][s],
+                                      iChannel_[i].bufferPrev.texture);
                 break;
         }
     }
 }
 
-void PixelShader::draw_rect(Shader shader)
+void PixelShader::drawRect(Shader shader)
 {
     BeginShaderMode(shader);
-    bind_shader_uniform(shader);
+    bindShaderUniform(shader);
     DrawTriangle3D(Vector3{-1, -1, 1}, Vector3{1, 1, 1}, Vector3{-1, 1, 1}, WHITE);
     DrawTriangle3D(Vector3{1, 1, 1}, Vector3{-1, -1, 1}, Vector3{1, -1, 1}, WHITE);
     EndShaderMode();
 }
 
-void PixelShader::load_manifest(nlohmann::json const& j)
+void PixelShader::loadManifest(nlohmann::json const& j)
 {
-    iResolution[0] = screenWidth;
-    iResolution[1] = screenHeight;
-    iResolution[2] = 1.0;
-    iTime = 0;
-    iTimeDelta = 0;
-    iFrame = 0;
-    std::memset(iDate, 0, sizeof(iDate));
-    std::memset(iMouse, 0, sizeof(iMouse));
+    iResolution_[0] = screenWidth_;
+    iResolution_[1] = screenHeight_;
+    iResolution_[2] = 1.0;
+    iTime_ = 0;
+    iTimeDelta_ = 0;
+    iFrame_ = 0;
+    std::memset(iDate_, 0, sizeof(iDate_));
+    std::memset(iMouse_, 0, sizeof(iMouse_));
     for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
         std::string k = fmt::format("channel{}", i);
         if (!j.contains(k)) {
-            iChannel[i].type = CHANNEL_UNUSED;
+            iChannel_[i].type = CHANNEL_UNUSED;
         } else {
             auto& ch = j[k];
             if (ch["type"] == "shader") {
-                set_channel_shader(static_cast<ChannelIndex>(i), ch["vertexShader"],
-                                   ch["fragmentShader"], ch["filter"], ch["wrap"]);
+                setChannelShader(static_cast<ChannelIndex>(i), ch["vertexShader"],
+                                 ch["fragmentShader"], ch["filter"], ch["wrap"]);
             } else if (ch["type"] == "texture") {
                 auto& text = ch["texture"];
-                set_channel_texture(static_cast<ChannelIndex>(i), text["file"], text["type"],
-                                    text["filter"], text["wrap"]);
+                setChannelTexture(static_cast<ChannelIndex>(i), text["file"], text["type"],
+                                  text["filter"], text["wrap"]);
             }
         }
     }
-    mainShader = load_shader(j["vertexShader"], j["fragmentShader"]);
-    get_location(mainShader);
+    mainShader_ = loadShader(j["vertexShader"], j["fragmentShader"]);
+    getLocation(mainShader_);
     int fps = j["targetFPS"];
     if (fps > 0) {
         SetTargetFPS(fps);
@@ -174,26 +174,26 @@ void PixelShader::load_manifest(nlohmann::json const& j)
 
 void PixelShader::render(nlohmann::json const& j)
 {
-    BaseShader::load_manifest(j);
+    BaseShader::loadManifest(j);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(screenWidth, screenHeight, "Pixel Shader");
+    InitWindow(screenWidth_, screenHeight_, "Pixel Shader");
 
-    PixelShader::load_manifest(j);
+    PixelShader::loadManifest(j);
 
     while (!WindowShouldClose()) {
-        update_uniform();
+        updateUniform();
         for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
-            if (iChannel[i].type == CHANNEL_SHADER) {
-                BeginTextureMode(iChannel[i].buffer);
+            if (iChannel_[i].type == CHANNEL_SHADER) {
+                BeginTextureMode(iChannel_[i].buffer);
                 glDisable(GL_BLEND);
-                draw_rect(iChannel[i].shader);
+                drawRect(iChannel_[i].shader);
                 glEnable(GL_BLEND);
                 EndTextureMode();
-                glCopyImageSubData(iChannel[i].buffer.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
-                                   iChannel[i].bufferPrev.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
-                                   screenWidth, screenHeight, 1);
-                if (iChannel[i].filter == "mipmap") {
-                    glBindTexture(GL_TEXTURE_2D, iChannel[i].bufferPrev.texture.id);
+                glCopyImageSubData(iChannel_[i].buffer.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                                   iChannel_[i].bufferPrev.texture.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                                   screenWidth_, screenHeight_, 1);
+                if (iChannel_[i].filter == "mipmap") {
+                    glBindTexture(GL_TEXTURE_2D, iChannel_[i].bufferPrev.texture.id);
                     glGenerateMipmap(GL_TEXTURE_2D);
                     glBindTexture(GL_TEXTURE_2D, 0);
                 }
@@ -201,9 +201,9 @@ void PixelShader::render(nlohmann::json const& j)
         }
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        draw_rect(mainShader);
+        drawRect(mainShader_);
         DrawFPS(10, 10);
-        DrawText(TextFormat("%8i", iFrame), screenWidth - 65, screenHeight - 20, 18, GRAY);
+        DrawText(TextFormat("%8i", iFrame_), screenWidth_ - 65, screenHeight_ - 20, 18, GRAY);
         EndDrawing();
     }
 
