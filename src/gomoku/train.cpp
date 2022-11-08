@@ -68,7 +68,7 @@ void train(std::shared_ptr<FIRNet> net)
     for (;;) {
         ++game_cnt;
         int step = selfplay(net, dataset, TRAIN_DEEP_ITERMAX);
-        avg_turn += (step - avg_turn) / float(game_cnt > 10 ? 10 : game_cnt);
+        avg_turn += (step - avg_turn) / static_cast<float>(game_cnt > 10 ? 10 : game_cnt);
         if (dataset.total() > BATCH_SIZE) {
             for (int epoch = 0; epoch < EPOCH_PER_GAME; ++epoch) {
                 auto batch = new MiniBatch();

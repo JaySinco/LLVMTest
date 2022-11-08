@@ -5,7 +5,7 @@ class UberShader: public BaseShader
 {
 public:
     UberShader();
-    ~UberShader();
+    ~UberShader() override;
     void render(nlohmann::json const& j) override;
 
 private:

@@ -3,7 +3,7 @@
 #include <glad.h>
 #include <ctime>
 
-PixelShader::PixelShader() {}
+PixelShader::PixelShader() = default;
 
 PixelShader::~PixelShader()
 {
@@ -84,7 +84,7 @@ void PixelShader::update_uniform()
         iMouse[2] = -1 * std::abs(iMouse[2]);
     }
 
-    time_t now = std::time(0);
+    time_t now = std::time(nullptr);
     tm gt{0};
 #ifdef __linux__
     localtime_r(&now, &gt);
@@ -155,12 +155,12 @@ void PixelShader::load_manifest(nlohmann::json const& j)
         } else {
             auto& ch = j[k];
             if (ch["type"] == "shader") {
-                set_channel_shader(ChannelIndex(i), ch["vertexShader"], ch["fragmentShader"],
-                                   ch["filter"], ch["wrap"]);
+                set_channel_shader(static_cast<ChannelIndex>(i), ch["vertexShader"],
+                                   ch["fragmentShader"], ch["filter"], ch["wrap"]);
             } else if (ch["type"] == "texture") {
                 auto& text = ch["texture"];
-                set_channel_texture(ChannelIndex(i), text["file"], text["type"], text["filter"],
-                                    text["wrap"]);
+                set_channel_texture(static_cast<ChannelIndex>(i), text["file"], text["type"],
+                                    text["filter"], text["wrap"]);
             }
         }
     }

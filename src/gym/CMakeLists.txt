@@ -12,7 +12,6 @@ add_executable(${MAIN}
 )
 
 target_include_directories(${MAIN} PRIVATE ${imgui_BINGINGS_DIR})
-target_precompile_headers(${MAIN} PRIVATE prec.h)
 
 target_link_libraries(${MAIN} utils
     implot::implot

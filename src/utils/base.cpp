@@ -27,30 +27,30 @@ public:
 
     ~iconv_wrapper()
     {
-        if ((iconv_t)-1 == cd) return;
+        if (reinterpret_cast<iconv_t>(-1) == cd) return;
         iconv_close(cd);
     }
 
     size_t convert(char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft)
     {
-        if ((iconv_t)-1 == cd) return -1;
+        if (reinterpret_cast<iconv_t>(-1) == cd) return -1;
         return iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
     }
 
     template <typename T = std::string>
     T convert(std::string_view in, size_t max_outbytes)
     {
-        char* inbuf = (char*)in.data();
+        char* inbuf = const_cast<char*>(in.data());
         size_t inbytes = in.size();
         size_t outbytes = max_outbytes;
         std::unique_ptr<char> buf(new char[outbytes]{0});
         char* outbuf = buf.get();
         size_t ret = convert(&inbuf, &inbytes, &outbuf, &outbytes);
-        if ((size_t)-1 == ret) {
+        if (static_cast<size_t>(-1) == ret) {
             return {};
         }
         using CharT = typename T::value_type;
-        return T((CharT*)buf.get(), (CharT*)outbuf);
+        return T(reinterpret_cast<CharT*>(buf.get()), reinterpret_cast<CharT*>(outbuf));
     }
 
     static char const* code2str(code_page cp)
@@ -81,7 +81,7 @@ private:
 std::string ws2s(std::wstring_view ws, code_page cp)
 {
     iconv_wrapper conv(cp, code_page::WCHAR);
-    std::string_view sv{(char*)ws.data(), ws.size() * sizeof(wchar_t)};
+    std::string_view sv{reinterpret_cast<char const*>(ws.data()), ws.size() * sizeof(wchar_t)};
     return conv.convert<std::string>(sv, ws.size() * 6);
 }
 
@@ -119,7 +119,7 @@ std::wstring getExeDir()
     return s2ws(dirname(cep));
 #elif _WIN32
     wchar_t buf[MAX_PATH + 1] = {0};
-    GetModuleFileNameW(NULL, buf, MAX_PATH);
+    GetModuleFileNameW(nullptr, buf, MAX_PATH);
     (wcsrchr(buf, L'\\'))[0] = 0;
     return buf;
 #endif

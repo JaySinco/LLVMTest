@@ -1,8 +1,8 @@
 #pragma once
-#include "prec.h"
 #include "utils/base.h"
-#include "mujoco/mujoco.h"
-#include "GLFW/glfw3.h"
+#include <torch/torch.h>
+#include <mujoco/mujoco.h>
+#include <GLFW/glfw3.h>
 #include <string>
 #include <mutex>
 #include <future>

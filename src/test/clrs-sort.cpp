@@ -229,7 +229,7 @@ void count_sort(int* arr, int n)
 class PriorityQueue
 {
 public:
-    PriorityQueue(std::vector<int> const& data, Heap::Comp op = std::greater<int>())
+    explicit PriorityQueue(std::vector<int> const& data, Heap::Comp op = std::greater<int>())
         : vec(data), op(op)
     {
         Heap hp(vec.data(), vec.size(), op);
@@ -404,7 +404,7 @@ TEST_CASE("sort")
     for (int i = 0; i < 100; ++i) {
         std::vector<int> copy(origin);
         std::shuffle(std::begin(copy), std::end(copy), g_random_engine);
-        samples.push_back({copy, origin});
+        samples.emplace_back(copy, origin);
     }
 
 #define SORT_SECTION(x)                     \

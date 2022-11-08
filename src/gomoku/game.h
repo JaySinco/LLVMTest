@@ -43,7 +43,7 @@ class Move
     int index;
 
 public:
-    Move(int z): index(z) { assert((z >= 0 && z < BOARD_SIZE) || z == NO_MOVE_YET); }
+    explicit Move(int z): index(z) { assert((z >= 0 && z < BOARD_SIZE) || z == NO_MOVE_YET); }
     Move(int row, int col)
     {
         assert(ON_BOARD(row, col));
@@ -68,10 +68,10 @@ std::ostream& operator<<(std::ostream& out, Move mv);
 
 class Board
 {
-    Color grid[BOARD_SIZE];
+    Color grid[BOARD_SIZE] = {Color::Empty};
 
 public:
-    Board(): grid{Color::Empty} {}
+    Board() = default;
     Color get(Move mv) const { return grid[mv.z()]; }
     void put(Move mv, Color c)
     {
@@ -88,11 +88,11 @@ class State
     friend std::ostream& operator<<(std::ostream& out, State const& state);
     Board board;
     Move last;
-    Color winner;
+    Color winner = Color::Empty;
     std::vector<Move> opts;
 
 public:
-    State(): last(NO_MOVE_YET), winner(Color::Empty) { board.push_valid(opts); }
+    State(): last(NO_MOVE_YET) { board.push_valid(opts); }
     State(State const& state) = default;
     Move get_last() const { return last; }
     Color get_winner() const { return winner; }
@@ -113,11 +113,11 @@ std::ostream& operator<<(std::ostream& out, State const& state);
 
 struct Player
 {
-    Player() {}
+    Player() = default;
     virtual void reset() = 0;
     virtual std::string const& name() const = 0;
     virtual Move play(State const& state) = 0;
-    virtual ~Player(){};
+    virtual ~Player() = default;
 };
 
 Player& play(Player& p1, Player& p2, bool silent = true);
@@ -128,11 +128,11 @@ class RandomPlayer: public Player
     std::string id;
 
 public:
-    RandomPlayer(std::string const& name): id(name) {}
+    explicit RandomPlayer(std::string const& name): id(name) {}
     void reset() override {}
     std::string const& name() const override { return id; }
     Move play(State const& state) override { return state.get_options()[0]; }
-    ~RandomPlayer(){};
+    ~RandomPlayer() override = default;
 };
 
 class HumanPlayer: public Player
@@ -141,9 +141,9 @@ class HumanPlayer: public Player
     bool get_move(int& row, int& col);
 
 public:
-    HumanPlayer(std::string const& name): id(name) {}
+    explicit HumanPlayer(std::string const& name): id(name) {}
     void reset() override {}
     std::string const& name() const override { return id; }
     Move play(State const& state) override;
-    ~HumanPlayer(){};
+    ~HumanPlayer() override = default;
 };

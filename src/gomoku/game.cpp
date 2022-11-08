@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& out, Move mv)
 void Board::push_valid(std::vector<Move>& set) const
 {
     for (int i = 0; i < BOARD_SIZE; ++i)
-        if (get(Move(i)) == Color::Empty) set.push_back(Move(i));
+        if (get(Move(i)) == Color::Empty) set.emplace_back(i);
 
     std::shuffle(set.begin(), set.end(), g_random_engine);
 }
@@ -198,9 +198,9 @@ float benchmark(Player& p1, Player& p2, int round, bool silent)
     if (!silent) {
         std::cout << std::endl;
     }
-    float p1prob = float(p1win) / float(round);
-    float p2prob = float(p2win) / float(round);
-    float eprob = float(even) / float(round);
+    float p1prob = static_cast<float>(p1win) / round;
+    float p2prob = static_cast<float>(p2win) / round;
+    float eprob = static_cast<float>(even) / round;
     if (!silent) {
         std::cout << "benchmark player win probality: " << p1.name() << "=" << p1prob << ", "
                   << p2.name() << "=" << p2prob << ", even=" << eprob << ", sim=" << round

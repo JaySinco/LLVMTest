@@ -34,9 +34,9 @@ int main(int argc, char** argv)
         auto& j = manifests[idx];
         std::unique_ptr<BaseShader> shader = nullptr;
         if (j["type"] == "uber") {
-            shader.reset(new UberShader);
+            shader = std::make_unique<UberShader>();
         } else if (j["type"] == "pixel") {
-            shader.reset(new PixelShader);
+            shader = std::make_unique<PixelShader>();
         }
         shader->render(j);
     } else {

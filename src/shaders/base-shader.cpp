@@ -25,11 +25,12 @@ static unsigned int generate_cubemap_texture(void const* data, int size, int for
         for (unsigned int i = 0; i < 6; i++) {
             if (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0,
-                             glFormat, glType, (unsigned char*)data + i * dataSize);
+                             glFormat, glType,
+                             static_cast<unsigned char const*>(data) + i * dataSize);
             else
                 glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat,
                                        size, size, 0, dataSize,
-                                       (unsigned char*)data + i * dataSize);
+                                       static_cast<unsigned char const*>(data) + i * dataSize);
         }
     }
 
@@ -55,7 +56,7 @@ static TextureCubemap load_texture_cubemap(Image image, int layout)
             } else if ((image.width / 4) == (image.height / 3)) {
                 layout = CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE;
 
-            } else if (image.width >= (int)((float)image.height * 1.85f)) {
+            } else if (image.width >= static_cast<int>(image.height * 1.85f)) {
                 layout = CUBEMAP_LAYOUT_PANORAMA;
             }
         } else if (image.height > image.width) {
@@ -89,9 +90,10 @@ static TextureCubemap load_texture_cubemap(Image image, int layout)
 
     int size = cubemap.width;
 
-    Image faces = {0};
+    Image faces = {nullptr};
     Rectangle faceRecs[6] = {0};
-    for (int i = 0; i < 6; i++) faceRecs[i] = Rectangle{0, 0, (float)size, (float)size};
+    for (auto& faceRec: faceRecs)
+        faceRec = Rectangle{0, 0, static_cast<float>(size), static_cast<float>(size)};
 
     if (layout == CUBEMAP_LAYOUT_LINE_VERTICAL) {
         faces = ImageCopy(image);
@@ -100,33 +102,33 @@ static TextureCubemap load_texture_cubemap(Image image, int layout)
         // Ref: https://github.com/denivip/panorama/blob/master/panorama.cpp
     } else {
         if (layout == CUBEMAP_LAYOUT_LINE_HORIZONTAL)
-            for (int i = 0; i < 6; i++) faceRecs[i].x = (float)size * i;
+            for (int i = 0; i < 6; i++) faceRecs[i].x = size * i;
         else if (layout == CUBEMAP_LAYOUT_CROSS_THREE_BY_FOUR) {
-            faceRecs[0].x = (float)size;
-            faceRecs[0].y = (float)size;
-            faceRecs[1].x = (float)size;
-            faceRecs[1].y = (float)size * 3;
-            faceRecs[2].x = (float)size;
+            faceRecs[0].x = size;
+            faceRecs[0].y = size;
+            faceRecs[1].x = size;
+            faceRecs[1].y = size * 3;
+            faceRecs[2].x = size;
             faceRecs[2].y = 0;
-            faceRecs[3].x = (float)size;
-            faceRecs[3].y = (float)size * 2;
+            faceRecs[3].x = size;
+            faceRecs[3].y = size * 2;
             faceRecs[4].x = 0;
-            faceRecs[4].y = (float)size;
-            faceRecs[5].x = (float)size * 2;
-            faceRecs[5].y = (float)size;
+            faceRecs[4].y = size;
+            faceRecs[5].x = size * 2;
+            faceRecs[5].y = size;
         } else if (layout == CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE) {
-            faceRecs[0].x = (float)size * 2;
-            faceRecs[0].y = (float)size;
+            faceRecs[0].x = size * 2;
+            faceRecs[0].y = size;
             faceRecs[1].x = 0;
-            faceRecs[1].y = (float)size;
-            faceRecs[2].x = (float)size;
+            faceRecs[1].y = size;
+            faceRecs[2].x = size;
             faceRecs[2].y = 0;
-            faceRecs[3].x = (float)size;
-            faceRecs[3].y = (float)size * 2;
-            faceRecs[4].x = (float)size;
-            faceRecs[4].y = (float)size;
-            faceRecs[5].x = (float)size * 3;
-            faceRecs[5].y = (float)size;
+            faceRecs[3].x = size;
+            faceRecs[3].y = size * 2;
+            faceRecs[4].x = size;
+            faceRecs[4].y = size;
+            faceRecs[5].x = size * 3;
+            faceRecs[5].y = size;
         }
 
         faces = GenImageColor(size, size * 6, MAGENTA);
@@ -134,7 +136,9 @@ static TextureCubemap load_texture_cubemap(Image image, int layout)
 
         for (int i = 0; i < 6; i++)
             ImageDraw(&faces, image, faceRecs[i],
-                      Rectangle{0, (float)size * i, (float)size, (float)size}, WHITE);
+                      Rectangle{0, static_cast<float>(size * i), static_cast<float>(size),
+                                static_cast<float>(size)},
+                      WHITE);
     }
 
     cubemap.id = generate_cubemap_texture(faces.data, size, faces.format);
@@ -189,7 +193,7 @@ static void setup_texture_param(std::string const& type, Texture text, std::stri
     glBindTexture(gl_target, 0);
 }
 
-BaseShader::~BaseShader() {}
+BaseShader::~BaseShader() = default;
 
 void BaseShader::load_manifest(nlohmann::json const& j)
 {
@@ -218,7 +222,7 @@ RenderTexture2D BaseShader::load_buffer_texture(int width, int height, std::stri
         rlEnableFramebuffer(target.id);
 
         target.texture.id =
-            rlLoadTexture(NULL, width, height, PIXELFORMAT_UNCOMPRESSED_R32G32B32A32, 1);
+            rlLoadTexture(nullptr, width, height, PIXELFORMAT_UNCOMPRESSED_R32G32B32A32, 1);
         target.texture.width = width;
         target.texture.height = height;
         target.texture.format = PIXELFORMAT_UNCOMPRESSED_R32G32B32A32;

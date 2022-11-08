@@ -3,9 +3,7 @@
 #include "inaction.h"
 #include "pg.h"
 
-namespace params
-{
-namespace pg
+namespace params::pg
 {
 inline policy::pg::HyperParams hopper()
 {
@@ -21,5 +19,4 @@ inline policy::pg::HyperParams hopper()
     return hp;
 }
 
-}  // namespace pg
-}  // namespace params
+}  // namespace params::pg

@@ -5,6 +5,7 @@ set -e
 build_release=0
 
 do_clean=0
+do_preprocess=0
 do_rm_cmake_cache=0
 
 while [[ $# -gt 0 ]]; do
@@ -16,6 +17,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  -c   clean output"
             echo "  -l   build release version"
+            echo "  -p   preprocess source using clang tools"
             echo "  -f   remove cmake cache before build"
             echo "  -h   print command line options"
             echo
@@ -23,6 +25,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -c) do_clean=1 && shift ;;
         -l) build_release=1 && shift ;;
+        -p) do_preprocess=1 && shift ;;
         -f) do_rm_cmake_cache=1 && shift ;;
         -*) echo "Unknown option: $1" && exit 1 ;;
     esac
@@ -65,8 +68,16 @@ if [ $do_rm_cmake_cache -eq 1 ]; then
     rm -f $build_folder/CMakeCache.txt
 fi
 
+function preprocess_source() {
+    if [ $do_preprocess -eq 1 ]; then
+        find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
+        && find src -iname *.h -or -iname *.cpp | xargs \
+            clang-tidy --quiet -p $build_folder
+    fi
+}
+
 pushd $git_root \
-&& find src -iname *.h -or -iname *.cpp | xargs clang-format -i \
+&& preprocess_source \
 && conan install . \
     --install-folder=$build_folder \
     --profile=$conan_profile \

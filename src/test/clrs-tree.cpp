@@ -13,8 +13,8 @@ struct BinaryTree
     BinaryTree* right;
     bool black;  // red or black
 
-    BinaryTree(int key = 0, BinaryTree* parent = nullptr, BinaryTree* left = nullptr,
-               BinaryTree* right = nullptr, bool black = true)
+    explicit BinaryTree(int key = 0, BinaryTree* parent = nullptr, BinaryTree* left = nullptr,
+                        BinaryTree* right = nullptr, bool black = true)
         : key(key), parent(parent), left(left), right(right), black(black)
     {
     }
@@ -54,7 +54,7 @@ struct BinarySearchTree
         }
     }
 
-    void inorder_walk(std::vector<int>& vec) { inorder_walk(root, vec); }
+    void inorder_walk(std::vector<int>& vec) const { inorder_walk(root, vec); }
 
     static BinaryTree* get(BinaryTree* a, int i)
     {
@@ -71,7 +71,7 @@ struct BinarySearchTree
         return nullptr;
     }
 
-    BinaryTree* get(int i) { return get(root, i); }
+    BinaryTree* get(int i) const { return get(root, i); }
 
     static BinaryTree* max(BinaryTree* a)
     {
@@ -82,7 +82,7 @@ struct BinarySearchTree
         return a;
     }
 
-    BinaryTree* max() { return max(root); }
+    BinaryTree* max() const { return max(root); }
 
     static BinaryTree* min(BinaryTree* a)
     {
@@ -93,7 +93,7 @@ struct BinarySearchTree
         return a;
     }
 
-    BinaryTree* min() { return min(root); }
+    BinaryTree* min() const { return min(root); }
 
     static BinaryTree* successor(BinaryTree* tr)
     {
@@ -141,7 +141,7 @@ struct BinarySearchTree
                check(a->left) && check(a->right);
     }
 
-    bool check() { return check(this->root); }
+    bool check() const { return check(this->root); }
 
     virtual BinaryTree* insert(int key)
     {
@@ -223,9 +223,9 @@ struct RedBlackTree
         root = nil;
     }
 
-    ~RedBlackTree() {}
+    ~RedBlackTree() = default;
 
-    void inorder_walk(BinaryTree* a, std::vector<int>& vec)
+    void inorder_walk(BinaryTree* a, std::vector<int>& vec) const
     {
         std::stack<BinaryTree*> sk;
         while (a != nil || !sk.empty()) {
@@ -240,7 +240,7 @@ struct RedBlackTree
         }
     }
 
-    void inorder_walk(std::vector<int>& vec) { inorder_walk(root, vec); }
+    void inorder_walk(std::vector<int>& vec) const { inorder_walk(root, vec); }
 
     bool check_all(BinaryTree* a, int k, bool greater = true)
     {

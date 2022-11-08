@@ -1,8 +1,6 @@
 #include "pg.h"
 
-namespace policy
-{
-namespace pg
+namespace policy::pg
 {
 Actor::Actor(int in, int out, int hidden): fc1(in, hidden), fc2(hidden, hidden), fc3(hidden, out)
 {
@@ -75,7 +73,7 @@ torch::Tensor PG::get_action(torch::Tensor observe)
     return at::normal(mu, log_std.exp());
 }
 
-torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor alive)
+torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor alive) const
 {
     auto returns = torch::zeros_like(reward);
     double running_returns = 0;
@@ -87,7 +85,7 @@ torch::Tensor PG::calc_returns(torch::Tensor reward, torch::Tensor alive)
     return returns;
 }
 
-torch::Tensor PG::log_prob(torch::Tensor action, torch::Tensor mu)
+torch::Tensor PG::log_prob(torch::Tensor action, torch::Tensor mu) const
 {
     auto log_std = torch::full_like(mu, hp.log_std);
     auto var = (log_std + log_std).exp();
@@ -118,5 +116,4 @@ void PG::learn(torch::Tensor observe, torch::Tensor action, torch::Tensor reward
     }
 }
 
-}  // namespace pg
-}  // namespace policy
+}  // namespace policy::pg

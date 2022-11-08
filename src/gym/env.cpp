@@ -80,7 +80,7 @@ Env::Env(std::string const& model_path, int frame_skip, bool show_ui)
     d = mj_makeData(m);
     mj_forward(m, d);
     if (show_ui) {
-        std::packaged_task<void()> task(std::bind(&Env::render, this));
+        std::packaged_task<void()> task([this] { render(); });
         ui_ret = std::move(task.get_future());
         std::thread(std::move(task)).detach();
     }
@@ -108,7 +108,8 @@ torch::Tensor Env::get_observe()
     std::memcpy(buf, d->qpos, sizeof(mjtNum) * m->nq);
     std::memcpy(buf + m->nq, d->qvel, sizeof(mjtNum) * m->nv);
     auto ob = torch::from_blob(
-        buf, {1, m->nq + m->nv}, [](void* buf) { delete[] (mjtNum*)buf; }, torch::kFloat64);
+        buf, {1, m->nq + m->nv}, [](void* buf) { delete[] static_cast<mjtNum*>(buf); },
+        torch::kFloat64);
     ob = ob.to(torch::kFloat32);
     return ob;
 }
@@ -224,7 +225,7 @@ void Env::render()
     while (!glfwWindowShouldClose(window) && !ui_exit_request) {
         std::unique_lock lock(mtx);
         glfwPollEvents();
-        mjv_updateScene(m, d, &opt, NULL, &cam, mjCAT_ALL, &scn);
+        mjv_updateScene(m, d, &opt, nullptr, &cam, mjCAT_ALL, &scn);
         lock.unlock();
         mjrRect viewport = {0, 0, 0, 0};
         glfwGetFramebufferSize(window, &viewport.width, &viewport.height);

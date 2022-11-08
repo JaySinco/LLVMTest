@@ -148,7 +148,7 @@ FIRNet::FIRNet(long long verno): update_cnt(verno), optimizer(module_.parameters
     this->set_lr(calc_init_lr());
 }
 
-float FIRNet::calc_init_lr()
+float FIRNet::calc_init_lr() const
 {
     float multiplier;
     if (update_cnt < LR_DROP_STEP1)
@@ -195,9 +195,9 @@ void FIRNet::set_lr(float lr)
     }
 }
 
-FIRNet::~FIRNet() {}
+FIRNet::~FIRNet() = default;
 
-std::string FIRNet::make_param_file_name()
+std::string FIRNet::make_param_file_name() const
 {
     std::ostringstream filename;
     filename << "FIR-" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "@" << update_cnt << ".pt";
@@ -312,13 +312,14 @@ void FIRNet::evalState(State const& state, float value[1],
     for (auto const mv: state.get_options()) {
         Move mapped = mapping_move(transform_id, mv);
         float prior = x_act[0][mapped.z()].item<float>();
-        net_move_priors.push_back(std::make_pair(mv, prior));
+        net_move_priors.emplace_back(mv, prior);
         priors_sum += prior;
     }
     if (priors_sum < 1e-8) {
         spdlog::info("wield policy prob, lr might be too large: sum={}, available_move_n={}",
                      priors_sum, net_move_priors.size());
-        for (auto& item: net_move_priors) item.second = 1.0f / float(net_move_priors.size());
+        for (auto& item: net_move_priors)
+            item.second = 1.0f / static_cast<float>(net_move_priors.size());
     } else {
         for (auto& item: net_move_priors) item.second /= priors_sum;
     }

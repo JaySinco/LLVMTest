@@ -16,7 +16,8 @@ public:
         std::memcpy(buf, d->qpos + 1, sizeof(mjtNum) * (m->nq - 1));
         std::memcpy(buf + m->nq - 1, d->qvel, sizeof(mjtNum) * m->nv);
         auto ob = torch::from_blob(
-            buf, {1, m->nq - 1 + m->nv}, [](void* buf) { delete[] (mjtNum*)buf; }, torch::kFloat64);
+            buf, {1, m->nq - 1 + m->nv}, [](void* buf) { delete[] static_cast<mjtNum*>(buf); },
+            torch::kFloat64);
         ob = ob.to(torch::kFloat32);
         return ob;
     }

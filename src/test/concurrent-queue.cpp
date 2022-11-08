@@ -29,8 +29,8 @@ int main(int argc, char** argv)
         });
     }
 
-    for (int i = 0; i != 20; ++i) {
-        threads[i].join();
+    for (auto& thread: threads) {
+        thread.join();
     }
 
     int item;
@@ -39,7 +39,7 @@ int main(int argc, char** argv)
         spdlog::info("dequeue_ {}", item);
     }
 
-    for (int i = 0; i != 100; ++i) {
-        assert(dequeued[i] == 1);
+    for (int i: dequeued) {
+        assert(i == 1);
     }
 }

@@ -1,6 +1,8 @@
-#include "prec.h"
 #include <boost/variant.hpp>
 #include <boost/utility/string_view.hpp>
+#include <boost/phoenix/phoenix.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/repository/include/qi_distinct.hpp>
 #include <map>
 #include <vector>
@@ -52,7 +54,7 @@ public:
     std::map<Location, std::string, ByLocation> incomplete;
     std::map<Source, Candidates, ByLocation> suggestions;
 
-    /*explicit*/ operator bool() const { return incomplete.size() || suggestions.size(); }
+    explicit operator bool() const { return incomplete.size() || suggestions.size(); }
 };
 }  // namespace Completion
 
@@ -98,7 +100,7 @@ namespace
 {
 struct once_t
 {  // an auto-reset flag
-    operator bool()
+    explicit operator bool()
     {
         bool v = flag;
         flag = false;
@@ -138,7 +140,7 @@ namespace phx = boost::phoenix;
 template <typename It>
 struct Expression: qi::grammar<It, Ast::Expression()>
 {
-    Expression(Completion::Hints& hints): Expression::base_type(start), _hints(hints)
+    explicit Expression(Completion::Hints& hints): Expression::base_type(start), _hints(hints)
     {
         using namespace qi;
 

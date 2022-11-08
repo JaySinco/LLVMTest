@@ -9,8 +9,6 @@ add_executable(${MAIN}
     main.cpp
 )
 
-target_precompile_headers(${MAIN} PRIVATE prec.h)
-
 target_link_libraries(${MAIN} utils
     argparse::argparse
     Torch::torch

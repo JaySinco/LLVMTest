@@ -1,9 +1,7 @@
 #pragma once
 #include "policy.h"
 
-namespace policy
-{
-namespace pg
+namespace policy::pg
 {
 struct HyperParams
 {
@@ -37,8 +35,8 @@ public:
     void train() override;
 
 private:
-    torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive);
-    torch::Tensor log_prob(torch::Tensor action, torch::Tensor mu);
+    torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive) const;
+    torch::Tensor log_prob(torch::Tensor action, torch::Tensor mu) const;
     void learn(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
                torch::Tensor alive);
 
@@ -47,5 +45,4 @@ private:
     HyperParams hp;
 };
 
-}  // namespace pg
-}  // namespace policy
+}  // namespace policy::pg

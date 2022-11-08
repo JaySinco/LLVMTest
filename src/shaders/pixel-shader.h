@@ -5,7 +5,7 @@ class PixelShader: public BaseShader
 {
 public:
     PixelShader();
-    ~PixelShader();
+    ~PixelShader() override;
 
     void render(nlohmann::json const& j) override;
 

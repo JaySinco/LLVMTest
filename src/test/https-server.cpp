@@ -16,8 +16,9 @@ int main(int argc, char** argv)
         .listen(8080,
                 [](auto* listen_socket) {
                     if (listen_socket) {
-                        spdlog::info("listening on port {}",
-                                     us_socket_local_port(1, (us_socket_t*)listen_socket));
+                        spdlog::info(
+                            "listening on port {}",
+                            us_socket_local_port(1, reinterpret_cast<us_socket_t*>(listen_socket)));
                     }
                 })
         .run();

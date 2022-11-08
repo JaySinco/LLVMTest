@@ -1,6 +1,6 @@
 #pragma once
-#include "prec.h"
 #include "game.h"
+#include <torch/torch.h>
 
 constexpr int BATCH_SIZE = 512;
 constexpr int BUFFER_SIZE = 10000;
@@ -32,11 +32,11 @@ std::ostream& operator<<(std::ostream& out, MiniBatch const& batch);
 class DataSet
 {
 private:
-    long long index;
+    long long index = 0;
     SampleData* buf;
 
 public:
-    DataSet(): index(0) { buf = new SampleData[BUFFER_SIZE]; }
+    DataSet() { buf = new SampleData[BUFFER_SIZE]; }
     ~DataSet() { delete[] buf; }
     int size() const { return (index > BUFFER_SIZE) ? BUFFER_SIZE : index; }
     long long total() const { return index; }
@@ -79,15 +79,15 @@ class FIRNet
     torch::optim::Adam optimizer;
 
 public:
-    FIRNet(long long verno);
+    explicit FIRNet(long long verno);
     ~FIRNet();
-    long long verno() { return update_cnt; }
+    long long verno() const { return update_cnt; }
     void save_param();
     void load_param();
     void set_lr(float lr);
-    float calc_init_lr();
+    float calc_init_lr() const;
     void adjust_lr();
-    std::string make_param_file_name();
+    std::string make_param_file_name() const;
     float train_step(MiniBatch* batch);
     void evalState(State const& state, float value[1],
                    std::vector<std::pair<Move, float>>& move_priors);

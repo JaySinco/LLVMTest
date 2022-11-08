@@ -34,7 +34,7 @@ nonstd::unexpected_type<error> make_unexpected(std::string const& s);
 template <typename T>
 struct scope_exit
 {
-    scope_exit(T&& t): t_{std::move(t)} {}
+    explicit scope_exit(T&& t): t_{std::move(t)} {}
     ~scope_exit() { t_(); }
     T t_;
 };

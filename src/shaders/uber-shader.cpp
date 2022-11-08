@@ -1,6 +1,6 @@
 #include "./uber-shader.h"
 
-UberShader::UberShader() {}
+UberShader::UberShader() = default;
 
 UberShader::~UberShader()
 {

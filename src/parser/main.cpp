@@ -1,5 +1,7 @@
-#include "prec.h"
 #include "utils/base.h"
+#include <boost/phoenix/phoenix.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
 #include <fmt/ranges.h>
 #include <fmt/ostream.h>
@@ -34,7 +36,7 @@ struct error_handler
         typedef void type;
     };
 
-    error_handler(std::filesystem::path const& source_file): source_file(source_file) {}
+    explicit error_handler(std::filesystem::path const& source_file): source_file(source_file) {}
 
     void operator()(Iterator first, Iterator last, Iterator err_pos,
                     boost::spirit::info const& what) const
@@ -54,8 +56,8 @@ struct error_handler
 template <typename Iterator>
 struct expression: qi::grammar<Iterator, ast::employee()>
 {
-    expression(std::filesystem::path const& source_file)
-        : expression::base_type(start), err_handler(source_file)
+    explicit expression(std::filesystem::path const& source_file)
+        : expression::base_type(start), err_handler(error_handler<Iterator>(source_file))
     {
         quoted = qi::lexeme['"' > *(enc::char_ - '"') > '"'];
         epl = qi::lit(L"employee") > '{' > qi::int_ > ',' > quoted > ',' > quoted > ',' >

@@ -61,7 +61,7 @@ Move MCTSNode::act_by_prob(float mcts_move_priors[BOARD_SIZE], float temp) const
     for (auto const& mn: children) {
         if (DEBUG_MCTS_PROB) std::cout << mn.first << ": " << *mn.second << std::endl;
         auto vn = mn.second->visits;
-        move_priors_map[mn.first.z()] = 1.0f / temp * std::log(float(vn) + 1e-10);
+        move_priors_map[mn.first.z()] = 1.0f / temp * std::log(static_cast<float>(vn) + 1e-10);
         if (move_priors_map[mn.first.z()] > alpha) alpha = move_priors_map[mn.first.z()];
     }
     float denominator = 0;
@@ -83,7 +83,7 @@ Move MCTSNode::act_by_prob(float mcts_move_priors[BOARD_SIZE], float temp) const
 void MCTSNode::update(float leafValue)
 {
     ++visits;
-    float delta = (leafValue - quality) / float(visits);
+    float delta = (leafValue - quality) / static_cast<float>(visits);
     quality += delta;
 }
 
@@ -122,7 +122,7 @@ void MCTSNode::add_noise_to_child_prior(float noise_rate)
 float MCTSNode::value(float c_puct) const
 {
     assert(!is_root());
-    float N = float(parent->visits);
+    float N = static_cast<float>(parent->visits);
     float n = visits + 1;
     return quality + (c_puct * prior * std::sqrt(N) / n);
 }
@@ -133,7 +133,7 @@ std::ostream& operator<<(std::ostream& out, MCTSNode const& node)
         << " children, ";
     if (node.parent != nullptr)
         out << std::setw(6) << std::fixed << std::setprecision(3)
-            << float(node.visits) / float(node.parent->visits) * 100 << "% / ";
+            << static_cast<float>(node.visits) / node.parent->visits * 100 << "% / ";
     out << std::setw(3) << node.visits << " visits, " << std::setw(6) << std::fixed
         << std::setprecision(3) << node.prior * 100 << "% prior, " << std::setw(6) << std::fixed
         << std::setprecision(3) << node.quality << " quality";
@@ -183,7 +183,7 @@ Move MCTSPurePlayer::play(State const& state)
             int n_options = state_copied.get_options().size();
             std::vector<std::pair<Move, float>> move_priors;
             for (auto const mv: state_copied.get_options()) {
-                move_priors.push_back(std::make_pair(mv, 1.0f / float(n_options)));
+                move_priors.emplace_back(mv, 1.0f / n_options);
             }
             node->expand(move_priors);
             winner = state_copied.next_rand_till_end();

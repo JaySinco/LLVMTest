@@ -12,14 +12,12 @@ class MCTSNode
     friend std::ostream& operator<<(std::ostream& out, MCTSNode const& node);
     MCTSNode* parent;
     std::map<Move, MCTSNode*> children;
-    int visits;
-    float quality;
+    int visits = 0;
+    float quality = 0;
     float prior;
 
 public:
-    MCTSNode(MCTSNode* node_p, float prior_p): parent(node_p), visits(0), quality(0), prior(prior_p)
-    {
-    }
+    MCTSNode(MCTSNode* node_p, float prior_p): parent(node_p), prior(prior_p) {}
     ~MCTSNode();
     void expand(std::vector<std::pair<Move, float>> const& set);
     MCTSNode* cut(Move occurred);
@@ -49,7 +47,7 @@ class MCTSPurePlayer: public Player
 
 public:
     MCTSPurePlayer(int itermax, float c_puct);
-    ~MCTSPurePlayer() { delete root; }
+    ~MCTSPurePlayer() override { delete root; }
     std::string const& name() const override { return id; }
     void set_itermax(int n);
     void make_id();
@@ -72,7 +70,7 @@ class MCTSDeepPlayer: public Player
 
 public:
     MCTSDeepPlayer(std::shared_ptr<FIRNet> nn, int itermax, float c_puct);
-    ~MCTSDeepPlayer() { delete root; }
+    ~MCTSDeepPlayer() override { delete root; }
     std::string const& name() const override { return id; }
     void make_id();
     void reset() override;
