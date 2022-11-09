@@ -12,7 +12,7 @@ namespace phx = boost::phoenix;
 
 namespace ast
 {
-struct employee
+struct Employee
 {
     int age;
     std::wstring surname;
@@ -22,21 +22,21 @@ struct employee
 
 }  // namespace ast
 
-BOOST_FUSION_ADAPT_STRUCT(ast::employee,
+BOOST_FUSION_ADAPT_STRUCT(ast::Employee,
                           (int, age)(std::wstring, surname)(std::wstring, forename)(double, salary))
 
 namespace parser
 {
 template <typename Iterator>
-struct error_handler
+struct ErrorHandler
 {
     template <typename, typename, typename, typename>
-    struct result
+    struct Result
     {
-        typedef void type;
+        typedef void Type;
     };
 
-    explicit error_handler(std::filesystem::path const& source_file): source_file(source_file) {}
+    explicit ErrorHandler(std::filesystem::path const& source_file): source_file(source_file) {}
 
     void operator()(Iterator first, Iterator last, Iterator err_pos,
                     boost::spirit::info const& what) const
@@ -54,10 +54,10 @@ struct error_handler
 };
 
 template <typename Iterator>
-struct expression: qi::grammar<Iterator, ast::employee()>
+struct Expression: qi::grammar<Iterator, ast::Employee()>
 {
-    explicit expression(std::filesystem::path const& source_file)
-        : expression::base_type(start), err_handler(error_handler<Iterator>(source_file))
+    explicit Expression(std::filesystem::path const& source_file)
+        : Expression::base_type(start), err_handler(ErrorHandler<Iterator>(source_file))
     {
         quoted = qi::lexeme['"' > *(enc::char_ - '"') > '"'];
         epl = qi::lit(L"employee") > '{' > qi::int_ > ',' > quoted > ',' > quoted > ',' >
@@ -68,23 +68,23 @@ struct expression: qi::grammar<Iterator, ast::employee()>
     }
 
     qi::rule<Iterator, std::wstring()> quoted;
-    qi::rule<Iterator, ast::employee()> epl;
-    qi::rule<Iterator, ast::employee()> start;
+    qi::rule<Iterator, ast::Employee()> epl;
+    qi::rule<Iterator, ast::Employee()> start;
 
-    phx::function<error_handler<Iterator>> err_handler;
+    phx::function<ErrorHandler<Iterator>> err_handler;
 };
 
 }  // namespace parser
 
 void parsing(std::filesystem::path const& source_file)
 {
-    using iterator = boost::spirit::line_pos_iterator<std::wstring::const_iterator>;
+    using Iterator = boost::spirit::line_pos_iterator<std::wstring::const_iterator>;
     auto raw = utils::readFile(source_file.wstring());
     std::wstring input = utils::s2ws(*raw, utils::code_page::UTF8);
-    iterator beg(input.begin());
-    iterator end(input.end());
-    parser::expression<iterator> expr(source_file);
-    ast::employee attr;
+    Iterator beg(input.begin());
+    Iterator end(input.end());
+    parser::Expression<Iterator> expr(source_file);
+    ast::Employee attr;
     bool ok = qi::parse(beg, end, expr, attr);
     spdlog::info("{} {}", ok, utils::ws2s(attr.surname));
 }

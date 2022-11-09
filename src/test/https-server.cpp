@@ -4,15 +4,15 @@
 
 int main(int argc, char** argv)
 {
-    auto keyFile = (__DIRNAME__ / "key.pem").generic_string();
-    auto certFile = (__DIRNAME__ / "cert.pem").generic_string();
+    auto key_file = (__DIRNAME__ / "key.pem").generic_string();
+    auto cert_file = (__DIRNAME__ / "cert.pem").generic_string();
 
     uWS::SocketContextOptions opt;
-    opt.key_file_name = keyFile.c_str();
-    opt.cert_file_name = certFile.c_str();
+    opt.key_file_name = key_file.c_str();
+    opt.cert_file_name = cert_file.c_str();
 
     uWS::SSLApp(opt)
-        .get("/*", [](auto* res, auto* /*req*/) { res->end("Hello world!"); })
+        .get("/*", [](auto* res, auto* req) { res->end("Hello world!"); })
         .listen(8080,
                 [](auto* listen_socket) {
                     if (listen_socket) {

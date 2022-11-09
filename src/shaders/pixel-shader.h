@@ -30,9 +30,9 @@ private:
     {
         ChannelType type;
         Texture text;
-        std::string textType;
+        std::string text_type;
         RenderTexture2D buffer;
-        RenderTexture2D bufferPrev;
+        RenderTexture2D buffer_prev;
         std::string filter;
         std::string wrap;
         Shader shader;
@@ -48,14 +48,14 @@ private:
     void bindShaderUniform(Shader shader);
     void drawRect(Shader shader);
 
-    float iResolution_[3];
-    float iTime_;
-    float iTimeDelta_;
-    int iFrame_;
-    float iMouse_[4];
-    float iDate_[4];
-    Channel iChannel_[CHANNEL_MAX];
+    float resolution_[3];
+    float time_;
+    float time_delta_;
+    int frame_;
+    float mouse_[4];
+    float date_[4];
+    Channel channel_[CHANNEL_MAX];
 
-    std::map<decltype(std::declval<Shader>().id), std::map<std::string, int>> shaderLoc_;
-    Shader mainShader_;
+    std::map<decltype(std::declval<Shader>().id), std::map<std::string, int>> shader_loc_;
+    Shader main_shader_;
 };

@@ -23,7 +23,7 @@ void UberShader::render(nlohmann::json const& j)
 {
     BaseShader::loadManifest(j);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(screenWidth_, screenHeight_, "Uber Shader");
+    InitWindow(screen_width, screen_height, "Uber Shader");
 
     Camera camera = {0};
     camera.position = Vector3{4.0f, 4.0f, 4.0f};

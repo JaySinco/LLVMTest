@@ -17,98 +17,121 @@
 Row  => move z(5) = (x(1), y(2))
 */
 
-constexpr int FIVE_IN_ROW = 5;
-constexpr int BOARD_MAX_COL = 8;
-constexpr int BOARD_MAX_ROW = BOARD_MAX_COL;
-constexpr int BOARD_SIZE = BOARD_MAX_ROW * BOARD_MAX_COL;
-constexpr int INPUT_FEATURE_NUM = 4;  // self, opponent[[, lastmove], color]
-constexpr int NO_MOVE_YET = -1;
-constexpr int COLOR_OCCUPY_SPACE = 1;
+constexpr int kFiveInRow = 5;
+constexpr int kBoardMaxCol = 8;
+constexpr int kBoardMaxRow = kBoardMaxCol;
+constexpr int kBoardSize = kBoardMaxRow * kBoardMaxCol;
+constexpr int kInputFeatureNum = 4;  // self, opponent[[, lastmove], color]
+constexpr int kNoMoveYet = -1;
+constexpr int kColorOccupySpace = 1;
 
 extern std::mt19937 g_random_engine;
 
-#define ON_BOARD(row, col) (row >= 0 && row < BOARD_MAX_ROW && col >= 0 && col < BOARD_MAX_COL)
+#define ON_BOARD(row, col) (row >= 0 && row < kBoardMaxRow && col >= 0 && col < kBoardMaxCol)
 
 enum class Color
 {
-    Empty,
-    Black,
-    White
+    kEmpty,
+    kBlack,
+    kWhite
 };
 Color operator~(const Color c);
 std::ostream& operator<<(std::ostream& out, Color c);
 
 class Move
 {
-    int index;
+    int index_;
 
 public:
-    explicit Move(int z): index(z) { assert((z >= 0 && z < BOARD_SIZE) || z == NO_MOVE_YET); }
+    explicit Move(int z): index_(z) { assert((z >= 0 && z < kBoardSize) || z == kNoMoveYet); }
+
     Move(int row, int col)
     {
         assert(ON_BOARD(row, col));
-        index = row * BOARD_MAX_COL + col;
+        index_ = row * kBoardMaxCol + col;
     }
-    Move(Move const& mv): index(mv.z()) {}
-    int z() const { return index; }
+
+    Move(Move const& mv): index_(mv.z()) {}
+
+    int z() const { return index_; }
+
     int r() const
     {
-        assert(index >= 0 && index < BOARD_SIZE);
-        return index / BOARD_MAX_COL;
+        assert(index_ >= 0 && index_ < kBoardSize);
+        return index_ / kBoardMaxCol;
     }
+
     int c() const
     {
-        assert(index >= 0 && index < BOARD_SIZE);
-        return index % BOARD_MAX_COL;
+        assert(index_ >= 0 && index_ < kBoardSize);
+        return index_ % kBoardMaxCol;
     }
-    bool operator<(Move const& right) const { return index < right.index; }
-    bool operator==(Move const& right) const { return index == right.index; }
+
+    bool operator<(Move const& right) const { return index_ < right.index_; }
+
+    bool operator==(Move const& right) const { return index_ == right.index_; }
 };
+
 std::ostream& operator<<(std::ostream& out, Move mv);
 
 class Board
 {
-    Color grid[BOARD_SIZE] = {Color::Empty};
+    Color grid_[kBoardSize] = {Color::kEmpty};
 
 public:
     Board() = default;
-    Color get(Move mv) const { return grid[mv.z()]; }
+
+    Color get(Move mv) const { return grid_[mv.z()]; }
+
     void put(Move mv, Color c)
     {
-        assert(get(mv) == Color::Empty);
-        grid[mv.z()] = c;
+        assert(get(mv) == Color::kEmpty);
+        grid_[mv.z()] = c;
     }
-    void push_valid(std::vector<Move>& set) const;
-    bool win_from(Move mv) const;
+
+    void pushValid(std::vector<Move>& set) const;
+    bool winFrom(Move mv) const;
 };
+
 std::ostream& operator<<(std::ostream& out, Board const& board);
 
 class State
 {
     friend std::ostream& operator<<(std::ostream& out, State const& state);
-    Board board;
-    Move last;
-    Color winner = Color::Empty;
-    std::vector<Move> opts;
+    Board board_;
+    Move last_;
+    Color winner_ = Color::kEmpty;
+    std::vector<Move> opts_;
 
 public:
-    State(): last(NO_MOVE_YET) { board.push_valid(opts); }
+    State(): last_(kNoMoveYet) { board_.pushValid(opts_); }
+
     State(State const& state) = default;
-    Move get_last() const { return last; }
-    Color get_winner() const { return winner; }
+
+    Move getLast() const { return last_; }
+
+    Color getWinner() const { return winner_; }
+
     Color current() const;
-    bool first_hand() const { return current() == Color::Black; }
-    void fill_feature_array(float data[INPUT_FEATURE_NUM * BOARD_SIZE]) const;
-    std::vector<Move> const& get_options() const
+
+    bool firstHand() const { return current() == Color::kBlack; }
+
+    void fillFeatureArray(float data[kInputFeatureNum * kBoardSize]) const;
+
+    std::vector<Move> const& getOptions() const
     {
         assert(!over());
-        return opts;
+        return opts_;
     };
-    bool valid(Move mv) const { return std::find(opts.cbegin(), opts.cend(), mv) != opts.end(); }
-    bool over() const { return winner != Color::Empty || opts.size() == 0; }
+
+    bool valid(Move mv) const { return std::find(opts_.cbegin(), opts_.cend(), mv) != opts_.end(); }
+
+    bool over() const { return winner_ != Color::kEmpty || opts_.size() == 0; }
+
     void next(Move mv);
-    Color next_rand_till_end();
+    Color nextRandTillEnd();
 };
+
 std::ostream& operator<<(std::ostream& out, State const& state);
 
 struct Player
@@ -125,25 +148,32 @@ float benchmark(Player& p1, Player& p2, int round, bool silent = true);
 
 class RandomPlayer: public Player
 {
-    std::string id;
+    std::string id_;
 
 public:
-    explicit RandomPlayer(std::string const& name): id(name) {}
+    explicit RandomPlayer(std::string const& name): id_(name) {}
+
     void reset() override {}
-    std::string const& name() const override { return id; }
-    Move play(State const& state) override { return state.get_options()[0]; }
+
+    std::string const& name() const override { return id_; }
+
+    Move play(State const& state) override { return state.getOptions()[0]; }
+
     ~RandomPlayer() override = default;
 };
 
 class HumanPlayer: public Player
 {
-    std::string id;
-    bool get_move(int& row, int& col);
+    std::string id_;
+    static bool getMove(int& row, int& col);
 
 public:
-    explicit HumanPlayer(std::string const& name): id(name) {}
+    explicit HumanPlayer(std::string const& name): id_(name) {}
+
     void reset() override {}
-    std::string const& name() const override { return id; }
+
+    std::string const& name() const override { return id_; }
+
     Move play(State const& state) override;
     ~HumanPlayer() override = default;
 };

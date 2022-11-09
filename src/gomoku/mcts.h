@@ -3,76 +3,88 @@
 #include "network.h"
 #include <map>
 
-constexpr float NOISE_RATE = 0.2;
-constexpr float DIRICHLET_ALPHA = 0.3;
-constexpr bool DEBUG_MCTS_PROB = false;
+constexpr float kNoiseRate = 0.2;
+constexpr float kDirichletAlpha = 0.3;
+constexpr bool kDebugMCTSProb = false;
 
 class MCTSNode
 {
     friend std::ostream& operator<<(std::ostream& out, MCTSNode const& node);
-    MCTSNode* parent;
-    std::map<Move, MCTSNode*> children;
-    int visits = 0;
-    float quality = 0;
-    float prior;
+    MCTSNode* parent_;
+    std::map<Move, MCTSNode*> children_;
+    int visits_ = 0;
+    float quality_ = 0;
+    float prior_;
 
 public:
-    MCTSNode(MCTSNode* node_p, float prior_p): parent(node_p), prior(prior_p) {}
+    MCTSNode(MCTSNode* node_p, float prior_p): parent_(node_p), prior_(prior_p) {}
+
     ~MCTSNode();
     void expand(std::vector<std::pair<Move, float>> const& set);
     MCTSNode* cut(Move occurred);
     std::pair<Move, MCTSNode*> select(float c_puct) const;
-    Move act_by_most_visted() const;
-    Move act_by_prob(float mcts_move_priors[BOARD_SIZE], float temp) const;
-    void update(float leafValue);
-    void update_recursive(float leafValue);
-    void add_noise_to_child_prior(float noise_rate);
+    Move actByMostVisted() const;
+    Move actByProb(float mcts_move_priors[kBoardSize], float temp) const;
+    void update(float leaf_value);
+    void updateRecursive(float leaf_value);
+    void addNoiseToChildPrior(float noise_rate);
     float value(float c_puct) const;
-    bool is_leaf() const { return children.size() == 0; }
-    bool is_root() const { return parent == nullptr; }
+
+    bool isLeaf() const { return children_.size() == 0; }
+
+    bool isRoot() const { return parent_ == nullptr; }
 };
+
 std::ostream& operator<<(std::ostream& out, MCTSNode const& node);
 
 class MCTSPurePlayer: public Player
 {
-    std::string id;
-    int itermax;
-    float c_puct;
-    MCTSNode* root;
-    void swap_root(MCTSNode* new_root)
+    std::string id_;
+    int itermax_;
+    float c_puct_;
+    MCTSNode* root_;
+
+    void swapRoot(MCTSNode* new_root)
     {
-        delete root;
-        root = new_root;
+        delete root_;
+        root_ = new_root;
     }
 
 public:
     MCTSPurePlayer(int itermax, float c_puct);
-    ~MCTSPurePlayer() override { delete root; }
-    std::string const& name() const override { return id; }
-    void set_itermax(int n);
-    void make_id();
+
+    ~MCTSPurePlayer() override { delete root_; }
+
+    std::string const& name() const override { return id_; }
+
+    void setItermax(int n);
+    void makeId();
     void reset() override;
     Move play(State const& state) override;
 };
 
 class MCTSDeepPlayer: public Player
 {
-    std::string id;
-    int itermax;
-    float c_puct;
-    MCTSNode* root;
-    std::shared_ptr<FIRNet> net;
-    void swap_root(MCTSNode* new_root)
+    std::string id_;
+    int itermax_;
+    float c_puct_;
+    MCTSNode* root_;
+    std::shared_ptr<FIRNet> net_;
+
+    void swapRoot(MCTSNode* new_root)
     {
-        delete root;
-        root = new_root;
+        delete root_;
+        root_ = new_root;
     }
 
 public:
     MCTSDeepPlayer(std::shared_ptr<FIRNet> nn, int itermax, float c_puct);
-    ~MCTSDeepPlayer() override { delete root; }
-    std::string const& name() const override { return id; }
-    void make_id();
+
+    ~MCTSDeepPlayer() override { delete root_; }
+
+    std::string const& name() const override { return id_; }
+
+    void makeId();
     void reset() override;
     Move play(State const& state) override;
     static void think(int itermax, float c_puct, State const& state, std::shared_ptr<FIRNet> net,

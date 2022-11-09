@@ -5,41 +5,43 @@
 static unsigned int generateCubemapTexture(void const* data, int size, int format)
 {
     unsigned int id = 0;
-    unsigned int dataSize = GetPixelDataSize(size, size, format);
+    unsigned int data_size = GetPixelDataSize(size, size, format);
 
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 
-    unsigned int glInternalFormat, glFormat, glType;
-    rlGetGlTextureFormats(format, &glInternalFormat, &glFormat, &glType);
+    unsigned int gl_internal_format, gl_format, gl_type;
+    rlGetGlTextureFormats(format, &gl_internal_format, &gl_format, &gl_type);
 
-    if (glInternalFormat != -1) {
+    if (gl_internal_format != -1) {
         if (format == RL_PIXELFORMAT_UNCOMPRESSED_GRAYSCALE) {
-            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-            glTexParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+            GLint swizzle_mask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+            glTexParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
         } else if (format == RL_PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA) {
-            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
-            glTexParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+            GLint swizzle_mask[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
+            glTexParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
         }
 
         for (unsigned int i = 0; i < 6; i++) {
-            if (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0,
-                             glFormat, glType,
-                             static_cast<unsigned char const*>(data) + i * dataSize);
-            else
-                glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat,
-                                       size, size, 0, dataSize,
-                                       static_cast<unsigned char const*>(data) + i * dataSize);
+            if (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB) {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl_internal_format, size, size,
+                             0, gl_format, gl_type,
+                             static_cast<unsigned char const*>(data) + i * data_size);
+            } else {
+                glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl_internal_format,
+                                       size, size, 0, data_size,
+                                       static_cast<unsigned char const*>(data) + i * data_size);
+            }
         }
     }
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-    if (id > 0)
+    if (id > 0) {
         spdlog::info("cubemap texture[{}] loaded successfully ({}x{})", id, size, size);
-    else
+    } else {
         spdlog::error("failed to load cubemap texture");
+    }
 
     return id;
 }
@@ -91,9 +93,10 @@ static TextureCubemap loadTextureCubemap(Image image, int layout)
     int size = cubemap.width;
 
     Image faces = {nullptr};
-    Rectangle faceRecs[6] = {0};
-    for (auto& faceRec: faceRecs)
-        faceRec = Rectangle{0, 0, static_cast<float>(size), static_cast<float>(size)};
+    Rectangle face_recs[6] = {0};
+    for (auto& face_rec: face_recs) {
+        face_rec = Rectangle{0, 0, static_cast<float>(size), static_cast<float>(size)};
+    }
 
     if (layout == CUBEMAP_LAYOUT_LINE_VERTICAL) {
         faces = ImageCopy(image);
@@ -101,48 +104,53 @@ static TextureCubemap loadTextureCubemap(Image image, int layout)
         // TODO: Convert panorama image to square faces...
         // Ref: https://github.com/denivip/panorama/blob/master/panorama.cpp
     } else {
-        if (layout == CUBEMAP_LAYOUT_LINE_HORIZONTAL)
-            for (int i = 0; i < 6; i++) faceRecs[i].x = size * i;
-        else if (layout == CUBEMAP_LAYOUT_CROSS_THREE_BY_FOUR) {
-            faceRecs[0].x = size;
-            faceRecs[0].y = size;
-            faceRecs[1].x = size;
-            faceRecs[1].y = size * 3;
-            faceRecs[2].x = size;
-            faceRecs[2].y = 0;
-            faceRecs[3].x = size;
-            faceRecs[3].y = size * 2;
-            faceRecs[4].x = 0;
-            faceRecs[4].y = size;
-            faceRecs[5].x = size * 2;
-            faceRecs[5].y = size;
+        if (layout == CUBEMAP_LAYOUT_LINE_HORIZONTAL) {
+            for (int i = 0; i < 6; i++) {
+                face_recs[i].x = size * i;
+            }
+        } else if (layout == CUBEMAP_LAYOUT_CROSS_THREE_BY_FOUR) {
+            face_recs[0].x = size;
+            face_recs[0].y = size;
+            face_recs[1].x = size;
+            face_recs[1].y = size * 3;
+            face_recs[2].x = size;
+            face_recs[2].y = 0;
+            face_recs[3].x = size;
+            face_recs[3].y = size * 2;
+            face_recs[4].x = 0;
+            face_recs[4].y = size;
+            face_recs[5].x = size * 2;
+            face_recs[5].y = size;
         } else if (layout == CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE) {
-            faceRecs[0].x = size * 2;
-            faceRecs[0].y = size;
-            faceRecs[1].x = 0;
-            faceRecs[1].y = size;
-            faceRecs[2].x = size;
-            faceRecs[2].y = 0;
-            faceRecs[3].x = size;
-            faceRecs[3].y = size * 2;
-            faceRecs[4].x = size;
-            faceRecs[4].y = size;
-            faceRecs[5].x = size * 3;
-            faceRecs[5].y = size;
+            face_recs[0].x = size * 2;
+            face_recs[0].y = size;
+            face_recs[1].x = 0;
+            face_recs[1].y = size;
+            face_recs[2].x = size;
+            face_recs[2].y = 0;
+            face_recs[3].x = size;
+            face_recs[3].y = size * 2;
+            face_recs[4].x = size;
+            face_recs[4].y = size;
+            face_recs[5].x = size * 3;
+            face_recs[5].y = size;
         }
 
         faces = GenImageColor(size, size * 6, MAGENTA);
         ImageFormat(&faces, image.format);
 
-        for (int i = 0; i < 6; i++)
-            ImageDraw(&faces, image, faceRecs[i],
+        for (int i = 0; i < 6; i++) {
+            ImageDraw(&faces, image, face_recs[i],
                       Rectangle{0, static_cast<float>(size * i), static_cast<float>(size),
                                 static_cast<float>(size)},
                       WHITE);
+        }
     }
 
     cubemap.id = generateCubemapTexture(faces.data, size, faces.format);
-    if (cubemap.id == 0) spdlog::error("failed to load cubemap image");
+    if (cubemap.id == 0) {
+        spdlog::error("failed to load cubemap image");
+    }
 
     UnloadImage(faces);
 
@@ -152,45 +160,45 @@ static TextureCubemap loadTextureCubemap(Image image, int layout)
 static void setupTextureParam(std::string const& type, Texture text, std::string const& filter,
                               std::string const& wrap)
 {
-    GLint gFilter = 0;
+    GLint gl_filter = 0;
     if (filter == "nearest") {
-        gFilter = GL_NEAREST;
+        gl_filter = GL_NEAREST;
     } else if (filter == "linear") {
-        gFilter = GL_LINEAR;
+        gl_filter = GL_LINEAR;
     } else if (filter == "mipmap") {
-        gFilter = GL_LINEAR_MIPMAP_LINEAR;
+        gl_filter = GL_LINEAR_MIPMAP_LINEAR;
     } else {
         throw std::runtime_error(fmt::format("texture filter not support: {}", filter));
     }
 
-    GLint gWrap = 0;
+    GLint gl_wrap = 0;
     if (wrap == "clamp") {
-        gWrap = GL_CLAMP_TO_EDGE;
+        gl_wrap = GL_CLAMP_TO_EDGE;
     } else if (wrap == "repeat") {
-        gWrap = GL_REPEAT;
+        gl_wrap = GL_REPEAT;
     } else {
         throw std::runtime_error(fmt::format("texture filter not support: {}", filter));
     }
 
-    GLenum gTarget = 0;
+    GLenum gl_target = 0;
     if (type == "2d") {
-        gTarget = GL_TEXTURE_2D;
+        gl_target = GL_TEXTURE_2D;
     } else if (type == "cube") {
-        gTarget = GL_TEXTURE_CUBE_MAP;
+        gl_target = GL_TEXTURE_CUBE_MAP;
     } else {
         throw std::runtime_error(fmt::format("texture type not support: {}", type));
     }
 
-    glBindTexture(gTarget, text.id);
-    glTexParameteri(gTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(gTarget, GL_TEXTURE_MIN_FILTER, gFilter);
-    glTexParameteri(gTarget, GL_TEXTURE_WRAP_S, gWrap);
-    glTexParameteri(gTarget, GL_TEXTURE_WRAP_T, gWrap);
-    glTexParameteri(gTarget, GL_TEXTURE_WRAP_R, gWrap);
+    glBindTexture(gl_target, text.id);
+    glTexParameteri(gl_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(gl_target, GL_TEXTURE_MIN_FILTER, gl_filter);
+    glTexParameteri(gl_target, GL_TEXTURE_WRAP_S, gl_wrap);
+    glTexParameteri(gl_target, GL_TEXTURE_WRAP_T, gl_wrap);
+    glTexParameteri(gl_target, GL_TEXTURE_WRAP_R, gl_wrap);
     if (filter == "mipmap") {
-        glGenerateMipmap(gTarget);
+        glGenerateMipmap(gl_target);
     }
-    glBindTexture(gTarget, 0);
+    glBindTexture(gl_target, 0);
 }
 
 BaseShader::~BaseShader() = default;
@@ -198,10 +206,10 @@ BaseShader::~BaseShader() = default;
 void BaseShader::loadManifest(nlohmann::json const& j)
 {
     if (j.contains("screenWidth")) {
-        screenWidth_ = j["screenWidth"];
+        screen_width = j["screenWidth"];
     }
     if (j.contains("screenHeight")) {
-        screenHeight_ = j["screenHeight"];
+        screen_height = j["screenHeight"];
     }
 }
 
@@ -254,7 +262,7 @@ RenderTexture2D BaseShader::loadBufferTexture(int width, int height, std::string
 Texture BaseShader::loadTexture(std::string const& texture, std::string const& type,
                                 std::string const& filter, std::string const& wrap)
 {
-    auto abspath = (utils::source_repo / fmt::format("models/{}", texture)).string();
+    auto abspath = (utils::kSourceRepo / fmt::format("models/{}", texture)).string();
     Texture text;
     if (type == "2d") {
         text = LoadTexture(abspath.c_str());
@@ -270,5 +278,5 @@ Texture BaseShader::loadTexture(std::string const& texture, std::string const& t
 
 Model BaseShader::loadModel(std::string const& model)
 {
-    return LoadModel((utils::source_repo / fmt::format("models/{}", model)).string().c_str());
+    return LoadModel((utils::kSourceRepo / fmt::format("models/{}", model)).string().c_str());
 }

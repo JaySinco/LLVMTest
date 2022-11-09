@@ -2,93 +2,105 @@
 #include "game.h"
 #include <torch/torch.h>
 
-constexpr int BATCH_SIZE = 512;
-constexpr int BUFFER_SIZE = 10000;
-constexpr float INIT_LEARNING_RATE = 2e-3;
-constexpr float WEIGHT_DECAY = 1e-4;
-constexpr int LR_DROP_STEP1 = 2000;
-constexpr int LR_DROP_STEP2 = 8000;
-constexpr int LR_DROP_STEP3 = 10000;
+constexpr int kBatchSize = 512;
+constexpr int kBufferSize = 10000;
+constexpr float kInitLearningRate = 2e-3;
+constexpr float kWeightDecay = 1e-4;
+constexpr int kDropStepLR1 = 2000;
+constexpr int kDropStepLR2 = 8000;
+constexpr int kDropStepLR3 = 10000;
 
 struct SampleData
 {
-    float data[INPUT_FEATURE_NUM * BOARD_SIZE] = {0.0f};
-    float p_label[BOARD_SIZE] = {0.0f};
+    float data[kInputFeatureNum * kBoardSize] = {0.0f};
+    float p_label[kBoardSize] = {0.0f};
     float v_label[1] = {0.0f};
 
-    void flip_verticing();
+    void flipVerticing();
     void transpose();
 };
+
 std::ostream& operator<<(std::ostream& out, SampleData const& sample);
 
 struct MiniBatch
 {
-    float data[BATCH_SIZE * INPUT_FEATURE_NUM * BOARD_SIZE] = {0.0f};
-    float p_label[BATCH_SIZE * BOARD_SIZE] = {0.0f};
-    float v_label[BATCH_SIZE * 1] = {0.0f};
+    float data[kBatchSize * kInputFeatureNum * kBoardSize] = {0.0f};
+    float p_label[kBatchSize * kBoardSize] = {0.0f};
+    float v_label[kBatchSize * 1] = {0.0f};
 };
+
 std::ostream& operator<<(std::ostream& out, MiniBatch const& batch);
 
 class DataSet
 {
 private:
-    long long index = 0;
-    SampleData* buf;
+    long long index_ = 0;
+    SampleData* buf_;
 
 public:
-    DataSet() { buf = new SampleData[BUFFER_SIZE]; }
-    ~DataSet() { delete[] buf; }
-    int size() const { return (index > BUFFER_SIZE) ? BUFFER_SIZE : index; }
-    long long total() const { return index; }
-    void push_back(SampleData const* data)
+    DataSet() { buf_ = new SampleData[kBufferSize]; }
+
+    ~DataSet() { delete[] buf_; }
+
+    int size() const { return (index_ > kBufferSize) ? kBufferSize : index_; }
+
+    long long total() const { return index_; }
+
+    void pushBack(SampleData const* data)
     {
-        buf[index % BUFFER_SIZE] = *data;
-        ++index;
+        buf_[index_ % kBufferSize] = *data;
+        ++index_;
     }
-    void push_with_transform(SampleData* data);
+
+    void pushWithTransform(SampleData* data);
+
     SampleData const& get(int i) const
     {
         assert(i < size());
-        return buf[i];
+        return buf_[i];
     }
-    void make_mini_batch(MiniBatch* batch) const;
+
+    void makeMiniBatch(MiniBatch* batch) const;
 };
+
 std::ostream& operator<<(std::ostream& out, DataSet const& set);
 
 class FIRNetModule: public torch::nn::Module
 {
 public:
     FIRNetModule();
-    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x);
+    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor input);
 
 private:
-    torch::nn::Conv2d conv1;
-    torch::nn::Conv2d conv2;
-    torch::nn::Conv2d conv3;
-    torch::nn::Conv2d act_conv1;
-    torch::nn::Linear act_fc1;
-    torch::nn::Conv2d val_conv1;
-    torch::nn::Linear val_fc1;
-    torch::nn::Linear val_fc2;
+    torch::nn::Conv2d conv1_;
+    torch::nn::Conv2d conv2_;
+    torch::nn::Conv2d conv3_;
+    torch::nn::Conv2d act_conv1_;
+    torch::nn::Linear act_fc1_;
+    torch::nn::Conv2d val_conv1_;
+    torch::nn::Linear val_fc1_;
+    torch::nn::Linear val_fc2_;
 };
 
 class FIRNet
 {
-    long long update_cnt;
+    long long update_cnt_;
     FIRNetModule module_;
-    torch::optim::Adam optimizer;
+    torch::optim::Adam optimizer_;
 
 public:
     explicit FIRNet(long long verno);
     ~FIRNet();
-    long long verno() const { return update_cnt; }
-    void save_param();
-    void load_param();
-    void set_lr(float lr);
-    float calc_init_lr() const;
-    void adjust_lr();
-    std::string make_param_file_name() const;
-    float train_step(MiniBatch* batch);
+
+    long long verno() const { return update_cnt_; }
+
+    void saveParam();
+    void loadParam();
+    void setLR(float lr);
+    float calcInitLR() const;
+    void adjustLR();
+    std::string makeParamFileName() const;
+    float trainStep(MiniBatch* batch);
     void evalState(State const& state, float value[1],
                    std::vector<std::pair<Move, float>>& move_priors);
 };

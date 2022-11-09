@@ -11,6 +11,8 @@ DerivePointerAlignment: false
 SpaceBeforeCtorInitializerColon: false
 SpaceBeforeRangeBasedForLoopColon: false
 SpaceBeforeInheritanceColon: false
+MaxEmptyLinesToKeep: 1
+SeparateDefinitionBlocks : Always
 PointerAlignment: Left
 QualifierAlignment: Custom
 QualifierOrder: ['inline', 'static', 'type', 'const']

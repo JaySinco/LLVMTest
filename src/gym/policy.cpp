@@ -5,10 +5,10 @@ namespace policy
 void Policy::eval(bool keep_going)
 {
     env.reset(true);
-    env.ui_sync([&]() {
+    env.uiSync([&]() {
         double reward;
-        auto ob = env.get_observe();
-        auto action = get_action(ob);
+        auto ob = env.getObserve();
+        auto action = getAction(ob);
         bool done = env.step(action, reward);
         if (!keep_going && done) {
             env.reset();

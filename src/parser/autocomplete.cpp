@@ -12,18 +12,18 @@
 using Source = boost::string_view;
 using Location = Source::const_iterator;
 
-namespace Completion
+namespace completion
 {
-static int fuzzy_match(Source input, boost::string_view candidate, int rate = 1)
+static int fuzzyMatch(Source input, boost::string_view candidate, int rate = 1)
 {  // start with first-letter boost
     int score = 0;
 
     while (!(input.empty() || candidate.empty())) {
         if (input.front() != candidate.front()) {
-            return score + std::max(fuzzy_match(input.substr(1), candidate,
-                                                std::max(rate - 2,
-                                                         0)),  // penalty for ignoring an input char
-                                    fuzzy_match(input, candidate.substr(1), std::max(rate - 1, 0)));
+            return score + std::max(fuzzyMatch(input.substr(1), candidate,
+                                               std::max(rate - 2,
+                                                        0)),  // penalty for ignoring an input char
+                                    fuzzyMatch(input, candidate.substr(1), std::max(rate - 1, 0)));
         }
 
         input.remove_prefix(1);
@@ -47,6 +47,7 @@ class Hints
 
     private:
         static Location loc(Source const& s) { return s.begin(); }
+
         static Location loc(Location const& l) { return l; }
     };
 
@@ -56,9 +57,9 @@ public:
 
     explicit operator bool() const { return incomplete.size() || suggestions.size(); }
 };
-}  // namespace Completion
+}  // namespace completion
 
-namespace Ast
+namespace ast
 {
 using NumLiteral = double;
 using StringLiteral = std::string;  // de-escaped, not source view
@@ -90,35 +91,39 @@ struct CallExpression
     Identifier function;
     ArgList args;
 };
-}  // namespace Ast
+}  // namespace ast
 
-BOOST_FUSION_ADAPT_STRUCT(Ast::BinaryExpression, lhs, op, rhs)
-BOOST_FUSION_ADAPT_STRUCT(Ast::CallExpression, function, args)
+BOOST_FUSION_ADAPT_STRUCT(ast::BinaryExpression, lhs, op, rhs)
+BOOST_FUSION_ADAPT_STRUCT(ast::CallExpression, function, args)
 
 // for debug printing:
 namespace
 {
-struct once_t
+struct OnceT
 {  // an auto-reset flag
+
     explicit operator bool()
     {
         bool v = flag;
         flag = false;
         return v;
     }
+
     bool flag = true;
 };
 }  // namespace
 
 // for debug printing:
-namespace Ast
+namespace ast
 {
 
 inline static std::ostream& operator<<(std::ostream& os, std::vector<Expression> const& args)
 {
     os << "(";
-    once_t first;
-    for (auto& a: args) os << (first ? "" : ", ") << a;
+    OnceT first;
+    for (auto& a: args) {
+        os << (first ? "" : ", ") << a;
+    }
     return os << ")";
 }
 
@@ -126,151 +131,157 @@ inline static std::ostream& operator<<(std::ostream& os, BinaryExpression const&
 {
     return os << boost::fusion::as_vector(e);
 }
+
 inline static std::ostream& operator<<(std::ostream& os, CallExpression const& e)
 {
     return os << boost::fusion::as_vector(e);
 }
-}  // namespace Ast
+}  // namespace ast
 
-namespace Parsing
+namespace parsing
 {
 namespace qi = boost::spirit::qi;
 namespace phx = boost::phoenix;
 
 template <typename It>
-struct Expression: qi::grammar<It, Ast::Expression()>
+struct Expression: qi::grammar<It, ast::Expression()>
 {
-    explicit Expression(Completion::Hints& hints): Expression::base_type(start), _hints(hints)
+    explicit Expression(completion::Hints& hints): Expression::base_type(start_), hints_(hints)
     {
         using namespace qi;
 
-        start = skip(space)[expression];
+        start_ = skip(space)[expression_];
 
-        expression =
-            term[_val = _1] >> *(char_("-+") >> expression)[_val = make_binary(_val, _1, _2)];
-        term = factor[_val = _1] >> *(char_("*/") >> term)[_val = make_binary(_val, _1, _2)];
-        factor = simple[_val = _1] >> *(char_("^") >> factor)[_val = make_binary(_val, _1, _2)];
+        expression_ =
+            term_[_val = _1] >> *(char_("-+") >> expression_)[_val = make_binary_(_val, _1, _2)];
+        term_ = factor_[_val = _1] >> *(char_("*/") >> term_)[_val = make_binary_(_val, _1, _2)];
+        factor_ = simple_[_val = _1] >> *(char_("^") >> factor_)[_val = make_binary_(_val, _1, _2)];
 
-        simple = call | variable | compound | number | string;
+        simple_ = call_ | variable_ | compound_ | number_ | string_;
 
-        auto implied = [=](char ch) { return copy(omit[lit(ch) | raw[eps][imply(_1, ch)]]); };
+        auto implied = [=](char ch) { return copy(omit[lit(ch) | raw[eps][imply_(_1, ch)]]); };
 
-        variable = maybe_known(phx::ref(_variables));
+        variable_ = maybe_known_(phx::ref(variables_));
 
-        compound %= '(' >> expression >> implied(')');
+        compound_ %= '(' >> expression_ >> implied(')');
 
         // The heuristics:
         // - an unknown identifier followed by (
         // - an unclosed argument list implies )
-        call %= (known(phx::ref(_functions))  // known -> imply the parens
-                 | &(identifier >> '(') >> unknown(phx::ref(_functions))) >>
-                implied('(') >> -(expression % (',' | !(')' | eoi) >> implied(','))) >>
-                implied(')');
+        call_ %= (known_(phx::ref(functions_))  // known -> imply the parens
+                  | &(identifier_ >> '(') >> unknown_(phx::ref(functions_))) >>
+                 implied('(') >> -(expression_ % (',' | !(')' | eoi) >> implied(','))) >>
+                 implied(')');
 
         // lexemes, primitive rules
-        identifier = raw[(alpha | '_') >> *(alnum | '_')];
+        identifier_ = raw[(alpha | '_') >> *(alnum | '_')];
 
         // imply the closing quotes
-        string %= '"' >> *('\\' >> char_ | ~char_('"')) >> implied('"');  // TODO more escapes
+        string_ %= '"' >> *('\\' >> char_ | ~char_('"')) >> implied('"');  // TODO more escapes
 
-        number = double_;  // TODO integral arguments
+        number_ = double_;  // TODO integral arguments
 
         ///////////////////////////////
         // identifier loopkup, suggesting
         {
-            maybe_known = known(_domain) | unknown(_domain);
+            maybe_known_ = known_(domain_) | unknown_(domain_);
 
             // distinct to avoid partially-matching identifiers
             using boost::spirit::repository::qi::distinct;
             auto kw = distinct(copy(alnum | '_'));
 
-            known = raw[kw[lazy(_domain)]];
-            unknown = raw[identifier[_val = _1]][suggest_for(_1, _domain)];
+            known_ = raw[kw[lazy(domain_)]];
+            unknown_ = raw[identifier_[_val = _1]][suggest_for_(_1, domain_)];
         }
 
         BOOST_SPIRIT_DEBUG_NODES((
-            start)(expression)(term)(factor)(simple)(compound)(call)(variable)(identifier)(number)(string)
+            start_)(expression_)(term_)(factor_)(simple_)(compound_)(call_)(variable_)(identifier_)(number_)(string_)
                                  //(maybe_known)(known)(unknown) // qi::symbols<> non-streamable
         )
 
-        _variables += "foo", "bar", "qux";
-        _functions += "print", "sin", "tan", "sqrt", "frobnicate";
+        variables_ += "foo", "bar", "qux";
+        functions_ += "print", "sin", "tan", "sqrt", "frobnicate";
     }
 
 private:
-    Completion::Hints& _hints;
+    completion::Hints& hints_;
 
     using Domain = qi::symbols<char>;
-    Domain _variables, _functions;
+    Domain variables_, functions_;
 
-    qi::rule<It, Ast::Expression()> start;
-    qi::rule<It, Ast::Expression(), qi::space_type> expression, term, factor, simple;
+    qi::rule<It, ast::Expression()> start_;
+    qi::rule<It, ast::Expression(), qi::space_type> expression_, term_, factor_, simple_;
     // completables
-    qi::rule<It, Ast::Expression(), qi::space_type> compound;
-    qi::rule<It, Ast::CallExpression(), qi::space_type> call;
+    qi::rule<It, ast::Expression(), qi::space_type> compound_;
+    qi::rule<It, ast::CallExpression(), qi::space_type> call_;
 
     // implicit lexemes
-    qi::rule<It, Ast::Identifier()> variable, identifier;
-    qi::rule<It, Ast::NumLiteral()> number;
-    qi::rule<It, Ast::StringLiteral()> string;
+    qi::rule<It, ast::Identifier()> variable_, identifier_;
+    qi::rule<It, ast::NumLiteral()> number_;
+    qi::rule<It, ast::StringLiteral()> string_;
 
     // domain identifier lookups
-    qi::_r1_type _domain;
-    qi::rule<It, Ast::Identifier(Domain const&)> maybe_known, known, unknown;
+    qi::_r1_type domain_;
+    qi::rule<It, ast::Identifier(Domain const&)> maybe_known_, known_, unknown_;
 
     ///////////////////////////////
     // binary expression factory
-    struct make_binary_f
+    struct MakeBinaryF
     {
-        Ast::BinaryExpression operator()(Ast::Expression const& lhs, char op,
-                                         Ast::Expression const& rhs) const
+        ast::BinaryExpression operator()(ast::Expression const& lhs, char op,
+                                         ast::Expression const& rhs) const
         {
             return {lhs, op, rhs};
         }
     };
-    boost::phoenix::function<make_binary_f> make_binary;
+
+    boost::phoenix::function<MakeBinaryF> make_binary_;
 
     ///////////////////////////////
     // auto-completing incomplete expressions
-    struct imply_f
+    struct ImplyF
     {
-        Completion::Hints& _hints;
+        completion::Hints& hints;
+
         void operator()(boost::iterator_range<It> where, char implied_char) const
         {
-            auto inserted =
-                _hints.incomplete.emplace(&*where.begin(), std::string(1, implied_char));
+            auto inserted = hints.incomplete.emplace(&*where.begin(), std::string(1, implied_char));
             // add the implied char to existing completion
-            if (!inserted.second) inserted.first->second += implied_char;
+            if (!inserted.second) {
+                inserted.first->second += implied_char;
+            }
         }
     };
-    boost::phoenix::function<imply_f> imply{imply_f{_hints}};
+
+    boost::phoenix::function<ImplyF> imply_{ImplyF{hints_}};
 
     ///////////////////////////////
     // suggest_for
-    struct suggester
+    struct Suggester
     {
-        Completion::Hints& _hints;
+        completion::Hints& hints;
 
         void operator()(boost::iterator_range<It> where, Domain const& symbols) const
         {
-            using namespace Completion;
+            using namespace completion;
             Source id(&*where.begin(), where.size());
             Candidates c;
 
             symbols.for_each([&](std::string const& k, ...) { c.push_back(k); });
 
-            auto score = [id](Source v) { return fuzzy_match(id, v); };
+            auto score = [id](Source v) { return fuzzyMatch(id, v); };
             auto byscore = [=](Source a, Source b) { return score(a) > score(b); };
 
             sort(c.begin(), c.end(), byscore);
             c.erase(remove_if(c.begin(), c.end(), [=](Source s) { return score(s) < 3; }), c.end());
 
-            _hints.suggestions.emplace(id, c);
+            hints.suggestions.emplace(id, c);
         }
     };
-    boost::phoenix::function<suggester> suggest_for{suggester{_hints}};
+
+    boost::phoenix::function<Suggester> suggest_for_{Suggester{hints_}};
 };
-}  // namespace Parsing
+}  // namespace parsing
 
 int main()
 {
@@ -291,9 +302,9 @@ int main()
         std::cout << "-------------- '" << input << "'\n";
         Location f = input.begin(), l = input.end();
 
-        Ast::Expression expr;
-        Completion::Hints hints;
-        bool ok = parse(f, l, Parsing::Expression<Location>{hints}, expr);
+        ast::Expression expr;
+        completion::Hints hints;
+        bool ok = parse(f, l, parsing::Expression<Location>{hints}, expr);
 
         if (hints) {
             std::cout << "Input: '" << input << "'\n";
@@ -305,12 +316,14 @@ int main()
         for (auto& id: hints.suggestions) {
             std::cout << "Unknown " << std::setw(id.first.begin() - input.begin()) << ""
                       << std::string(id.first.size(), '^');
-            if (id.second.empty())
+            if (id.second.empty()) {
                 std::cout << " (no suggestions)\n";
-            else {
+            } else {
                 std::cout << " (did you mean ";
-                once_t first;
-                for (auto& s: id.second) std::cout << (first ? "" : " or ") << "'" << s << "'";
+                OnceT first;
+                for (auto& s: id.second) {
+                    std::cout << (first ? "" : " or ") << "'" << s << "'";
+                }
                 std::cout << "?)\n";
             }
         }
@@ -321,6 +334,8 @@ int main()
             std::cout << "Parse failed\n";
         }
 
-        if (f != l) std::cout << "Remaining input: '" << std::string(f, l) << "'\n";
+        if (f != l) {
+            std::cout << "Remaining input: '" << std::string(f, l) << "'\n";
+        }
     }
 }

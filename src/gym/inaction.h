@@ -8,9 +8,9 @@ class Inaction: public Policy
 public:
     explicit Inaction(env::Env& env): Policy(env) {}
 
-    torch::Tensor get_action(torch::Tensor observe) override
+    torch::Tensor getAction(torch::Tensor observe) override
     {
-        return torch::zeros({1, env.act_space()});
+        return torch::zeros({1, env.actSpace()});
     }
 };
 

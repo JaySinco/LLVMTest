@@ -5,7 +5,7 @@
 
 std::default_random_engine g_random_engine;
 
-void insertion_sort(int* arr, int n)
+void insertionSort(int* arr, int n)
 {
     int bar = 1;
     while (bar < n) {
@@ -20,7 +20,7 @@ void insertion_sort(int* arr, int n)
     }
 }
 
-void selection_sort(int* arr, int n)
+void selectionSort(int* arr, int n)
 {
     int bar = 0;
     while (bar < n - 1) {
@@ -33,7 +33,7 @@ void selection_sort(int* arr, int n)
     }
 }
 
-void merge_sort_merge(int* arr, int n, int half)
+void mergeSortMerge(int* arr, int n, int half)
 {
     int* copy = new int[n];
     std::memcpy(copy, arr, n * sizeof(int));
@@ -55,19 +55,19 @@ void merge_sort_merge(int* arr, int n, int half)
     delete[] copy;
 }
 
-void merge_sort(int* arr, int n)
+void mergeSort(int* arr, int n)
 {
     if (n <= 1) {
         return;
     }
     int half = n / 2;
     int left = n - half;
-    merge_sort(arr, half);
-    merge_sort(arr + half, left);
-    merge_sort_merge(arr, n, half);
+    mergeSort(arr, half);
+    mergeSort(arr + half, left);
+    mergeSortMerge(arr, n, half);
 }
 
-int calc_inversions_merge(int* arr, int n, int half)
+int calcInversionsMerge(int* arr, int n, int half)
 {
     int inv = 0;
     int* copy = new int[n];
@@ -92,20 +92,20 @@ int calc_inversions_merge(int* arr, int n, int half)
     return inv;
 }
 
-int calc_inversions(int* arr, int n)
+int calcInversions(int* arr, int n)
 {
     if (n <= 1) {
         return 0;
     }
     int half = n / 2;
     int left = n - half;
-    int i1 = calc_inversions(arr, half);
-    int i2 = calc_inversions(arr + half, left);
-    int i3 = calc_inversions_merge(arr, n, half);
+    int i1 = calcInversions(arr, half);
+    int i2 = calcInversions(arr + half, left);
+    int i3 = calcInversionsMerge(arr, n, half);
     return i1 + i2 + i3;
 }
 
-void bubble_sort(int* arr, int n)
+void bubbleSort(int* arr, int n)
 {
     for (int i = 0; i < n - 1; ++i) {
         for (int j = n - 1; j > i; --j) {
@@ -116,7 +116,7 @@ void bubble_sort(int* arr, int n)
     }
 }
 
-void quick_sort(int* arr, int n)
+void quickSort(int* arr, int n)
 {
     if (n <= 1) {
         return;
@@ -133,72 +133,87 @@ void quick_sort(int* arr, int n)
     }
     ++p;
     std::swap(arr[n - 1], arr[p]);
-    quick_sort(arr, p);
-    quick_sort(arr + p + 1, n - p - 1);
+    quickSort(arr, p);
+    quickSort(arr + p + 1, n - p - 1);
 }
 
 class Heap
 {
 public:
     using Comp = std::function<bool(int, int)>;
-    Heap(int* arr, int n, Comp op = std::greater<int>()): arr(arr), n(n), op(op) {}
-    void resize(int dn) { this->n += dn; }
-    int parent(int i) { return (i + 1) / 2 - 1; }
-    int left_child(int i) { return (i + 1) * 2 - 1; }
-    int right_child(int i) { return left_child(i) + 1; }
-    bool is_leaf(int i) { return left_child(i) >= n; }
-    void pull_down(int i)
+
+    Heap(int* arr, int n, Comp op = std::greater<int>()): arr_(arr), n_(n), op_(op) {}
+
+    void resize(int dn) { this->n_ += dn; }
+
+    static int parent(int i) { return (i + 1) / 2 - 1; }
+
+    static int leftChild(int i) { return (i + 1) * 2 - 1; }
+
+    static int rightChild(int i) { return leftChild(i) + 1; }
+
+    bool isLeaf(int i) const { return leftChild(i) >= n_; }
+
+    void pullDown(int i)
     {
-        while (!is_leaf(i)) {
-            int lc = left_child(i);
-            int rc = right_child(i);
+        while (!isLeaf(i)) {
+            int lc = leftChild(i);
+            int rc = rightChild(i);
             int idx = i;
-            if (lc < n && op(arr[lc], arr[idx])) idx = lc;
-            if (rc < n && op(arr[rc], arr[idx])) idx = rc;
-            if (idx == i) break;
-            std::swap(arr[idx], arr[i]);
+            if (lc < n_ && op_(arr_[lc], arr_[idx])) {
+                idx = lc;
+            }
+            if (rc < n_ && op_(arr_[rc], arr_[idx])) {
+                idx = rc;
+            }
+            if (idx == i) {
+                break;
+            }
+            std::swap(arr_[idx], arr_[i]);
             i = idx;
         }
     }
-    void lift_up(int i)
+
+    void liftUp(int i)
     {
         while (i > 0) {
             int p = parent(i);
-            if (op(arr[i], arr[p])) {
-                std::swap(arr[i], arr[p]);
+            if (op_(arr_[i], arr_[p])) {
+                std::swap(arr_[i], arr_[p]);
                 i = p;
             } else {
                 break;
             }
         }
     }
-    void build_heap()
+
+    void buildHeap()
     {
-        for (int i = n / 2 - 1; i >= 0; --i) {
-            pull_down(i);
+        for (int i = n_ / 2 - 1; i >= 0; --i) {
+            pullDown(i);
         }
     }
 
 private:
-    int* arr;
-    int n;
-    Comp op;
+    int* arr_;
+    int n_;
+    Comp op_;
 };
 
-void heap_sort(int* arr, int n)
+void heapSort(int* arr, int n)
 {
     Heap hp(arr, n);
-    hp.build_heap();
+    hp.buildHeap();
     for (int i = n - 1; i > 0; --i) {
         std::swap(arr[0], arr[i]);
         hp.resize(-1);
-        hp.pull_down(0);
+        hp.pullDown(0);
     }
 }
 
-void count_sort(int* arr, int n)
+void countSort(int* arr, int n)
 {
-    constexpr int k = 10240 + 1;
+    int const k = 10240 + 1;
     std::vector<int> count(k, 0);
     for (int i = 0; i < n; ++i) {
         assert(arr[i] > 0 && arr[i] < k);
@@ -230,50 +245,55 @@ class PriorityQueue
 {
 public:
     explicit PriorityQueue(std::vector<int> const& data, Heap::Comp op = std::greater<int>())
-        : vec(data), op(op)
+        : vec_(data), op_(op)
     {
-        Heap hp(vec.data(), vec.size(), op);
-        hp.build_heap();
+        Heap hp(vec_.data(), vec_.size(), op);
+        hp.buildHeap();
     }
+
     int top()
     {
-        if (!vec.empty()) {
-            return vec[0];
+        if (!vec_.empty()) {
+            return vec_[0];
         }
         throw std::runtime_error("queue is empty!");
     }
-    void pop_top()
+
+    void popTop()
     {
-        std::swap(vec[0], vec.back());
-        vec.pop_back();
-        Heap hp(vec.data(), vec.size(), op);
-        hp.pull_down(0);
+        std::swap(vec_[0], vec_.back());
+        vec_.pop_back();
+        Heap hp(vec_.data(), vec_.size(), op_);
+        hp.pullDown(0);
     }
+
     void change(int i, int v)
     {
-        int old = vec.at(i);
-        vec[i] = v;
-        Heap hp(vec.data(), vec.size(), op);
-        if (!op(v, old)) {
-            hp.pull_down(i);
-        } else if (op(v, old)) {
-            hp.lift_up(i);
+        int old = vec_.at(i);
+        vec_[i] = v;
+        Heap hp(vec_.data(), vec_.size(), op_);
+        if (!op_(v, old)) {
+            hp.pullDown(i);
+        } else if (op_(v, old)) {
+            hp.liftUp(i);
         }
     }
+
     void insert(int x)
     {
-        vec.push_back(x);
-        Heap hp(vec.data(), vec.size(), op);
-        hp.lift_up(vec.size() - 1);
+        vec_.push_back(x);
+        Heap hp(vec_.data(), vec_.size(), op_);
+        hp.liftUp(vec_.size() - 1);
     }
-    int size() { return vec.size(); }
+
+    int size() { return vec_.size(); }
 
 private:
-    std::vector<int> vec;
-    Heap::Comp op;
+    std::vector<int> vec_;
+    Heap::Comp op_;
 };
 
-int select_ith_order(int* arr, int n, int i)
+int selectIthOrder(int* arr, int n, int i)
 {
     assert(i >= 1 && i <= n);
     if (n <= 1) {
@@ -294,9 +314,9 @@ int select_ith_order(int* arr, int n, int i)
     if (p + 1 == i) {
         return arr[p];
     } else if (p + 1 > i) {
-        return select_ith_order(arr, p, i);
+        return selectIthOrder(arr, p, i);
     } else {
-        return select_ith_order(arr + p + 1, n - p - 1, i - (p + 1));
+        return selectIthOrder(arr + p + 1, n - p - 1, i - (p + 1));
     }
 }
 
@@ -315,7 +335,7 @@ TEST_CASE("select_ith_order")
     };
     for (auto& [a, b, c]: samples) {
         INFO(fmt::format("arr={}, i={}", a, b));
-        int i = select_ith_order(a.data(), a.size(), b);
+        int i = selectIthOrder(a.data(), a.size(), b);
         REQUIRE(i == c);
     }
     std::vector<int> vec(1024);
@@ -324,7 +344,7 @@ TEST_CASE("select_ith_order")
     }
     for (int i = 1; i <= 1024; ++i) {
         std::shuffle(std::begin(vec), std::end(vec), g_random_engine);
-        int j = select_ith_order(vec.data(), vec.size(), i);
+        int j = selectIthOrder(vec.data(), vec.size(), i);
         REQUIRE(i == j);
     }
 }
@@ -336,32 +356,32 @@ TEST_CASE("priority_queue")
     {
         PriorityQueue queue(data, std::greater<int>());
         CHECK(queue.top() == 49);
-        queue.pop_top();
+        queue.popTop();
         CHECK(queue.top() == 27);
-        queue.pop_top();
+        queue.popTop();
         queue.insert(199);
         CHECK(queue.top() == 199);
         int last = 200;
         while (queue.size() > 0) {
             CHECK(last > queue.top());
             last = queue.top();
-            queue.pop_top();
+            queue.popTop();
         }
     }
     SECTION("min_heap")
     {
         PriorityQueue queue(data, std::less<int>());
         CHECK(queue.top() == 1);
-        queue.pop_top();
+        queue.popTop();
         CHECK(queue.top() == 2);
-        queue.pop_top();
+        queue.popTop();
         queue.insert(199);
         CHECK(queue.top() == 3);
         int last = 2;
         while (queue.size() > 0) {
             CHECK(last < queue.top());
             last = queue.top();
-            queue.pop_top();
+            queue.popTop();
         }
     }
 }
@@ -379,7 +399,7 @@ TEST_CASE("calc_inversions")
     };
     for (auto& [a, b]: samples) {
         CAPTURE(a);
-        int i = calc_inversions(a.data(), a.size());
+        int i = calcInversions(a.data(), a.size());
         REQUIRE(i == b);
     }
 }
@@ -417,13 +437,13 @@ TEST_CASE("sort")
         }                                   \
     }
 
-    SORT_SECTION(insertion_sort);
-    SORT_SECTION(selection_sort);
-    SORT_SECTION(merge_sort);
-    SORT_SECTION(bubble_sort);
-    SORT_SECTION(quick_sort);
-    SORT_SECTION(heap_sort);
-    SORT_SECTION(count_sort);
+    SORT_SECTION(insertionSort);
+    SORT_SECTION(selectionSort);
+    SORT_SECTION(mergeSort);
+    SORT_SECTION(bubbleSort);
+    SORT_SECTION(quickSort);
+    SORT_SECTION(heapSort);
+    SORT_SECTION(countSort);
 }
 
 TEST_CASE("sort_benchmark", "[benchmark]")
@@ -439,13 +459,13 @@ TEST_CASE("sort_benchmark", "[benchmark]")
         meter.measure([&] { return x(vec.data(), vec.size()); });      \
     }
 
-    SORT_BENCHMARK(insertion_sort);
-    SORT_BENCHMARK(selection_sort);
-    SORT_BENCHMARK(merge_sort);
-    SORT_BENCHMARK(bubble_sort);
-    SORT_BENCHMARK(quick_sort);
-    SORT_BENCHMARK(heap_sort);
-    SORT_BENCHMARK(count_sort);
+    SORT_BENCHMARK(insertionSort);
+    SORT_BENCHMARK(selectionSort);
+    SORT_BENCHMARK(mergeSort);
+    SORT_BENCHMARK(bubbleSort);
+    SORT_BENCHMARK(quickSort);
+    SORT_BENCHMARK(heapSort);
+    SORT_BENCHMARK(countSort);
 }
 
 int main(int argc, char* argv[])
@@ -455,8 +475,10 @@ int main(int argc, char* argv[])
     config.benchmarkSamples = 10;
     config.benchmarkNoAnalysis = true;
     config.shouldDebugBreak = true;
-    int returnCode = session.applyCommandLine(argc, argv);
-    if (returnCode != 0) return returnCode;
-    int numFailed = session.run();
-    return numFailed;
+    int return_code = session.applyCommandLine(argc, argv);
+    if (return_code != 0) {
+        return return_code;
+    }
+    int num_failed = session.run();
+    return num_failed;
 }

@@ -7,44 +7,44 @@
 
 namespace env
 {
-static Env* this_;
+static Env* g_this;
 
-void glfw_cb_keyboard(GLFWwindow* window, int key, int scancode, int act, int mods)
+void keyboardCallback(GLFWwindow* window, int key, int scancode, int act, int mods)
 {
     if (ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
     if (act == GLFW_PRESS && key == GLFW_KEY_BACKSPACE) {
-        mj_resetData(this_->m, this_->d);
-        mj_forward(this_->m, this_->d);
+        mj_resetData(g_this->m, g_this->d);
+        mj_forward(g_this->m, g_this->d);
     }
 }
 
-void glfw_cb_mouse_button(GLFWwindow* window, int button, int act, int mods)
+void mouseButtonCallback(GLFWwindow* window, int button, int act, int mods)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
-    glfwGetCursorPos(window, &this_->lastx, &this_->lasty);
-    this_->button_left = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
-    this_->button_middle = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
-    this_->button_right = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
+    glfwGetCursorPos(window, &g_this->lastx_, &g_this->lasty_);
+    g_this->button_left_ = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+    g_this->button_middle_ = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
+    g_this->button_right_ = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
 }
 
-void glfw_cb_mouse_move(GLFWwindow* window, double xpos, double ypos)
+void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
 
-    if (!this_->button_left && !this_->button_middle && !this_->button_right) {
+    if (!g_this->button_left_ && !g_this->button_middle_ && !g_this->button_right_) {
         return;
     }
 
-    double dx = xpos - this_->lastx;
-    double dy = ypos - this_->lasty;
-    this_->lastx = xpos;
-    this_->lasty = ypos;
+    double dx = xpos - g_this->lastx_;
+    double dy = ypos - g_this->lasty_;
+    g_this->lastx_ = xpos;
+    g_this->lasty_ = ypos;
 
     int width, height;
     glfwGetWindowSize(window, &width, &height);
@@ -53,25 +53,26 @@ void glfw_cb_mouse_move(GLFWwindow* window, double xpos, double ypos)
                       glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
 
     mjtMouse action;
-    if (this_->button_right)
+    if (g_this->button_right_) {
         action = mod_shift ? mjMOUSE_MOVE_H : mjMOUSE_MOVE_V;
-    else if (this_->button_left)
+    } else if (g_this->button_left_) {
         action = mod_shift ? mjMOUSE_ROTATE_H : mjMOUSE_ROTATE_V;
-    else
+    } else {
         action = mjMOUSE_ZOOM;
+    }
 
-    mjv_moveCamera(this_->m, action, dx / height, dy / height, &this_->scn, &this_->cam);
+    mjv_moveCamera(g_this->m, action, dx / height, dy / height, &g_this->scn_, &g_this->cam_);
 }
 
-void glfw_cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    mjv_moveCamera(this_->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &this_->scn, &this_->cam);
+    mjv_moveCamera(g_this->m, mjMOUSE_ZOOM, 0, +0.05 * yoffset, &g_this->scn_, &g_this->cam_);
 }
 
 Env::Env(std::string const& model_path, int frame_skip, bool show_ui)
-    : frame_skip(frame_skip), show_ui(show_ui)
+    : frame_skip_(frame_skip), show_ui_(show_ui)
 {
-    this_ = this;
+    g_this = this;
     char error[1000] = {0};
     m = mj_loadXML(model_path.c_str(), nullptr, error, 1000);
     if (!m) {
@@ -81,28 +82,28 @@ Env::Env(std::string const& model_path, int frame_skip, bool show_ui)
     mj_forward(m, d);
     if (show_ui) {
         std::packaged_task<void()> task([this] { render(); });
-        ui_ret = std::move(task.get_future());
+        ui_ret_ = std::move(task.get_future());
         std::thread(std::move(task)).detach();
     }
 }
 
 Env::~Env()
 {
-    if (show_ui) {
-        ui_exit_request = true;
-        ui_ret.get();
+    if (show_ui_) {
+        ui_exit_request_ = true;
+        ui_ret_.get();
     }
     mj_deleteData(d);
     mj_deleteModel(m);
 }
 
-double Env::dt() const { return m->opt.timestep * frame_skip; }
+double Env::dt() const { return m->opt.timestep * frame_skip_; }
 
-int Env::act_space() const { return m->nu; }
+int Env::actSpace() const { return m->nu; }
 
-int Env::ob_space() const { return m->nq + m->nv; }
+int Env::obSpace() const { return m->nq + m->nv; }
 
-torch::Tensor Env::get_observe()
+torch::Tensor Env::getObserve()
 {
     mjtNum* buf = new mjtNum[m->nq + m->nv];
     std::memcpy(buf, d->qpos, sizeof(mjtNum) * m->nq);
@@ -114,44 +115,44 @@ torch::Tensor Env::get_observe()
     return ob;
 }
 
-void Env::do_step(torch::Tensor action)
+void Env::doStep(torch::Tensor action)
 {
-    assert(action.dim() == 2 && action.size(1) == act_space());
-    std::lock_guard guard(mtx);
+    assert(action.dim() == 2 && action.size(1) == actSpace());
+    std::lock_guard guard(mtx_);
     for (int i = 0; i < action.size(1); ++i) {
         mjtNum min = m->actuator_ctrlrange[2 * i];
         mjtNum max = m->actuator_ctrlrange[2 * i + 1];
         double act = action[0][i].item<double>();
         d->ctrl[i] = (1 - act) / 2.0 * min + (1 + act) / 2.0 * max;
     }
-    for (int i = 0; i < frame_skip; ++i) {
+    for (int i = 0; i < frame_skip_; ++i) {
         mj_step(m, d);
     }
 }
 
 void Env::report(Progress const& data)
 {
-    std::lock_guard guard(mtx);
-    progress_data.push_back(data);
+    std::lock_guard guard(mtx_);
+    progress_data_.push_back(data);
 }
 
 void Env::reset(bool clear_progress)
 {
-    std::lock_guard guard(mtx);
+    std::lock_guard guard(mtx_);
     if (clear_progress) {
-        progress_data.clear();
+        progress_data_.clear();
     }
     mj_resetData(m, d);
     mj_forward(m, d);
 }
 
-void Env::ui_sync(std::function<void()> step_func)
+void Env::uiSync(std::function<void()> step_func)
 {
     double const syncmisalign = 0.1;
     double const refreshfactor = 0.7;
     double cpusync = 0;
     mjtNum simsync = 0;
-    while (!ui_exited()) {
+    while (!uiExited()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         double tmstart = glfwGetTime();
         if (d->time < simsync || tmstart < cpusync || cpusync == 0 ||
@@ -161,24 +162,26 @@ void Env::ui_sync(std::function<void()> step_func)
             step_func();
         } else {
             while ((d->time - simsync) < (glfwGetTime() - cpusync) &&
-                   (glfwGetTime() - tmstart) < refreshfactor / vmode.refreshRate) {
+                   (glfwGetTime() - tmstart) < refreshfactor / vmode_.refreshRate) {
                 mjtNum prevtm = d->time;
                 step_func();
-                if (d->time < prevtm) break;
+                if (d->time < prevtm) {
+                    break;
+                }
             }
         }
     }
 }
 
-bool Env::ui_exited() const { return !show_ui || (show_ui && ui_has_exited); }
+bool Env::uiExited() const { return !show_ui_ || (show_ui_ && ui_has_exited_); }
 
-void Env::align_scale()
+void Env::alignScale()
 {
-    cam.lookat[0] = m->stat.center[0];
-    cam.lookat[1] = m->stat.center[1];
-    cam.lookat[2] = m->stat.center[2];
-    cam.distance = 1.5 * m->stat.extent;
-    cam.type = mjCAMERA_FREE;
+    cam_.lookat[0] = m->stat.center[0];
+    cam_.lookat[1] = m->stat.center[1];
+    cam_.lookat[2] = m->stat.center[2];
+    cam_.distance = 1.5 * m->stat.extent;
+    cam_.type = mjCAMERA_FREE;
 }
 
 void Env::render()
@@ -186,18 +189,18 @@ void Env::render()
     TRY_;
     glfwInit();
     glfwWindowHint(GLFW_SAMPLES, 4);
-    vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
-    window = glfwCreateWindow(800, 500, "gym", nullptr, nullptr);
-    if (!window) {
+    vmode_ = *glfwGetVideoMode(glfwGetPrimaryMonitor());
+    window_ = glfwCreateWindow(800, 500, "gym", nullptr, nullptr);
+    if (!window_) {
         glfwTerminate();
         THROW_("failed to create window");
     }
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(window_);
     glfwSwapInterval(1);
-    glfwSetKeyCallback(window, glfw_cb_keyboard);
-    glfwSetCursorPosCallback(window, glfw_cb_mouse_move);
-    glfwSetMouseButtonCallback(window, glfw_cb_mouse_button);
-    glfwSetScrollCallback(window, glfw_cb_scroll);
+    glfwSetKeyCallback(window_, keyboardCallback);
+    glfwSetCursorPosCallback(window_, mouseMoveCallback);
+    glfwSetMouseButtonCallback(window_, mouseButtonCallback);
+    glfwSetScrollCallback(window_, scrollCallback);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -205,33 +208,33 @@ void Env::render()
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(window_, true);
     ImGui_ImplOpenGL2_Init();
 
-    mjv_defaultCamera(&cam);
-    mjv_defaultOption(&opt);
-    mjv_defaultScene(&scn);
-    mjv_makeScene(m, &scn, 2000);
-    mjr_defaultContext(&con);
-    mjr_makeContext(m, &con, mjFONTSCALE_50);
-    align_scale();
-    mjv_defaultFigure(&figscore);
-    strncpy(figscore.yformat, "%.0f", 4);
-    figscore.figurergba[3] = 0.5f;
-    figscore.gridsize[0] = 3;
-    figscore.gridsize[1] = 5;
-    mjr_changeFont(50, &con);
+    mjv_defaultCamera(&cam_);
+    mjv_defaultOption(&opt_);
+    mjv_defaultScene(&scn_);
+    mjv_makeScene(m, &scn_, 2000);
+    mjr_defaultContext(&con_);
+    mjr_makeContext(m, &con_, mjFONTSCALE_50);
+    alignScale();
+    mjv_defaultFigure(&figscore_);
+    strncpy(figscore_.yformat, "%.0f", 4);
+    figscore_.figurergba[3] = 0.5f;
+    figscore_.gridsize[0] = 3;
+    figscore_.gridsize[1] = 5;
+    mjr_changeFont(50, &con_);
 
-    while (!glfwWindowShouldClose(window) && !ui_exit_request) {
-        std::unique_lock lock(mtx);
+    while (!glfwWindowShouldClose(window_) && !ui_exit_request_) {
+        std::unique_lock lock(mtx_);
         glfwPollEvents();
-        mjv_updateScene(m, d, &opt, nullptr, &cam, mjCAT_ALL, &scn);
+        mjv_updateScene(m, d, &opt_, nullptr, &cam_, mjCAT_ALL, &scn_);
         lock.unlock();
         mjrRect viewport = {0, 0, 0, 0};
-        glfwGetFramebufferSize(window, &viewport.width, &viewport.height);
-        mjr_render(viewport, &scn, &con);
+        glfwGetFramebufferSize(window_, &viewport.width, &viewport.height);
+        mjr_render(viewport, &scn_, &con_);
 
-        if (progress_data.size() > 0) {
+        if (progress_data_.size() > 0) {
             ImGui_ImplOpenGL2_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
@@ -249,13 +252,13 @@ void Env::render()
                     static_cast<double>(
                         reinterpret_cast<std::vector<Progress>*>(data)->at(idx).tries)};
             };
-            ImPlot::PlotLineG("tries", tries_cb, &progress_data, progress_data.size());
+            ImPlot::PlotLineG("tries", tries_cb, &progress_data_, progress_data_.size());
             auto score_cb = [](void* data, int idx) {
                 return ImPlotPoint{
                     static_cast<double>(idx),
                     reinterpret_cast<std::vector<Progress>*>(data)->at(idx).score_avg};
             };
-            ImPlot::PlotLineG("score", score_cb, &progress_data, progress_data.size());
+            ImPlot::PlotLineG("score", score_cb, &progress_data_, progress_data_.size());
             lock.unlock();
             ImPlot::EndPlot();
             ImGui::End();
@@ -263,22 +266,22 @@ void Env::render()
             ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
         }
 
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(window_);
     }
 
-    mjv_freeScene(&scn);
-    mjr_freeContext(&con);
+    mjv_freeScene(&scn_);
+    mjr_freeContext(&con_);
 
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(window_);
     glfwTerminate();
     CATCH_;
 
-    ui_has_exited = true;
+    ui_has_exited_ = true;
     spdlog::info("render exit");
 }
 

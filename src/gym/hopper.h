@@ -8,9 +8,9 @@ class Hopper: public Env
 public:
     explicit Hopper(bool show_ui = true): Env((__DIRNAME__ / "hopper.xml").string(), 4, show_ui) {}
 
-    int ob_space() const override { return m->nq - 1 + m->nv; }
+    int obSpace() const override { return m->nq - 1 + m->nv; }
 
-    torch::Tensor get_observe() override
+    torch::Tensor getObserve() override
     {
         mjtNum* buf = new mjtNum[m->nq - 1 + m->nv];
         std::memcpy(buf, d->qpos + 1, sizeof(mjtNum) * (m->nq - 1));
@@ -25,7 +25,7 @@ public:
     bool step(torch::Tensor action, double& reward) override
     {
         mjtNum posbefore = d->qpos[0];
-        do_step(action);
+        doStep(action);
         mjtNum posafter = d->qpos[0];
 
         double alive_bonus = 1.0;

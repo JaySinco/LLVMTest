@@ -18,6 +18,6 @@ protected:
     static RenderTexture2D loadBufferTexture(int width, int height, std::string const& filter,
                                              std::string const& wrap);
 
-    int screenWidth_;
-    int screenHeight_;
+    int screen_width;
+    int screen_height;
 };

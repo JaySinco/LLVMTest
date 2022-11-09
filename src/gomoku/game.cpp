@@ -9,31 +9,31 @@ Color operator~(const Color c)
 {
     Color opposite;
     switch (c) {
-        case Color::Black:
-            opposite = Color::White;
+        case Color::kBlack:
+            opposite = Color::kWhite;
             break;
-        case Color::White:
-            opposite = Color::Black;
+        case Color::kWhite:
+            opposite = Color::kBlack;
             break;
-        case Color::Empty:
-            opposite = Color::Empty;
+        case Color::kEmpty:
+            opposite = Color::kEmpty;
             break;
     }
-    assert(opposite != Color::Empty);
+    assert(opposite != Color::kEmpty);
     return opposite;
 }
 
 std::ostream& operator<<(std::ostream& out, Color c)
 {
     switch (c) {
-        case Color::Empty:
-            out << ((COLOR_OCCUPY_SPACE == 2) ? "  " : " ");
+        case Color::kEmpty:
+            out << ((kColorOccupySpace == 2) ? "  " : " ");
             break;
-        case Color::Black:
-            out << ((COLOR_OCCUPY_SPACE == 2) ? "●" : "x");
+        case Color::kBlack:
+            out << ((kColorOccupySpace == 2) ? "●" : "x");
             break;
-        case Color::White:
-            out << ((COLOR_OCCUPY_SPACE == 2) ? "○" : "o");
+        case Color::kWhite:
+            out << ((kColorOccupySpace == 2) ? "○" : "o");
             break;
     }
     return out;
@@ -44,19 +44,24 @@ std::ostream& operator<<(std::ostream& out, Move mv)
     return out << "(" << std::setw(2) << mv.r() << ", " << std::setw(2) << mv.c() << ")";
 }
 
-void Board::push_valid(std::vector<Move>& set) const
+void Board::pushValid(std::vector<Move>& set) const
 {
-    for (int i = 0; i < BOARD_SIZE; ++i)
-        if (get(Move(i)) == Color::Empty) set.emplace_back(i);
+    for (int i = 0; i < kBoardSize; ++i) {
+        if (get(Move(i)) == Color::kEmpty) {
+            set.emplace_back(i);
+        }
+    }
 
     std::shuffle(set.begin(), set.end(), g_random_engine);
 }
 
-bool Board::win_from(Move mv) const
+bool Board::winFrom(Move mv) const
 {
-    if (mv.z() == NO_MOVE_YET) return false;
+    if (mv.z() == kNoMoveYet) {
+        return false;
+    }
     Color side = get(mv);
-    assert(side != Color::Empty);
+    assert(side != Color::kEmpty);
     int direct[4][2] = {{0, 1}, {1, 0}, {-1, 1}, {1, 1}};
     int sign[2] = {1, -1};
     for (auto d: direct) {
@@ -67,11 +72,13 @@ bool Board::win_from(Move mv) const
                 ++total;
                 auto r = probe.r() + d[0] * s;
                 auto c = probe.c() + d[1] * s;
-                if (!ON_BOARD(r, c)) break;
+                if (!ON_BOARD(r, c)) {
+                    break;
+                }
                 probe = Move(r, c);
             }
         }
-        if (total - 1 >= FIVE_IN_ROW) {
+        if (total - 1 >= kFiveInRow) {
             return true;
         }
     }
@@ -80,14 +87,19 @@ bool Board::win_from(Move mv) const
 
 std::ostream& operator<<(std::ostream& out, Board const& board)
 {
-    if (COLOR_OCCUPY_SPACE == 2) out << " ";
+    if (kColorOccupySpace == 2) {
+        out << " ";
+    }
     out << "# ";
-    for (int c = 0; c < BOARD_MAX_COL; ++c)
-        out << std::right << std::setw(COLOR_OCCUPY_SPACE) << c % 10 << " ";
+    for (int c = 0; c < kBoardMaxCol; ++c) {
+        out << std::right << std::setw(kColorOccupySpace) << c % 10 << " ";
+    }
     out << "\n";
-    for (int r = 0; r < BOARD_MAX_ROW; ++r) {
-        out << std::right << std::setw(COLOR_OCCUPY_SPACE) << r % 10;
-        for (int c = 0; c < BOARD_MAX_COL; ++c) out << "|" << board.get(Move(r, c));
+    for (int r = 0; r < kBoardMaxRow; ++r) {
+        out << std::right << std::setw(kColorOccupySpace) << r % 10;
+        for (int c = 0; c < kBoardMaxCol; ++c) {
+            out << "|" << board.get(Move(r, c));
+        }
         out << "|\n";
     }
     return out;
@@ -95,80 +107,99 @@ std::ostream& operator<<(std::ostream& out, Board const& board)
 
 Color State::current() const
 {
-    if (last.z() == NO_MOVE_YET) return Color::Black;
-    return ~board.get(last);
+    if (last_.z() == kNoMoveYet) {
+        return Color::kBlack;
+    }
+    return ~board_.get(last_);
 }
 
-void State::fill_feature_array(float data[INPUT_FEATURE_NUM * BOARD_SIZE]) const
+void State::fillFeatureArray(float data[kInputFeatureNum * kBoardSize]) const
 {
-    if (last.z() == NO_MOVE_YET) {
-        if (INPUT_FEATURE_NUM > 3) {
-            for (int r = 0; r < BOARD_MAX_ROW; ++r)
-                for (int c = 0; c < BOARD_MAX_COL; ++c)
-                    data[3 * BOARD_SIZE + r * BOARD_MAX_COL + c] = 1.0f;
+    if (last_.z() == kNoMoveYet) {
+        if (kInputFeatureNum > 3) {
+            for (int r = 0; r < kBoardMaxRow; ++r) {
+                for (int c = 0; c < kBoardMaxCol; ++c) {
+                    data[3 * kBoardSize + r * kBoardMaxCol + c] = 1.0f;
+                }
+            }
         }
         return;
     }
     auto own_side = current();
     auto enemy_side = ~own_side;
-    float first = first_hand() ? 1.0f : 0.0f;
-    for (int r = 0; r < BOARD_MAX_ROW; ++r) {
-        for (int c = 0; c < BOARD_MAX_COL; ++c) {
-            auto side = board.get(Move(r, c));
-            if (side == own_side)
-                data[r * BOARD_MAX_COL + c] = 1.0f;
-            else if (side == enemy_side)
-                data[BOARD_SIZE + r * BOARD_MAX_COL + c] = 1.0f;
-            if (INPUT_FEATURE_NUM > 3) data[3 * BOARD_SIZE + r * BOARD_MAX_COL + c] = first;
+    float first = firstHand() ? 1.0f : 0.0f;
+    for (int r = 0; r < kBoardMaxRow; ++r) {
+        for (int c = 0; c < kBoardMaxCol; ++c) {
+            auto side = board_.get(Move(r, c));
+            if (side == own_side) {
+                data[r * kBoardMaxCol + c] = 1.0f;
+            } else if (side == enemy_side) {
+                data[kBoardSize + r * kBoardMaxCol + c] = 1.0f;
+            }
+            if (kInputFeatureNum > 3) {
+                data[3 * kBoardSize + r * kBoardMaxCol + c] = first;
+            }
         }
     }
-    if (INPUT_FEATURE_NUM > 2) data[2 * BOARD_SIZE + last.r() * BOARD_MAX_COL + last.c()] = 1.0f;
+    if (kInputFeatureNum > 2) {
+        data[2 * kBoardSize + last_.r() * kBoardMaxCol + last_.c()] = 1.0f;
+    }
 }
 
 void State::next(Move mv)
 {
     assert(valid(mv));
     Color side = current();
-    board.put(mv, side);
-    if (board.win_from(mv)) winner = side;
-    last = mv;
-    opts.erase(std::find(opts.cbegin(), opts.cend(), mv));
+    board_.put(mv, side);
+    if (board_.winFrom(mv)) {
+        winner_ = side;
+    }
+    last_ = mv;
+    opts_.erase(std::find(opts_.cbegin(), opts_.cend(), mv));
 }
 
-Color State::next_rand_till_end()
+Color State::nextRandTillEnd()
 {
-    while (!over()) next(opts[0]);
-    return winner;
+    while (!over()) {
+        next(opts_[0]);
+    }
+    return winner_;
 }
 
 std::ostream& operator<<(std::ostream& out, State const& state)
 {
-    if (state.last.z() == NO_MOVE_YET)
-        return out << state.board << "last move: None";
-    else
-        return out << state.board << "last move: " << ~state.current() << state.last;
+    if (state.last_.z() == kNoMoveYet) {
+        return out << state.board_ << "last move: None";
+    } else {
+        return out << state.board_ << "last move: " << ~state.current() << state.last_;
+    }
 }
 
 Player& play(Player& p1, Player& p2, bool silent)
 {
     const std::map<Color, Player*> player_color{
-        {Color::Black, &p1}, {Color::White, &p2}, {Color::Empty, nullptr}};
+        {Color::kBlack, &p1}, {Color::kWhite, &p2}, {Color::kEmpty, nullptr}};
     auto game = State();
     p1.reset();
     p2.reset();
     int turn = 0;
-    if (!silent) std::cout << game << std::endl;
+    if (!silent) {
+        std::cout << game << std::endl;
+    }
     while (!game.over()) {
         auto player = player_color.at(game.current());
         auto act = player->play(game);
         game.next(act);
         ++turn;
-        if (!silent) std::cout << game << std::endl;
+        if (!silent) {
+            std::cout << game << std::endl;
+        }
     }
-    auto winner = player_color.at(game.get_winner());
-    if (!silent)
+    auto winner = player_color.at(game.getWinner());
+    if (!silent) {
         std::cout << "winner: " << (winner == nullptr ? "no winner, even!" : winner->name())
                   << std::endl;
+    }
     return *winner;
 }
 
@@ -180,11 +211,11 @@ float benchmark(Player& p1, Player& p2, int round, bool silent)
     for (int i = 0; i < round; ++i) {
         temp = pblack, pblack = pwhite, pwhite = temp;
         Player* winner = &play(*pblack, *pwhite);
-        if (winner == nullptr)
+        if (winner == nullptr) {
             ++even;
-        else if (winner == &p1)
+        } else if (winner == &p1) {
             ++p1win;
-        else {
+        } else {
             assert(winner == &p2);
             ++p2win;
         }
@@ -209,14 +240,20 @@ float benchmark(Player& p1, Player& p2, int round, bool silent)
     return p1prob;
 }
 
-bool HumanPlayer::get_move(int& row, int& col)
+bool HumanPlayer::getMove(int& row, int& col)
 {
     std::string line, srow;
-    if (!std::getline(std::cin, line)) return false;
+    if (!std::getline(std::cin, line)) {
+        return false;
+    }
     std::istringstream line_stream(line);
-    if (!std::getline(line_stream, srow, ',') || !(line_stream >> col)) return false;
+    if (!std::getline(line_stream, srow, ',') || !(line_stream >> col)) {
+        return false;
+    }
     std::istringstream row_stream(srow);
-    if (!(row_stream >> row)) return false;
+    if (!(row_stream >> row)) {
+        return false;
+    }
     return true;
 }
 
@@ -224,11 +261,13 @@ Move HumanPlayer::play(State const& state)
 {
     int col, row;
     while (true) {
-        std::cout << state.current() << "(" << id << "): ";
+        std::cout << state.current() << "(" << id_ << "): ";
         std::cout.flush();
-        if (get_move(row, col)) {
+        if (getMove(row, col)) {
             auto mv = Move(row, col);
-            if (state.valid(mv)) return mv;
+            if (state.valid(mv)) {
+                return mv;
+            }
         }
     }
 }

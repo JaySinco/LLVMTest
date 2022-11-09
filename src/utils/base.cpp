@@ -15,26 +15,30 @@
 namespace utils
 {
 
-std::filesystem::path const source_repo(SOURCE_REPO);
+std::filesystem::path const kSourceRepo(SOURCE_REPO);
 
-class iconv_wrapper
+class IconvWrapper
 {
 public:
-    iconv_wrapper(code_page tocode, code_page fromcode)
+    IconvWrapper(CodePage tocode, CodePage fromcode)
     {
-        cd = iconv_open(code2str(tocode), code2str(fromcode));
+        cd_ = iconv_open(code2str(tocode), code2str(fromcode));
     }
 
-    ~iconv_wrapper()
+    ~IconvWrapper()
     {
-        if (reinterpret_cast<iconv_t>(-1) == cd) return;
-        iconv_close(cd);
+        if (reinterpret_cast<iconv_t>(-1) == cd_) {
+            return;
+        }
+        iconv_close(cd_);
     }
 
     size_t convert(char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft)
     {
-        if (reinterpret_cast<iconv_t>(-1) == cd) return -1;
-        return iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
+        if (reinterpret_cast<iconv_t>(-1) == cd_) {
+            return -1;
+        }
+        return iconv(cd_, inbuf, inbytesleft, outbuf, outbytesleft);
     }
 
     template <typename T = std::string>
@@ -53,17 +57,17 @@ public:
         return T(reinterpret_cast<CharT*>(buf.get()), reinterpret_cast<CharT*>(outbuf));
     }
 
-    static char const* code2str(code_page cp)
+    static char const* code2str(CodePage cp)
     {
         switch (cp) {
-            case code_page::LOCAL:
+            case CodePage::kLocal:
                 setlocale(LC_ALL, "");
                 return locale_charset();
-            case code_page::UTF8:
+            case CodePage::kUtf8:
                 return "UTF-8";
-            case code_page::GBK:
+            case CodePage::kGbk:
                 return "GBK";
-            case code_page::WCHAR:
+            case CodePage::kWchar:
                 if constexpr (sizeof(wchar_t) == 2) {
                     return "UTF-16LE";
                 } else {
@@ -75,28 +79,28 @@ public:
     }
 
 private:
-    iconv_t cd;
+    iconv_t cd_;
 };
 
-std::string ws2s(std::wstring_view ws, code_page cp)
+std::string ws2s(std::wstring_view ws, CodePage cp)
 {
-    iconv_wrapper conv(cp, code_page::WCHAR);
+    IconvWrapper conv(cp, CodePage::kWchar);
     std::string_view sv{reinterpret_cast<char const*>(ws.data()), ws.size() * sizeof(wchar_t)};
     return conv.convert<std::string>(sv, ws.size() * 6);
 }
 
-std::wstring s2ws(std::string_view s, code_page cp)
+std::wstring s2ws(std::string_view s, CodePage cp)
 {
-    iconv_wrapper conv(code_page::WCHAR, cp);
+    IconvWrapper conv(CodePage::kWchar, cp);
     return conv.convert<std::wstring>(s, s.size() * 4);
 }
 
-nonstd::unexpected_type<error> make_unexpected(std::string const& s)
+nonstd::unexpected_type<Error> makeUnexpected(std::string const& s)
 {
-    return nonstd::unexpected_type<error>(s);
+    return nonstd::unexpected_type<Error>(s);
 }
 
-expected<std::string> readFile(std::wstring_view path)
+Expected<std::string> readFile(std::wstring_view path)
 {
 #ifdef __linux__
     std::ifstream in_file(ws2s(path));
@@ -104,7 +108,7 @@ expected<std::string> readFile(std::wstring_view path)
     std::ifstream in_file(path);
 #endif
     if (!in_file) {
-        return make_unexpected("failed to open file");
+        return makeUnexpected("failed to open file");
     }
     std::stringstream ss;
     ss << in_file.rdbuf();

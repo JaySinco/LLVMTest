@@ -10,13 +10,14 @@
 
 using namespace boost::multiprecision;
 
-std::vector<int> rod_cutting(int* prices, int n, int cut_cost = 0)
+std::vector<int> rodCutting(int const* prices, int n, int cut_cost = 0)
 {
     struct Record
     {
         int v;
         int i;
     };
+
     std::vector<Record> dp(n + 1, {0, 0});
     for (int j = 1; j <= n; ++j) {
         for (int i = 1; i <= j; ++i) {
@@ -40,13 +41,14 @@ std::vector<int> rod_cutting(int* prices, int n, int cut_cost = 0)
     return ans;
 }
 
-cpp_int matrix_chain_multi(int* dims, int n)
+cpp_int matrixChainMulti(int const* dims, int n)
 {
     struct Record
     {
         cpp_int v;
         int i;
     };
+
     std::vector<std::vector<Record>> dp(n + 1, std::vector<Record>(n + 1, {0, 0}));
     for (int k = 1; k < n; ++k) {
         for (int i = 1; i + k <= n; ++i) {
@@ -62,13 +64,13 @@ cpp_int matrix_chain_multi(int* dims, int n)
         }
     }
     auto ans = [&](int i, int j) -> std::string {
-        auto la = [&](int i, int j, auto& la_) -> std::string {
+        auto la = [&](int i, int j, auto& lai) -> std::string {
             std::string s = "";
             if (i == j) {
                 s = fmt::format("A{}", i);
             } else {
                 auto k = dp[i][j].i;
-                s = fmt::format("({}{})", la_(i, k, la_), la_(k + 1, j, la_));
+                s = fmt::format("({}{})", lai(i, k, lai), lai(k + 1, j, lai));
             }
             return s;
         };
@@ -78,13 +80,14 @@ cpp_int matrix_chain_multi(int* dims, int n)
     return dp[1][n].v;
 }
 
-std::string longest_common_subseq(std::string_view sv1, std::string_view sv2)
+std::string longestCommonSubseq(std::string_view sv1, std::string_view sv2)
 {
     struct Record
     {
         int v;
         char a;
     };
+
     int na = sv1.size();
     int nb = sv2.size();
     std::vector<std::vector<Record>> dp(na + 1, std::vector<Record>(nb + 1, {0, ' '}));
@@ -104,15 +107,17 @@ std::string longest_common_subseq(std::string_view sv1, std::string_view sv2)
     }
     std::string ans;
     auto build_ans = [&](int i, int j) {
-        auto la = [&](int i, int j, auto& la_) {
-            if (i == 0 || j == 0) return;
+        auto la = [&](int i, int j, auto& lai) {
+            if (i == 0 || j == 0) {
+                return;
+            }
             if (dp[i][j].a == '*') {
-                la_(i - 1, j - 1, la_);
+                lai(i - 1, j - 1, lai);
                 ans.push_back(sv1[i - 1]);
             } else if (dp[i][j].a == '>') {
-                la_(i, j - 1, la_);
+                lai(i, j - 1, lai);
             } else if (dp[i][j].a == '<') {
-                la_(i - 1, j, la_);
+                lai(i - 1, j, lai);
             }
         };
         return la(i, j, la);
@@ -121,13 +126,14 @@ std::string longest_common_subseq(std::string_view sv1, std::string_view sv2)
     return ans;
 }
 
-std::vector<int> longest_increasing_subseq(int* arr, int n)
+std::vector<int> longestIncreasingSubseq(int* arr, int n)
 {
     struct Record
     {
         int v;
         int i;
     };
+
     std::vector<Record> dp(n);
     for (int i = 0; i < n; ++i) {
         dp[i].v = 1;
@@ -151,13 +157,14 @@ std::vector<int> longest_increasing_subseq(int* arr, int n)
     return ans;
 }
 
-std::string longest_palindrome_subseq(std::string const& s)
+std::string longestPalindromeSubseq(std::string const& s)
 {
     struct Record
     {
         int v;
         char c;
     };
+
     int n = s.size();
     std::vector<std::vector<Record>> dp(n, std::vector<Record>(n, {0, 0}));
     for (int i = 0; i < n; ++i) {
@@ -180,19 +187,19 @@ std::string longest_palindrome_subseq(std::string const& s)
     }
     std::string ans;
     auto build_ans = [&](int i, int j) {
-        auto la = [&](int i, int j, auto& la_) {
+        auto la = [&](int i, int j, auto& lai) {
             if (i > j) {
                 return;
             } else if (dp[i][j].c == '*') {
                 ans.push_back(s[i]);
             } else if (dp[i][j].c == '-') {
                 ans.push_back(s[i]);
-                la_(i + 1, j - 1, la_);
+                lai(i + 1, j - 1, lai);
                 ans.push_back(s[j]);
             } else if (dp[i][j].c == '<') {
-                la_(i, j - 1, la_);
+                lai(i, j - 1, lai);
             } else if (dp[i][j].c == '>') {
-                la_(i + 1, j, la_);
+                lai(i + 1, j, lai);
             }
         };
         return la(i, j, la);
@@ -214,7 +221,7 @@ TEST_CASE("dynamic_programming")
         };
         for (auto& [a, b]: samples) {
             INFO(fmt::format("arr={}", a));
-            auto c = rod_cutting(a.data(), a.size());
+            auto c = rodCutting(a.data(), a.size());
             CHECK(ranges::accumulate(c, 0) == a.size());
             CHECK(c == b);
         }
@@ -227,7 +234,7 @@ TEST_CASE("dynamic_programming")
         };
         for (auto& [a, b]: samples) {
             INFO(fmt::format("arr={}", a));
-            auto c = matrix_chain_multi(a.data(), a.size() - 1);
+            auto c = matrixChainMulti(a.data(), a.size() - 1);
             CHECK(c == b);
         }
     }
@@ -239,7 +246,7 @@ TEST_CASE("dynamic_programming")
         };
         for (auto& [a, b, c]: samples) {
             INFO(fmt::format("a={}, b={}", a, b));
-            auto r = longest_common_subseq(a, b);
+            auto r = longestCommonSubseq(a, b);
             CHECK(r == c);
         }
     }
@@ -256,7 +263,7 @@ TEST_CASE("dynamic_programming")
         };
         for (auto& [a, b]: samples) {
             INFO(fmt::format("arr={}", a));
-            auto c = longest_increasing_subseq(a.data(), a.size());
+            auto c = longestIncreasingSubseq(a.data(), a.size());
             CHECK(b == c);
         }
     }
@@ -271,7 +278,7 @@ TEST_CASE("dynamic_programming")
         };
         for (auto& [a, b]: samples) {
             INFO(fmt::format("s={}", a));
-            auto c = longest_palindrome_subseq(a);
+            auto c = longestPalindromeSubseq(a);
             CHECK(b == c);
         }
     }
@@ -282,8 +289,10 @@ int main(int argc, char* argv[])
     Catch::Session session;
     auto& config = session.configData();
     config.shouldDebugBreak = true;
-    int returnCode = session.applyCommandLine(argc, argv);
-    if (returnCode != 0) return returnCode;
-    int numFailed = session.run();
-    return numFailed;
+    int return_code = session.applyCommandLine(argc, argv);
+    if (return_code != 0) {
+        return return_code;
+    }
+    int num_failed = session.run();
+    return num_failed;
 }

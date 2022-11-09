@@ -22,27 +22,27 @@ public:
     torch::Tensor forward(torch::Tensor x);
 
 private:
-    torch::nn::Linear fc1;
-    torch::nn::Linear fc2;
-    torch::nn::Linear fc3;
+    torch::nn::Linear fc1_;
+    torch::nn::Linear fc2_;
+    torch::nn::Linear fc3_;
 };
 
 class PG: public Policy
 {
 public:
     PG(env::Env& env, HyperParams const& hp);
-    torch::Tensor get_action(torch::Tensor observe) override;
+    torch::Tensor getAction(torch::Tensor observe) override;
     void train() override;
 
 private:
-    torch::Tensor calc_returns(torch::Tensor reward, torch::Tensor alive) const;
-    torch::Tensor log_prob(torch::Tensor action, torch::Tensor mu) const;
+    torch::Tensor calcReturns(torch::Tensor reward, torch::Tensor alive) const;
+    torch::Tensor logProb(torch::Tensor action, torch::Tensor mu) const;
     void learn(torch::Tensor observe, torch::Tensor action, torch::Tensor reward,
                torch::Tensor alive);
 
-    Actor actor;
-    torch::optim::Adam opt;
-    HyperParams hp;
+    Actor actor_;
+    torch::optim::Adam opt_;
+    HyperParams hp_;
 };
 
 }  // namespace policy::pg

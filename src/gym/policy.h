@@ -19,10 +19,13 @@ class Policy
 {
 public:
     explicit Policy(env::Env& env): env(env) {}
+
     virtual ~Policy() = default;
+
     virtual void train() {}
+
     virtual void eval(bool keep_going = false);
-    virtual torch::Tensor get_action(torch::Tensor observe) = 0;
+    virtual torch::Tensor getAction(torch::Tensor observe) = 0;
 
 protected:
     env::Env& env;

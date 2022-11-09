@@ -36,10 +36,12 @@ struct BinarySearchTree
 
     ~BinarySearchTree()
     {
-        for (auto p: pool) delete p;
+        for (auto p: pool) {
+            delete p;
+        }
     }
 
-    static void inorder_walk(BinaryTree* a, std::vector<int>& vec)
+    static void inorderWalk(BinaryTree* a, std::vector<int>& vec)
     {
         std::stack<BinaryTree*> sk;
         while (a != nullptr || !sk.empty()) {
@@ -54,7 +56,7 @@ struct BinarySearchTree
         }
     }
 
-    void inorder_walk(std::vector<int>& vec) const { inorder_walk(root, vec); }
+    void inorderWalk(std::vector<int>& vec) const { inorderWalk(root, vec); }
 
     static BinaryTree* get(BinaryTree* a, int i)
     {
@@ -75,7 +77,9 @@ struct BinarySearchTree
 
     static BinaryTree* max(BinaryTree* a)
     {
-        if (a == nullptr) return a;
+        if (a == nullptr) {
+            return a;
+        }
         while (a->right) {
             a = a->right;
         }
@@ -86,7 +90,9 @@ struct BinarySearchTree
 
     static BinaryTree* min(BinaryTree* a)
     {
-        if (a == nullptr) return a;
+        if (a == nullptr) {
+            return a;
+        }
         while (a->left) {
             a = a->left;
         }
@@ -97,9 +103,13 @@ struct BinarySearchTree
 
     static BinaryTree* successor(BinaryTree* tr)
     {
-        if (!tr) return nullptr;
+        if (!tr) {
+            return nullptr;
+        }
         auto a = min(tr->right);
-        if (a) return a;
+        if (a) {
+            return a;
+        }
         auto p = tr->parent;
         auto c = tr;
         while (p != nullptr && p->right == c) {
@@ -111,9 +121,13 @@ struct BinarySearchTree
 
     static BinaryTree* predecessor(BinaryTree* tr)
     {
-        if (!tr) return nullptr;
+        if (!tr) {
+            return nullptr;
+        }
         auto a = max(tr->left);
-        if (a) return a;
+        if (a) {
+            return a;
+        }
         auto p = tr->parent;
         auto c = tr;
         while (p != nullptr && p->left == c) {
@@ -123,21 +137,27 @@ struct BinarySearchTree
         return p;
     }
 
-    static bool check_all(BinaryTree* a, int k, bool greater = true)
+    static bool checkAll(BinaryTree* a, int k, bool greater = true)
     {
         if (a == nullptr) {
             return true;
         }
         std::function<bool(int, int)> op = std::greater<int>();
-        if (!greater) op = std::less_equal<int>();
-        if (op(k, a->key)) return false;
-        return check_all(a->left, k, greater) && check_all(a->right, k, greater);
+        if (!greater) {
+            op = std::less_equal<int>();
+        }
+        if (op(k, a->key)) {
+            return false;
+        }
+        return checkAll(a->left, k, greater) && checkAll(a->right, k, greater);
     }
 
     static bool check(BinaryTree* a)
     {
-        if (a == nullptr) return true;
-        return check_all(a->left, a->key, false) && check_all(a->right, a->key, true) &&
+        if (a == nullptr) {
+            return true;
+        }
+        return checkAll(a->left, a->key, false) && checkAll(a->right, a->key, true) &&
                check(a->left) && check(a->right);
     }
 
@@ -177,13 +197,17 @@ struct BinarySearchTree
         } else if (p->right == a) {
             p->right = b;
         }
-        if (b) b->parent = p;
+        if (b) {
+            b->parent = p;
+        }
         a->parent = nullptr;
     }
 
     virtual void erase(BinaryTree* node)
     {
-        if (!node) return;
+        if (!node) {
+            return;
+        }
         if (!node->left) {
             transplant(node, node->right);
         } else if (!node->right) {
@@ -225,7 +249,7 @@ struct RedBlackTree
 
     ~RedBlackTree() = default;
 
-    void inorder_walk(BinaryTree* a, std::vector<int>& vec) const
+    void inorderWalk(BinaryTree* a, std::vector<int>& vec) const
     {
         std::stack<BinaryTree*> sk;
         while (a != nil || !sk.empty()) {
@@ -240,29 +264,35 @@ struct RedBlackTree
         }
     }
 
-    void inorder_walk(std::vector<int>& vec) const { inorder_walk(root, vec); }
+    void inorderWalk(std::vector<int>& vec) const { inorderWalk(root, vec); }
 
-    bool check_all(BinaryTree* a, int k, bool greater = true)
+    bool checkAll(BinaryTree* a, int k, bool greater = true)
     {
         if (a == nil) {
             return true;
         }
         std::function<bool(int, int)> op = std::greater<int>();
-        if (!greater) op = std::less<int>();
-        if (op(k, a->key)) return false;
-        return check_all(a->left, k, greater) && check_all(a->right, k, greater);
+        if (!greater) {
+            op = std::less<int>();
+        }
+        if (op(k, a->key)) {
+            return false;
+        }
+        return checkAll(a->left, k, greater) && checkAll(a->right, k, greater);
     }
 
     bool check(BinaryTree* a)
     {
-        if (a == nil) return true;
-        return check_all(a->left, a->key, false) && check_all(a->right, a->key, true) &&
+        if (a == nil) {
+            return true;
+        }
+        return checkAll(a->left, a->key, false) && checkAll(a->right, a->key, true) &&
                check(a->left) && check(a->right);
     }
 
     bool check() { return check(this->root); }
 
-    void left_rotate(BinaryTree* x)
+    void leftRotate(BinaryTree* x)
     {
         assert(x->right != nil && root->parent == nil);
         auto y = x->right;
@@ -282,7 +312,7 @@ struct RedBlackTree
         x->parent = y;
     }
 
-    void right_rotate(BinaryTree* y)
+    void rightRotate(BinaryTree* y)
     {
         assert(y->left != nil && root->parent == nil);
         auto x = y->left;
@@ -302,7 +332,7 @@ struct RedBlackTree
         y->parent = x;
     }
 
-    void insert_fixup(BinaryTree* z)
+    void insertFixup(BinaryTree* z)
     {
         while (!z->parent->black) {
             if (z->parent == z->parent->parent->left) {
@@ -315,11 +345,11 @@ struct RedBlackTree
                 } else {
                     if (z == z->parent->right) {
                         z = z->parent;
-                        left_rotate(z);
+                        leftRotate(z);
                     }
                     z->parent->black = true;
                     z->parent->parent->black = false;
-                    right_rotate(z->parent->parent);
+                    rightRotate(z->parent->parent);
                 }
             } else {
                 auto y = z->parent->parent->left;
@@ -331,11 +361,11 @@ struct RedBlackTree
                 } else {
                     if (z == z->parent->left) {
                         z = z->parent;
-                        right_rotate(z);
+                        rightRotate(z);
                     }
                     z->parent->black = true;
                     z->parent->parent->black = false;
-                    left_rotate(z->parent->parent);
+                    leftRotate(z->parent->parent);
                 }
             }
         }
@@ -363,7 +393,7 @@ struct RedBlackTree
         } else {
             a->left = n;
         }
-        insert_fixup(n);
+        insertFixup(n);
         return n;
     }
 
@@ -393,7 +423,7 @@ TEST_CASE("binary_search_tree")
             RedBlackTree rb(a.data(), a.size());
             REQUIRE(rb.check());
             std::vector<int> c;
-            rb.inorder_walk(c);
+            rb.inorderWalk(c);
             REQUIRE(c == b);
         }
     }
@@ -405,9 +435,11 @@ TEST_CASE("binary_search_tree")
             BinarySearchTree bt(a.data(), a.size());
             REQUIRE(bt.check());
             std::vector<int> c;
-            bt.inorder_walk(c);
+            bt.inorderWalk(c);
             REQUIRE(c == b);
-            if (a.size() == 0) continue;
+            if (a.size() == 0) {
+                continue;
+            }
             auto node = bt.min();
             REQUIRE(node->key == b[0]);
             for (int i = 1; i < b.size(); ++i) {
@@ -442,7 +474,7 @@ TEST_CASE("binary_search_tree")
         for (int i = 0; i < vec.size(); ++i) {
             bt.erase(bt.get(vec[i]));
             std::vector<int> aft;
-            bt.inorder_walk(aft);
+            bt.inorderWalk(aft);
             std::vector<int> ans(vec.begin() + i + 1, vec.end());
             REQUIRE(aft == ans);
         }
@@ -454,8 +486,10 @@ int main(int argc, char* argv[])
     Catch::Session session;
     auto& config = session.configData();
     config.shouldDebugBreak = true;
-    int returnCode = session.applyCommandLine(argc, argv);
-    if (returnCode != 0) return returnCode;
-    int numFailed = session.run();
-    return numFailed;
+    int return_code = session.applyCommandLine(argc, argv);
+    if (return_code != 0) {
+        return return_code;
+    }
+    int num_failed = session.run();
+    return num_failed;
 }
