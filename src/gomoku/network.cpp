@@ -150,7 +150,7 @@ FIRNetModule::FIRNetModule()
     register_module("val_fc2", val_fc2_);
 }
 
-FIRNet::FIRNet(long long verno): update_cnt_(verno), optimizer_(module_.parameters(), kWeightDecay)
+FIRNet::FIRNet(int64_t verno): update_cnt_(verno), optimizer_(module_.parameters(), kWeightDecay)
 {
     if (update_cnt_ > 0) {
         loadParam();

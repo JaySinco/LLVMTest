@@ -66,7 +66,7 @@ void train(std::shared_ptr<FIRNet> net)
     auto last_save = std::chrono::system_clock::now();
     auto last_benchmark = std::chrono::system_clock::now();
 
-    long long game_cnt = 0;
+    int64_t game_cnt = 0;
     float avg_turn = 0.0f;
     DataSet dataset;
 

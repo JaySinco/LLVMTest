@@ -9,6 +9,7 @@ Checks: >
   bugprone-string-integer-assignment,
   bugprone-unused-raii,
   bugprone-use-after-move,
+  google-runtime-int,
   google-build-explicit-make-pair,
   google-explicit-constructor,
   google-readability-casting,

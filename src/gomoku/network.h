@@ -34,7 +34,7 @@ std::ostream& operator<<(std::ostream& out, MiniBatch const& batch);
 class DataSet
 {
 private:
-    long long index_ = 0;
+    int64_t index_ = 0;
     SampleData* buf_;
 
 public:
@@ -44,7 +44,7 @@ public:
 
     int size() const { return (index_ > kBufferSize) ? kBufferSize : index_; }
 
-    long long total() const { return index_; }
+    int64_t total() const { return index_; }
 
     void pushBack(SampleData const* data)
     {
@@ -84,15 +84,15 @@ private:
 
 class FIRNet
 {
-    long long update_cnt_;
+    int64_t update_cnt_;
     FIRNetModule module_;
     torch::optim::Adam optimizer_;
 
 public:
-    explicit FIRNet(long long verno);
+    explicit FIRNet(int64_t verno);
     ~FIRNet();
 
-    long long verno() const { return update_cnt_; }
+    int64_t verno() const { return update_cnt_; }
 
     void saveParam();
     void loadParam();
