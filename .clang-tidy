@@ -84,8 +84,6 @@ CheckOptions:
     value:  lower_case
   - key:    readability-identifier-naming.PublicMemberSuffix
     value:  ''
-  - key:    readability-identifier-naming.MacroDefinitionCase
-    value:  UPPER_CASE
   - key:    readability-identifier-naming.EnumCase
     value:  CamelCase
   - key:    readability-identifier-naming.EnumConstantCase

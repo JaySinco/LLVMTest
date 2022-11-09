@@ -7,14 +7,14 @@ PixelShader::PixelShader() = default;
 
 PixelShader::~PixelShader()
 {
-    for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
+    for (int i = kChannel0; i < kChannelMax; ++i) {
         switch (channel_[i].type) {
-            case CHANNEL_UNUSED:
+            case kChannelUnused:
                 break;
-            case CHANNEL_TEXTURE:
+            case kChannelTexture:
                 UnloadTexture(channel_[i].text);
                 break;
-            case CHANNEL_SHADER:
+            case kChannelShader:
                 UnloadRenderTexture(channel_[i].buffer);
                 UnloadRenderTexture(channel_[i].buffer_prev);
                 UnloadShader(channel_[i].shader);
@@ -28,7 +28,7 @@ void PixelShader::setChannelTexture(ChannelIndex idx, std::string const& texture
                                     std::string const& type, std::string const& filter,
                                     std::string const& wrap)
 {
-    channel_[idx].type = CHANNEL_TEXTURE;
+    channel_[idx].type = kChannelTexture;
     channel_[idx].text = loadTexture(texture, type, filter, wrap);
     channel_[idx].text_type = type;
     channel_[idx].filter = filter;
@@ -39,7 +39,7 @@ void PixelShader::setChannelShader(ChannelIndex idx, std::string const& vertex,
                                    std::string const& fragment, std::string const& filter,
                                    std::string const& wrap)
 {
-    channel_[idx].type = CHANNEL_SHADER;
+    channel_[idx].type = kChannelShader;
     channel_[idx].buffer = loadBufferTexture(screen_width, screen_height, filter, wrap);
     channel_[idx].buffer_prev = loadBufferTexture(screen_width, screen_height, filter, wrap);
     channel_[idx].shader = loadShader(vertex, fragment);
@@ -56,7 +56,7 @@ void PixelShader::getLocation(Shader shader)
     shader_loc_[shader.id]["iFrame"] = GetShaderLocation(shader, "iFrame");
     shader_loc_[shader.id]["iMouse"] = GetShaderLocation(shader, "iMouse");
     shader_loc_[shader.id]["iDate"] = GetShaderLocation(shader, "iDate");
-    for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
+    for (int i = kChannel0; i < kChannelMax; ++i) {
         std::string s = fmt::format("iChannel{}", i);
         shader_loc_[shader.id][s] = GetShaderLocation(shader, s.c_str());
     }
@@ -107,12 +107,12 @@ void PixelShader::bindShaderUniform(Shader shader)
     SetShaderValue(shader, shader_loc_[shader.id]["iMouse"], mouse_, SHADER_UNIFORM_VEC4);
     SetShaderValue(shader, shader_loc_[shader.id]["iDate"], date_, SHADER_UNIFORM_VEC4);
 
-    for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
+    for (int i = kChannel0; i < kChannelMax; ++i) {
         std::string s = fmt::format("iChannel{}", i);
         switch (channel_[i].type) {
-            case CHANNEL_UNUSED:
+            case kChannelUnused:
                 break;
-            case CHANNEL_TEXTURE: {
+            case kChannelTexture: {
                 if (channel_[i].text_type == "2d") {
                     SetShaderValueTexture(shader, shader_loc_[shader.id][s], channel_[i].text);
                 } else if (channel_[i].text_type == "cube") {
@@ -122,7 +122,7 @@ void PixelShader::bindShaderUniform(Shader shader)
                 }
                 break;
             }
-            case CHANNEL_SHADER:
+            case kChannelShader:
                 SetShaderValueTexture(shader, shader_loc_[shader.id][s],
                                       channel_[i].buffer_prev.texture);
                 break;
@@ -149,10 +149,10 @@ void PixelShader::loadManifest(nlohmann::json const& j)
     frame_ = 0;
     std::memset(date_, 0, sizeof(date_));
     std::memset(mouse_, 0, sizeof(mouse_));
-    for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
+    for (int i = kChannel0; i < kChannelMax; ++i) {
         std::string k = fmt::format("channel{}", i);
         if (!j.contains(k)) {
-            channel_[i].type = CHANNEL_UNUSED;
+            channel_[i].type = kChannelUnused;
         } else {
             auto& ch = j[k];
             if (ch["type"] == "shader") {
@@ -183,8 +183,8 @@ void PixelShader::render(nlohmann::json const& j)
 
     while (!WindowShouldClose()) {
         updateUniform();
-        for (int i = CHANNEL_0; i < CHANNEL_MAX; ++i) {
-            if (channel_[i].type == CHANNEL_SHADER) {
+        for (int i = kChannel0; i < kChannelMax; ++i) {
+            if (channel_[i].type == kChannelShader) {
                 BeginTextureMode(channel_[i].buffer);
                 glDisable(GL_BLEND);
                 drawRect(channel_[i].shader);

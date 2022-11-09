@@ -80,7 +80,7 @@ void parsing(std::filesystem::path const& source_file)
 {
     using Iterator = boost::spirit::line_pos_iterator<std::wstring::const_iterator>;
     auto raw = utils::readFile(source_file.wstring());
-    std::wstring input = utils::s2ws(*raw, utils::code_page::UTF8);
+    std::wstring input = utils::s2ws(*raw, utils::CodePage::kUTF8);
     Iterator beg(input.begin());
     Iterator end(input.end());
     parser::Expression<Iterator> expr(source_file);

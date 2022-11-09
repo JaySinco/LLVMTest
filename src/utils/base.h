@@ -29,7 +29,7 @@ struct Error: public std::runtime_error
 template <typename T>
 using Expected = nonstd::expected<T, Error>;
 
-nonstd::unexpected_type<Error> makeUnexpected(std::string const& s);
+nonstd::unexpected_type<Error> unexpected(std::string const& s);
 
 template <typename T>
 struct ScopeExit
@@ -42,7 +42,7 @@ struct ScopeExit
 };
 
 template <typename T>
-ScopeExit<T> makeScopeExit(T&& t)
+ScopeExit<T> scopeExit(T&& t)
 {
     return ScopeExit<T>{std::move(t)};
 }
@@ -62,13 +62,13 @@ Expected<std::string> readFile(std::wstring_view path);
 
 enum class CodePage
 {
-    kLocal,
-    kUtf8,
-    kGbk,
-    kWchar,
+    kLOCAL,
+    kUTF8,
+    kGBK,
+    kWCHAR,
 };
 
-std::string ws2s(std::wstring_view ws, CodePage cp = CodePage::kLocal);
-std::wstring s2ws(std::string_view s, CodePage cp = CodePage::kLocal);
+std::string ws2s(std::wstring_view ws, CodePage cp = CodePage::kLOCAL);
+std::wstring s2ws(std::string_view s, CodePage cp = CodePage::kLOCAL);
 
 }  // namespace utils

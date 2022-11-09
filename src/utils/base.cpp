@@ -60,14 +60,14 @@ public:
     static char const* code2str(CodePage cp)
     {
         switch (cp) {
-            case CodePage::kLocal:
+            case CodePage::kLOCAL:
                 setlocale(LC_ALL, "");
                 return locale_charset();
-            case CodePage::kUtf8:
+            case CodePage::kUTF8:
                 return "UTF-8";
-            case CodePage::kGbk:
+            case CodePage::kGBK:
                 return "GBK";
-            case CodePage::kWchar:
+            case CodePage::kWCHAR:
                 if constexpr (sizeof(wchar_t) == 2) {
                     return "UTF-16LE";
                 } else {
@@ -84,18 +84,18 @@ private:
 
 std::string ws2s(std::wstring_view ws, CodePage cp)
 {
-    IconvWrapper conv(cp, CodePage::kWchar);
+    IconvWrapper conv(cp, CodePage::kWCHAR);
     std::string_view sv{reinterpret_cast<char const*>(ws.data()), ws.size() * sizeof(wchar_t)};
     return conv.convert<std::string>(sv, ws.size() * 6);
 }
 
 std::wstring s2ws(std::string_view s, CodePage cp)
 {
-    IconvWrapper conv(CodePage::kWchar, cp);
+    IconvWrapper conv(CodePage::kWCHAR, cp);
     return conv.convert<std::wstring>(s, s.size() * 4);
 }
 
-nonstd::unexpected_type<Error> makeUnexpected(std::string const& s)
+nonstd::unexpected_type<Error> unexpected(std::string const& s)
 {
     return nonstd::unexpected_type<Error>(s);
 }
@@ -108,7 +108,7 @@ Expected<std::string> readFile(std::wstring_view path)
     std::ifstream in_file(path);
 #endif
     if (!in_file) {
-        return makeUnexpected("failed to open file");
+        return unexpected("failed to open file");
     }
     std::stringstream ss;
     ss << in_file.rdbuf();

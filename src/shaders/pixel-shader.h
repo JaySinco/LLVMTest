@@ -12,18 +12,18 @@ public:
 private:
     enum ChannelIndex
     {
-        CHANNEL_0,
-        CHANNEL_1,
-        CHANNEL_2,
-        CHANNEL_3,
-        CHANNEL_MAX,
+        kChannel0,
+        kChannel1,
+        kChannel2,
+        kChannel3,
+        kChannelMax,
     };
 
     enum ChannelType
     {
-        CHANNEL_UNUSED,
-        CHANNEL_TEXTURE,
-        CHANNEL_SHADER,
+        kChannelUnused,
+        kChannelTexture,
+        kChannelShader,
     };
 
     struct Channel
@@ -54,7 +54,7 @@ private:
     int frame_;
     float mouse_[4];
     float date_[4];
-    Channel channel_[CHANNEL_MAX];
+    Channel channel_[kChannelMax];
 
     std::map<decltype(std::declval<Shader>().id), std::map<std::string, int>> shader_loc_;
     Shader main_shader_;
