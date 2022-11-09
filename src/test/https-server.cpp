@@ -4,8 +4,8 @@
 
 int main(int argc, char** argv)
 {
-    auto key_file = (__DIRNAME__ / "key.pem").generic_string();
-    auto cert_file = (__DIRNAME__ / "cert.pem").generic_string();
+    auto key_file = (__RESDIR__ / "key.pem").generic_string();
+    auto cert_file = (__RESDIR__ / "cert.pem").generic_string();
 
     uWS::SocketContextOptions opt;
     opt.key_file_name = key_file.c_str();

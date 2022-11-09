@@ -89,4 +89,4 @@ void parsing(std::filesystem::path const& source_file)
     spdlog::info("{} {}", ok, utils::ws2s(attr.surname));
 }
 
-int main(int argc, char** argv) { parsing(__DIRNAME__ / "input.txt"); }
+int main(int argc, char** argv) { parsing(__RESDIR__ / "input.txt"); }

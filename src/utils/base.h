@@ -5,8 +5,9 @@
 #include <iostream>
 #include <string_view>
 #include <spdlog/spdlog.h>
-#define __DIRNAME__ std::filesystem::path(__FILE__).parent_path()
+#define __DIRNAME__ (std::filesystem::path(__FILE__).parent_path())
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#define __RESDIR__ (__DIRNAME__ / "res")
 #define THROW_(s) throw utils::Error(fmt::format("[{}:{}] {}", __FILENAME__, __LINE__, (s)));
 #define TRY_ try {
 #define CATCH_                        \

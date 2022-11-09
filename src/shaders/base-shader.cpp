@@ -215,8 +215,8 @@ void BaseShader::loadManifest(nlohmann::json const& j)
 
 Shader BaseShader::loadShader(std::string const& vertex, std::string const& fragment)
 {
-    return LoadShader((__DIRNAME__ / vertex).string().c_str(),
-                      (__DIRNAME__ / fragment).string().c_str());
+    return LoadShader((__RESDIR__ / vertex).string().c_str(),
+                      (__RESDIR__ / fragment).string().c_str());
 }
 
 RenderTexture2D BaseShader::loadBufferTexture(int width, int height, std::string const& filter,
