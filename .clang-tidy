@@ -40,8 +40,6 @@ Checks: >
   readability-inconsistent-declaration-parameter-name,
   readability-identifier-naming,
 
-WarningsAsErrors: "*"
-
 CheckOptions:
   - key:    bugprone-assert-side-effect.AssertMacros
     value:  assert,DCHECK
