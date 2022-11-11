@@ -5,7 +5,7 @@
 namespace net
 {
 
-const Mac Mac::kZeros = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+const Mac Mac::kNull = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
 const Mac Mac::kBroadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 bool Mac::operator==(Mac const& rhs) const
@@ -27,7 +27,7 @@ std::string Mac::toStr() const
     return ss.str();
 }
 
-const Ip4 Ip4::kZeros = {0x0, 0x0, 0x0, 0x0};
+const Ip4 Ip4::kNull = {0x0, 0x0, 0x0, 0x0};
 const Ip4 Ip4::kBroadcast = {0xff, 0xff, 0xff, 0xff};
 
 Ip4::operator uint32_t() const
@@ -87,8 +87,8 @@ Adaptor const& Adaptor::fit(Ip4 const& hint)
 {
     auto apts = allAdaptors();
     auto it = std::find_if(apts.begin(), apts.end(), [&](Adaptor const& apt) {
-        return apt.mask != Ip4::kZeros && apt.gateway != Ip4::kZeros &&
-               (hint != Ip4::kZeros ? apt.ip.onSameLAN(hint, apt.mask) : true);
+        return apt.mask != Ip4::kNull && apt.gateway != Ip4::kNull &&
+               (hint != Ip4::kNull ? apt.ip.onSameLAN(hint, apt.mask) : true);
     });
     if (it == apts.end()) {
         throw std::runtime_error(fmt::format("no local adapter match {}", hint.toStr()));

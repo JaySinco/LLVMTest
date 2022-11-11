@@ -13,7 +13,7 @@ struct Mac
 {
     uint8_t b1, b2, b3, b4, b5, b6;
 
-    static const Mac kZeros;
+    static const Mac kNull;
     static const Mac kBroadcast;
 
     bool operator==(Mac const& rhs) const;
@@ -25,7 +25,7 @@ struct Ip4
 {
     uint8_t b1, b2, b3, b4;
 
-    static const Ip4 kZeros;
+    static const Ip4 kNull;
     static const Ip4 kBroadcast;
 
     explicit operator uint32_t() const;
@@ -47,7 +47,7 @@ struct Adaptor
     Mac mac;
 
     Json toJson() const;
-    static Adaptor const& fit(Ip4 const& hint = Ip4::kZeros);
+    static Adaptor const& fit(Ip4 const& hint = Ip4::kNull);
 };
 
 }  // namespace net

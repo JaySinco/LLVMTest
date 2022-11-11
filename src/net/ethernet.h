@@ -1,43 +1,37 @@
 #pragma once
 #include "protocol.h"
-#include <map>
 
-class ethernet : public protocol
+namespace net
+{
+
+class Ethernet: public Protocol
 {
 public:
-    struct detail
+    struct Header
     {
-        mac dmac;      // Destination address
-        mac smac;      // Source address
-        u_short type;  // Ethernet type
+        Mac dmac;       // Destination address
+        Mac smac;       // Source address
+        uint16_t type;  // Ethernet type
     };
 
-    ethernet() = default;
+    Ethernet() = default;
+    Ethernet(Mac const& smac, Mac const& dmac, Type type);
+    ~Ethernet() override = default;
 
-    ethernet(const u_char *const start, const u_char *&end, const protocol *prev = nullptr);
+    static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
 
-    ethernet(const mac &smac, const mac &dmac, const std::string &type);
+    void toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    Json toJson() const override;
+    Type type() const override;
+    bool correlated(Protocol const& resp) const override;
 
-    virtual ~ethernet() = default;
-
-    virtual void to_bytes(std::vector<u_char> &bytes) const override;
-
-    virtual json to_json() const override;
-
-    virtual std::string type() const override;
-
-    virtual std::string succ_type() const override;
-
-    virtual bool link_to(const protocol &rhs) const override;
-
-    const detail &get_detail() const;
+    Header const& getHeader() const;
 
 private:
-    detail d{0};
-
-    static std::map<u_short, std::string> type_dict;
-
-    static detail ntoh(const detail &d, bool reverse = false);
-
-    static detail hton(const detail &d);
+    Header h_{0};
+    static std::map<uint16_t, Type> type_dict;
+    static Header ntoh(Header const& h, bool reverse = false);
+    static Header hton(Header const& h);
 };
+
+}  // namespace net

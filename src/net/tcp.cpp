@@ -2,11 +2,31 @@
 #include "ipv4.h"
 #include <boost/algorithm/string/join.hpp>
 
-tcp::tcp(const u_char *const start, const u_char *&end, const protocol *prev)
+std::map<std::string, std::map<u_short, std::string>> protocol::port_dict = {
+    {Protocol_Type_TCP,
+     {{22, Protocol_Type_SSH},
+      {23, Protocol_Type_TELNET},
+      {53, Protocol_Type_DNS},
+      {80, Protocol_Type_HTTP},
+      {443, Protocol_Type_HTTPS},
+      {3389, Protocol_Type_RDP}}}};
+
+std::string protocol::guess_protocol_by_port(u_short port, std::string const& type)
 {
-    d = ntoh(*reinterpret_cast<const detail *>(start));
+    if (port_dict.count(type) > 0) {
+        auto& type_dict = port_dict.at(type);
+        if (type_dict.count(port) > 0) {
+            return type_dict.at(port);
+        }
+    }
+    return Protocol_Type_Unknow(-1);
+}
+
+tcp::tcp(u_char const* const start, u_char const*& end, protocol const* prev)
+{
+    d = ntoh(*reinterpret_cast<detail const*>(start));
     end = start + 4 * (d.hl_flags >> 12 & 0xf);
-    auto &ipdt = dynamic_cast<const ipv4 *>(prev)->get_detail();
+    auto& ipdt = dynamic_cast<ipv4 const*>(prev)->get_detail();
     extra.len = ipdt.tlen - 4 * (ipdt.ver_hl & 0xf);
     pseudo_header ph;
     ph.sip = ipdt.sip;
@@ -15,14 +35,14 @@ tcp::tcp(const u_char *const start, const u_char *&end, const protocol *prev)
     ph.zero_pad = 0;
     ph.len = htons(extra.len);
     size_t tlen = sizeof(pseudo_header) + extra.len;
-    u_char *buf = new u_char[tlen];
+    u_char* buf = new u_char[tlen];
     std::memcpy(buf, &ph, sizeof(pseudo_header));
     std::memcpy(buf + sizeof(pseudo_header), start, extra.len);
     extra.crc = calc_checksum(buf, tlen);
     delete[] buf;
 }
 
-void tcp::to_bytes(std::vector<u_char> &bytes) const
+void tcp::to_bytes(std::vector<u_char>& bytes) const
 {
     throw std::runtime_error("unimplemented method");
 }
@@ -67,18 +87,18 @@ std::string tcp::succ_type() const
     return guess_protocol_by_port(d.sport, Protocol_Type_TCP);
 }
 
-bool tcp::link_to(const protocol &rhs) const
+bool tcp::link_to(protocol const& rhs) const
 {
     if (type() == rhs.type()) {
-        auto p = dynamic_cast<const tcp &>(rhs);
+        auto p = dynamic_cast<tcp const&>(rhs);
         return d.sport == p.d.dport && d.dport == p.d.sport;
     }
     return false;
 }
 
-const tcp::detail &tcp::get_detail() const { return d; }
+tcp::detail const& tcp::get_detail() const { return d; }
 
-tcp::detail tcp::ntoh(const detail &d, bool reverse)
+tcp::detail tcp::ntoh(detail const& d, bool reverse)
 {
     detail dt = d;
     ntohx(dt.sport, !reverse, s);
@@ -91,4 +111,4 @@ tcp::detail tcp::ntoh(const detail &d, bool reverse)
     return dt;
 }
 
-tcp::detail tcp::hton(const detail &d) { return ntoh(d, true); }
+tcp::detail tcp::hton(detail const& d) { return ntoh(d, true); }

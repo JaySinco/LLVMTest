@@ -96,7 +96,7 @@ std::vector<Adaptor> const& allAdaptors()
         while (pinfo) {
             Adaptor apt;
             Ip4 ip = ip4FromDottedDec(pinfo->IpAddressList.IpAddress.String);
-            if (ip != Ip4::kZeros) {
+            if (ip != Ip4::kNull) {
                 apt.name = std::string("\\Device\\NPF_") + pinfo->AdapterName;
                 apt.desc = pinfo->Description;
                 apt.ip = ip;

@@ -1,46 +1,42 @@
 #pragma once
 #include "protocol.h"
 
-class arp : public protocol
+namespace net
+{
+
+class Arp: public Protocol
 {
 public:
-    struct detail
+    struct Header
     {
-        u_short hw_type;    // Hardware type
-        u_short prot_type;  // Protocol type
-        u_char hw_len;      // Hardware address length
-        u_char prot_len;    // Protocol address length
-        u_short op;         // Operation code
-        mac smac;           // Source ethernet address
-        ip4 sip;            // Source ip address
-        mac dmac;           // Destination ethernet address
-        ip4 dip;            // Destination ip address
+        uint16_t hw_type;    // Hardware type
+        uint16_t prot_type;  // Protocol type
+        uint8_t hw_len;      // Hardware address length
+        uint8_t prot_len;    // Protocol address length
+        uint16_t op;         // Operation code
+        Mac smac;            // Source ethernet address
+        Ip4 sip;             // Source ip address
+        Mac dmac;            // Destination ethernet address
+        Ip4 dip;             // Destination ip address
     };
 
-    arp() = default;
+    Arp() = default;
+    Arp(Mac const& smac, Ip4 const& sip, Mac const& dmac, Ip4 const& dip, bool reply, bool reverse);
+    ~Arp() override = default;
 
-    arp(const u_char *const start, const u_char *&end, const protocol *prev = nullptr);
+    static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
 
-    arp(const mac &smac, const ip4 &sip, const mac &dmac, const ip4 &dip, bool reply, bool reverse);
+    void toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    Json toJson() const override;
+    Type type() const override;
+    bool correlated(Protocol const& resp) const override;
 
-    virtual ~arp() = default;
-
-    virtual void to_bytes(std::vector<u_char> &bytes) const override;
-
-    virtual json to_json() const override;
-
-    virtual std::string type() const override;
-
-    virtual std::string succ_type() const override;
-
-    virtual bool link_to(const protocol &rhs) const override;
-
-    const detail &get_detail() const;
+    Header const& getHeader() const;
 
 private:
-    detail d{0};
-
-    static detail ntoh(const detail &d, bool reverse = false);
-
-    static detail hton(const detail &d);
+    Header h_{0};
+    static Header ntoh(Header const& h, bool reverse = false);
+    static Header hton(Header const& h);
 };
+
+}  // namespace net

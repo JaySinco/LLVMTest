@@ -1,78 +1,92 @@
 #include "ethernet.h"
+#include "platform.h"
+#include "arp.h"
 
-std::map<u_short, std::string> ethernet::type_dict = {
-    {0x0800, Protocol_Type_IPv4},
-    {0x86dd, Protocol_Type_IPv6},
-    {0x0806, Protocol_Type_ARP},
-    {0x8035, Protocol_Type_RARP},
+namespace net
+{
+
+std::map<uint16_t, Protocol::Type> Ethernet::type_dict = {
+    {0x0800, Protocol::kIPv4},
+    {0x86dd, Protocol::kIPv6},
+    {0x0806, Protocol::kARP},
+    {0x8035, Protocol::kRARP},
 };
 
-ethernet::ethernet(const u_char *const start, const u_char *&end, const protocol *prev)
+void Ethernet::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
 {
-    d = ntoh(*reinterpret_cast<const detail *>(start));
-    end = start + sizeof(detail);
+    auto p = std::make_shared<Ethernet>();
+    p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
+    stack.push(p);
+    data += sizeof(Header);
+    size -= sizeof(Header);
+
+    Type type = type_dict.at(p->h_.type);
+    switch (type) {
+        case kIPv4:
+        case kIPv6:
+        case kARP:
+        case kRARP:
+            Arp::fromBytes(data, size, stack);
+            break;
+        default:
+            throw std::runtime_error(fmt::format("invalid ethernet type: {}", descType(type)));
+    }
 }
 
-ethernet::ethernet(const mac &smac, const mac &dmac, const std::string &type)
+Ethernet::Ethernet(Mac const& smac, Mac const& dmac, Type type)
 {
     bool found = false;
-    for (auto it = type_dict.cbegin(); it != type_dict.cend(); ++it) {
-        if (it->second == type) {
+    for (auto it: type_dict) {
+        if (it.second == type) {
             found = true;
-            d.type = it->first;
+            h_.type = it.first;
             break;
         }
     }
     if (!found) {
-        throw std::runtime_error("unknow ethernet type: {}"_format(type));
+        throw std::runtime_error(fmt::format("invalid ethernet type: {}", descType(type)));
     }
-    d.dmac = dmac;
-    d.smac = smac;
+    h_.dmac = dmac;
+    h_.smac = smac;
 }
 
-void ethernet::to_bytes(std::vector<u_char> &bytes) const
+void Ethernet::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    auto dt = hton(d);
-    auto it = reinterpret_cast<const u_char *>(&dt);
-    bytes.insert(bytes.cbegin(), it, it + sizeof(detail));
+    auto hd = hton(h_);
+    auto it = reinterpret_cast<uint8_t const*>(&hd);
+    bytes.insert(bytes.cbegin(), it, it + sizeof(h_));
 }
 
-json ethernet::to_json() const
+Json Ethernet::toJson() const
 {
-    json j;
-    j["type"] = type();
-    j["ethernet-type"] = succ_type();
-    j["source-mac"] = d.smac.to_str();
-    j["dest-mac"] = d.dmac.to_str();
+    Json j;
+    j["type"] = descType(type());
+    j["ethernet-type"] = descType(type_dict.at(h_.type));
+    j["source-mac"] = h_.smac.toStr();
+    j["dest-mac"] = h_.dmac.toStr();
     return j;
 }
 
-std::string ethernet::type() const { return Protocol_Type_Ethernet; }
+Protocol::Type Ethernet::type() const { return kEthernet; }
 
-std::string ethernet::succ_type() const
+bool Ethernet::correlated(Protocol const& resp) const
 {
-    if (type_dict.count(d.type) != 0) {
-        return type_dict[d.type];
-    }
-    return Protocol_Type_Unknow(d.type);
-}
-
-bool ethernet::link_to(const protocol &rhs) const
-{
-    if (type() == rhs.type()) {
-        auto p = dynamic_cast<const ethernet &>(rhs);
-        return p.d.dmac == mac::broadcast || d.smac == p.d.dmac;
+    if (type() == resp.type()) {
+        auto p = dynamic_cast<Ethernet const&>(resp);
+        return p.h_.dmac == Mac::kBroadcast || h_.smac == p.h_.dmac;
     }
     return false;
 }
 
-const ethernet::detail &ethernet::get_detail() const { return d; }
+Ethernet::Header const& Ethernet::getHeader() const { return h_; }
 
-ethernet::detail ethernet::ntoh(const detail &d, bool reverse)
+Ethernet::Header Ethernet::ntoh(Header const& h, bool reverse)
 {
-    detail dt = d;
-    ntohx(dt.type, !reverse, s);
-    return dt;
+    Header hd = h;
+    ntohx(hd.type, reverse, s);
+    return hd;
 }
 
-ethernet::detail ethernet::hton(const detail &d) { return ntoh(d, true); }
+Ethernet::Header Ethernet::hton(Header const& h) { return ntoh(h, true); }
+
+}  // namespace net

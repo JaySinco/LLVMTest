@@ -1,59 +1,124 @@
 #include "protocol.h"
+#include "ethernet.h"
 #include <random>
 
-std::map<std::string, std::map<u_short, std::string>> protocol::port_dict = {
-    {Protocol_Type_UDP,
-     {{22, Protocol_Type_SSH},
-      {23, Protocol_Type_TELNET},
-      {53, Protocol_Type_DNS},
-      {80, Protocol_Type_HTTP}}},
-    {Protocol_Type_TCP,
-     {{22, Protocol_Type_SSH},
-      {23, Protocol_Type_TELNET},
-      {53, Protocol_Type_DNS},
-      {80, Protocol_Type_HTTP},
-      {443, Protocol_Type_HTTPS},
-      {3389, Protocol_Type_RDP}}}};
-
-bool protocol::is_specific(const std::string &type)
+namespace net
 {
-    return type != Protocol_Type_Void && type.find("unknow") == std::string::npos;
+
+std::string Protocol::descType(Type type)
+{
+    switch (type) {
+        case kEthernet:
+            return "ethernet";
+        case kIPv4:
+            return "ipv4";
+        case kIPv6:
+            return "ipv6";
+        case kARP:
+            return "arp";
+        case kRARP:
+            return "rarp";
+        case kICMP:
+            return "icmp";
+        case kTCP:
+            return "tcp";
+        case kUDP:
+            return "udp";
+        case kDNS:
+            return "dns";
+        case kHTTP:
+            return "http";
+        case kHTTPS:
+            return "https";
+        case kSSH:
+            return "ssh";
+        case kTelnet:
+            return "telnet";
+        case kRdp:
+            return "rdp";
+        default:
+            return fmt::format("unknow {}", type);
+    }
 }
 
-u_short protocol::calc_checksum(const void *data, size_t tlen)
+uint16_t Protocol::checksum(void const* data, size_t size)
 {
     uint32_t sum = 0;
-    auto buf = static_cast<const u_short *>(data);
-    while (tlen > 1) {
+    auto buf = static_cast<uint16_t const*>(data);
+    while (size > 1) {
         sum += *buf++;
-        tlen -= 2;
+        size -= 2;
     }
-    if (tlen > 0) {
-        u_short left = 0;
+    if (size > 0) {
+        uint16_t left = 0;
         std::memcpy(&left, buf, 1);
         sum += left;
     }
     while (sum >> 16) {
         sum = (sum & 0xffff) + (sum >> 16);
     }
-    return (static_cast<u_short>(sum) ^ 0xffff);
+    return (static_cast<uint16_t>(sum) ^ 0xffff);
 }
 
-u_short protocol::rand_ushort()
+uint16_t Protocol::rand16u()
 {
     static std::random_device rd;
     static std::default_random_engine engine(rd());
-    static std::uniform_int_distribution<u_short> dist;
+    static std::uniform_int_distribution<uint16_t> dist;
     return dist(engine);
 }
 
-std::string protocol::guess_protocol_by_port(u_short port, const std::string &type)
+ProtocolStack ProtocolStack::fromBytes(uint8_t const* data, size_t size)
 {
-    if (port_dict.count(type) > 0) {
-        auto &type_dict = port_dict.at(type);
-        if (type_dict.count(port) > 0) {
-            return type_dict.at(port);
+    ProtocolStack stack;
+    Ethernet::fromBytes(data, size, stack);
+    return stack;
+}
+
+std::vector<uint8_t> ProtocolStack::toBytes() const
+{
+    std::vector<uint8_t> data;
+    for (auto it = stack_.rbegin(); it != stack_.rend(); ++it) {
+        (*it)->toBytes(data, *this);
+    }
+    return data;
+}
+
+Json ProtocolStack::toJson() const
+{
+    Json j;
+    for (auto& p: stack_) {
+        j.push_back(p->toJson());
+    }
+    return j;
+}
+
+bool ProtocolStack::correlated(ProtocolStack const& resp) const
+{
+    if (size() != resp.size()) {
+        return false;
+    }
+    for (int i = 0; i < size(); ++i) {
+        if (!get(i)->correlated(*resp.get(i))) {
+            return false;
         }
     }
-    return Protocol_Type_Unknow(-1);
+    return true;
 }
+
+ProtocolPtr ProtocolStack::get(Protocol::Type type) const { return get(getIdx(type)); }
+
+size_t ProtocolStack::getIdx(Protocol::Type type) const
+{
+    auto it = std::find_if(stack_.begin(), stack_.end(),
+                           [&](ProtocolPtr p) { return p->type() == type; });
+    if (it == stack_.end()) {
+        throw std::runtime_error(
+            fmt::format("protocol stack don't have {}", Protocol::descType(type)));
+    }
+    return std::distance(stack_.begin(), it);
+}
+
+void ProtocolStack::push(ProtocolPtr p) {}
+
+}  // namespace net
