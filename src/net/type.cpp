@@ -1,129 +1,99 @@
 #include "type.h"
-#include <ws2tcpip.h>
+#include "platform.h"
 #include <sstream>
 
-const mac mac::zeros = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-const mac mac::broadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+namespace net
+{
 
-bool mac::operator==(const mac &rhs) const
+const Mac Mac::kZeros = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+const Mac Mac::kBroadcast = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+
+bool Mac::operator==(Mac const& rhs) const
 {
     return b1 == rhs.b1 && b2 == rhs.b2 && b3 == rhs.b3 && b4 == rhs.b4 && b5 == rhs.b5 &&
            b6 == rhs.b6;
 }
 
-bool mac::operator!=(const mac &rhs) const { return !(*this == rhs); }
+bool Mac::operator!=(Mac const& rhs) const { return !(*this == rhs); }
 
-std::string mac::to_str() const
+std::string Mac::toStr() const
 {
-    auto c = reinterpret_cast<const u_char *>(this);
+    auto c = reinterpret_cast<uint8_t const*>(this);
     std::ostringstream ss;
-    ss << "{:02x}"_format(c[0]);
+    ss << fmt::format("{:02X}", c[0]);
     for (int i = 1; i < 6; ++i) {
-        ss << "-{:02x}"_format(c[i]);
+        ss << fmt::format("-{:02X}", c[i]);
     }
     return ss.str();
 }
 
-const ip4 ip4::zeros = {0x0, 0x0, 0x0, 0x0};
-const ip4 ip4::broadcast = {0xff, 0xff, 0xff, 0xff};
+const Ip4 Ip4::kZeros = {0x0, 0x0, 0x0, 0x0};
+const Ip4 Ip4::kBroadcast = {0xff, 0xff, 0xff, 0xff};
 
-ip4::ip4(u_char c1, u_char c2, u_char c3, u_char c4) : b1(c1), b2(c2), b3(c3), b4(c4) {}
-
-ip4::ip4(const std::string &s)
+Ip4::operator uint32_t() const
 {
-    if (!from_dotted_dec(s, this)) {
-        throw std::runtime_error("invalid ip4: {}"_format(s));
-    }
+    auto i = reinterpret_cast<uint32_t const*>(this);
+    return ntohl(*i);
 }
 
-ip4::ip4(const in_addr &addr)
-{
-    b1 = addr.S_un.S_un_b.s_b1;
-    b2 = addr.S_un.S_un_b.s_b2;
-    b3 = addr.S_un.S_un_b.s_b3;
-    b4 = addr.S_un.S_un_b.s_b4;
-}
-
-ip4::operator in_addr() const
-{
-    in_addr addr;
-    addr.S_un.S_un_b.s_b1 = b1;
-    addr.S_un.S_un_b.s_b2 = b2;
-    addr.S_un.S_un_b.s_b3 = b3;
-    addr.S_un.S_un_b.s_b4 = b4;
-    return addr;
-}
-
-ip4::operator u_int() const
-{
-    auto i = reinterpret_cast<const u_int *>(this);
-    return *i;
-}
-
-bool ip4::operator==(const ip4 &rhs) const
+bool Ip4::operator==(Ip4 const& rhs) const
 {
     return b1 == rhs.b1 && b2 == rhs.b2 && b3 == rhs.b3 && b4 == rhs.b4;
 }
 
-bool ip4::operator!=(const ip4 &rhs) const { return !(*this == rhs); }
+bool Ip4::operator!=(Ip4 const& rhs) const { return !(*this == rhs); }
 
-u_int ip4::operator&(const ip4 &rhs) const
+uint32_t Ip4::operator&(Ip4 const& rhs) const
 {
-    auto i = reinterpret_cast<const u_int *>(this);
-    auto j = reinterpret_cast<const u_int *>(&rhs);
-    return ntohl(*i) & ntohl(*j);
+    return static_cast<uint32_t>(*this) & static_cast<uint32_t>(rhs);
 }
 
-bool ip4::is_local(const ip4 &rhs, const ip4 &mask) const { return (*this & mask) == (rhs & mask); }
-
-bool ip4::from_dotted_dec(const std::string &s, ip4 *ip)
+bool Ip4::onSameLAN(Ip4 const& rhs, Ip4 const& mask) const
 {
-    in_addr addr;
-    if (inet_pton(AF_INET, s.c_str(), &addr) != 1) {
-        return false;
-    }
-    if (ip) {
-        *ip = ip4(addr);
-    }
-    return true;
+    return (*this & mask) == (rhs & mask);
 }
 
-bool ip4::from_domain(const std::string &s, ip4 *ip)
+bool Ip4::isSelf() const
 {
-    addrinfo hints = {0};
-    hints.ai_family = AF_INET;
-    hints.ai_flags = AI_PASSIVE;
-    hints.ai_protocol = 0;
-    hints.ai_socktype = SOCK_STREAM;
-    addrinfo *first_addr;
-    auto ret = GetAddrInfoA(s.c_str(), nullptr, &hints, &first_addr);
-    if (ret != 0 || first_addr == nullptr) {
-        return false;
-    }
-    if (ip) {
-        *ip = reinterpret_cast<sockaddr_in *>(first_addr->ai_addr)->sin_addr;
-    }
-    freeaddrinfo(first_addr);
-    return true;
+    auto apts = allAdaptors();
+    return std::find_if(apts.begin(), apts.end(),
+                        [&](Adaptor const& apt) { return (*this) == apt.ip; }) != apts.end();
 }
 
-std::string ip4::to_str() const
+std::string Ip4::toStr() const
 {
-    auto c = reinterpret_cast<const u_char *>(this);
+    auto c = reinterpret_cast<uint8_t const*>(this);
     std::ostringstream ss;
-    ss << int(c[0]);
+    ss << static_cast<int>(c[0]);
     for (int i = 1; i < 4; ++i) {
-        ss << "." << int(c[i]);
+        ss << "." << static_cast<int>(c[i]);
     }
     return ss.str();
 }
 
-wsa_guard wsa_guard::g;
-
-wsa_guard::wsa_guard()
+Json Adaptor::toJson() const
 {
-    WSADATA ws;
-    WSAStartup(MAKEWORD(2, 2), &ws);
+    Json j;
+    j["name"] = name;
+    j["desc"] = desc;
+    j["mac"] = mac.toStr();
+    j["ip"] = ip.toStr();
+    j["mask"] = mask.toStr();
+    j["gateway"] = gateway.toStr();
+    return j;
 }
 
-wsa_guard::~wsa_guard() { WSACleanup(); }
+Adaptor const& Adaptor::fit(Ip4 const& hint)
+{
+    auto apts = allAdaptors();
+    auto it = std::find_if(apts.begin(), apts.end(), [&](Adaptor const& apt) {
+        return apt.mask != Ip4::kZeros && apt.gateway != Ip4::kZeros &&
+               (hint != Ip4::kZeros ? apt.ip.onSameLAN(hint, apt.mask) : true);
+    });
+    if (it == apts.end()) {
+        throw std::runtime_error(fmt::format("no local adapter match {}", hint.toStr()));
+    }
+    return *it;
+}
+
+}  // namespace net

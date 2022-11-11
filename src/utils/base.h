@@ -35,7 +35,7 @@ nonstd::unexpected_type<Error> unexpected(std::string const& s);
 template <typename T>
 struct ScopeExit
 {
-    explicit ScopeExit(T&& t): t{std::move(t)} {}
+    explicit ScopeExit(T&& t): t(std::move(t)) {}
 
     ~ScopeExit() { t(); }
 
@@ -45,7 +45,7 @@ struct ScopeExit
 template <typename T>
 ScopeExit<T> scopeExit(T&& t)
 {
-    return ScopeExit<T>{std::move(t)};
+    return ScopeExit<T>(std::move(t));
 }
 
 template <class... Ts>

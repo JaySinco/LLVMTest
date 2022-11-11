@@ -1,65 +1,53 @@
 #pragma once
-#include "common.h"
+#include "utils/base.h"
+#include <string>
+#include <vector>
+#include <nlohmann/json.hpp>
 
-struct mac
+namespace net
 {
-    u_char b1, b2, b3, b4, b5, b6;
 
-public:
-    bool operator==(const mac &rhs) const;
+using Json = nlohmann::ordered_json;
 
-    bool operator!=(const mac &rhs) const;
+struct Mac
+{
+    uint8_t b1, b2, b3, b4, b5, b6;
 
-    std::string to_str() const;
+    static const Mac kZeros;
+    static const Mac kBroadcast;
 
-    static const mac zeros;
-
-    static const mac broadcast;
+    bool operator==(Mac const& rhs) const;
+    bool operator!=(Mac const& rhs) const;
+    std::string toStr() const;
 };
 
-struct ip4
+struct Ip4
 {
-    u_char b1, b2, b3, b4;
+    uint8_t b1, b2, b3, b4;
 
-public:
-    ip4() = default;
+    static const Ip4 kZeros;
+    static const Ip4 kBroadcast;
 
-    ip4(const ip4 &) = default;
-
-    ip4(u_char c1, u_char c2, u_char c3, u_char c4);
-
-    explicit ip4(const std::string &s);
-
-    ip4(const in_addr &addr);
-
-    operator in_addr() const;
-
-    operator u_int() const;
-
-    bool operator==(const ip4 &rhs) const;
-
-    bool operator!=(const ip4 &rhs) const;
-
-    u_int operator&(const ip4 &rhs) const;
-
-    bool is_local(const ip4 &rhs, const ip4 &mask) const;
-
-    std::string to_str() const;
-
-    static bool from_dotted_dec(const std::string &s, ip4 *ip = nullptr);
-
-    static bool from_domain(const std::string &s, ip4 *ip = nullptr);
-
-    static const ip4 zeros;
-
-    static const ip4 broadcast;
+    explicit operator uint32_t() const;
+    bool operator==(Ip4 const& rhs) const;
+    bool operator!=(Ip4 const& rhs) const;
+    uint32_t operator&(Ip4 const& rhs) const;
+    bool onSameLAN(Ip4 const& rhs, Ip4 const& mask) const;
+    bool isSelf() const;
+    std::string toStr() const;
 };
 
-struct wsa_guard
+struct Adaptor
 {
-    wsa_guard();
-    ~wsa_guard();
+    std::string name;
+    std::string desc;
+    Ip4 ip;
+    Ip4 mask;
+    Ip4 gateway;
+    Mac mac;
 
-private:
-    static wsa_guard g;
+    Json toJson() const;
+    static Adaptor const& fit(Ip4 const& hint = Ip4::kZeros);
 };
+
+}  // namespace net
