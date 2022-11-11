@@ -28,18 +28,9 @@ std::string Protocol::descType(Type type)
             return "udp";
         case kDNS:
             return "dns";
-        case kHTTP:
-            return "http";
-        case kHTTPS:
-            return "https";
-        case kSSH:
-            return "ssh";
-        case kTelnet:
-            return "telnet";
-        case kRDP:
-            return "rdp";
+        default:
+            return "unimplemented";
     }
-    return "unimplemented";
 }
 
 uint16_t Protocol::checksum(void const* data, size_t size)

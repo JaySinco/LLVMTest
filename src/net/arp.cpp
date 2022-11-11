@@ -43,7 +43,7 @@ Json Arp::toJson() const
     j["protocol-addr-len"] = h_.prot_len;
     j["operate"] = (h_.op == 1 || h_.op == 3)   ? "request"
                    : (h_.op == 2 || h_.op == 4) ? "reply"
-                                                : fmt::format("invalid op: {}", h_.op);
+                                                : fmt::format("invalid(0x{:x})", h_.op);
     j["source-mac"] = h_.smac.toStr();
     j["source-ip"] = h_.sip.toStr();
     j["dest-mac"] = h_.dmac.toStr();

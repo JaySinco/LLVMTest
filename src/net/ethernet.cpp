@@ -63,7 +63,9 @@ Json Ethernet::toJson() const
 {
     Json j;
     j["type"] = descType(type());
-    j["ethernet-type"] = descType(ethernetType());
+    Type eth_type = ethernetType();
+    j["ethernet-type"] =
+        eth_type == kUnknown ? fmt::format("unknown(0x{:x})", h_.type) : descType(eth_type);
     j["source-mac"] = h_.smac.toStr();
     j["dest-mac"] = h_.dmac.toStr();
     return j;

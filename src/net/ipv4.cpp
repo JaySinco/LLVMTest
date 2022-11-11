@@ -69,7 +69,9 @@ Json Ipv4::toJson() const
 {
     Json j;
     j["type"] = type();
-    j["ipv4-type"] = descType(ipv4Type());
+    Type ip_type = ipv4Type();
+    j["ipv4-type"] =
+        ip_type == kUnknown ? fmt::format("unknown(0x{:x})", h_.type) : descType(ip_type);
     j["version"] = h_.ver_hl >> 4;
     j["tos"] = h_.tos;
     size_t header_size = 4 * (h_.ver_hl & 0xf);

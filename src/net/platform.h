@@ -14,4 +14,13 @@ Ip4 ip4FromDomain(std::string const& s);
 
 std::vector<Adaptor> const& allAdaptors();
 
+class Driver
+{
+public:
+    void send(void const* data, size_t size);
+
+private:
+    void* handle_;
+};
+
 }  // namespace net
