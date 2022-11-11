@@ -1,78 +1,81 @@
 #include "arp.h"
+#include "platform.h"
 
-arp::arp(const u_char *const start, const u_char *&end, const protocol *prev)
+namespace net
 {
-    d = ntoh(*reinterpret_cast<const detail *>(start));
-    if (end != start + sizeof(detail)) {
-        VLOG(3) << "abnormal arp length: expected={}, got={}"_format(sizeof(detail), end - start);
-    }
+
+void Arp::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
+{
+    auto p = std::make_shared<Arp>();
+    p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
+    stack.push(p);
+    data += sizeof(Header);
+    size -= sizeof(Header);
 }
 
-arp::arp(const mac &smac, const ip4 &sip, const mac &dmac, const ip4 &dip, bool reply, bool reverse)
+Arp::Arp(Mac const& smac, Ip4 const& sip, Mac const& dmac, Ip4 const& dip, bool reply, bool reverse)
 {
-    d.hw_type = 1;
-    d.prot_type = 0x0800;
-    d.hw_len = 6;
-    d.prot_len = 4;
-    d.op = reverse ? (reply ? 4 : 3) : (reply ? 2 : 1);
-    d.smac = smac;
-    d.sip = sip;
-    d.dmac = dmac;
-    d.dip = dip;
+    h_.hw_type = 1;
+    h_.prot_type = 0x0800;
+    h_.hw_len = 6;
+    h_.prot_len = 4;
+    h_.op = reverse ? (reply ? 4 : 3) : (reply ? 2 : 1);
+    h_.smac = smac;
+    h_.sip = sip;
+    h_.dmac = dmac;
+    h_.dip = dip;
 }
 
-void arp::to_bytes(std::vector<u_char> &bytes) const
+void Arp::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    auto dt = hton(d);
-    auto it = reinterpret_cast<const u_char *>(&dt);
-    bytes.insert(bytes.cbegin(), it, it + sizeof(detail));
+    auto hd = hton(h_);
+    auto it = reinterpret_cast<uint8_t const*>(&hd);
+    bytes.insert(bytes.cbegin(), it, it + sizeof(h_));
 }
 
-json arp::to_json() const
+Json Arp::toJson() const
 {
-    json j;
+    Json j;
     j["type"] = type();
-    j["hardware-type"] = d.hw_type;
-    j["protocol-type"] = d.prot_type;
-    j["hardware-addr-len"] = d.hw_len;
-    j["protocol-addr-len"] = d.prot_len;
-    j["operate"] = (d.op == 1 || d.op == 3)   ? "request"
-                   : (d.op == 2 || d.op == 4) ? "reply"
-                                              : Protocol_Type_Unknow(d.op);
-    j["source-mac"] = d.smac.to_str();
-    j["source-ip"] = d.sip.to_str();
-    j["dest-mac"] = d.dmac.to_str();
-    j["dest-ip"] = d.dip.to_str();
+    j["hardware-type"] = h_.hw_type;
+    j["protocol-type"] = h_.prot_type;
+    j["hardware-addr-len"] = h_.hw_len;
+    j["protocol-addr-len"] = h_.prot_len;
+    j["operate"] = (h_.op == 1 || h_.op == 3)   ? "request"
+                   : (h_.op == 2 || h_.op == 4) ? "reply"
+                                                : fmt::format("invalid op: {}", h_.op);
+    j["source-mac"] = h_.smac.toStr();
+    j["source-ip"] = h_.sip.toStr();
+    j["dest-mac"] = h_.dmac.toStr();
+    j["dest-ip"] = h_.dip.toStr();
     return j;
 }
 
-std::string arp::type() const
+Protocol::Type Arp::type() const
 {
-    return (d.op == 1 || d.op == 2)   ? Protocol_Type_ARP
-           : (d.op == 3 || d.op == 4) ? Protocol_Type_RARP
-                                      : Protocol_Type_Unknow(d.op);
+    return (h_.op == 1 || h_.op == 2) ? kARP : (h_.op == 3 || h_.op == 4) ? kRARP : kUnknown;
 }
 
-std::string arp::succ_type() const { return Protocol_Type_Void; }
-
-bool arp::link_to(const protocol &rhs) const
+bool Arp::correlated(Protocol const& resp) const
 {
-    if (type() == rhs.type()) {
-        auto p = dynamic_cast<const arp &>(rhs);
-        return (d.op == 1 || d.op == 3) && (p.d.op == 2 || p.d.op == 4) && (d.dip == p.d.sip);
+    if (type() == resp.type()) {
+        auto p = dynamic_cast<Arp const&>(resp);
+        return (h_.op == 1 || h_.op == 3) && (p.h_.op == 2 || p.h_.op == 4) && (h_.dip == p.h_.sip);
     }
     return false;
 }
 
-const arp::detail &arp::get_detail() const { return d; }
+Arp::Header const& Arp::getHeader() const { return h_; }
 
-arp::detail arp::ntoh(const detail &d, bool reverse)
+Arp::Header Arp::ntoh(Header const& h, bool reverse)
 {
-    detail dt = d;
-    ntohx(dt.hw_type, !reverse, s);
-    ntohx(dt.prot_type, !reverse, s);
-    ntohx(dt.op, !reverse, s);
-    return dt;
+    Header hd = h;
+    ntohx(hd.hw_type, reverse, s);
+    ntohx(hd.prot_type, reverse, s);
+    ntohx(hd.op, reverse, s);
+    return hd;
 }
 
-arp::detail arp::hton(const detail &d) { return ntoh(d, true); }
+Arp::Header Arp::hton(Header const& h) { return ntoh(h, true); }
+
+}  // namespace net

@@ -1,6 +1,7 @@
 #include "ethernet.h"
 #include "platform.h"
 #include "arp.h"
+#include "ipv4.h"
 
 namespace net
 {
@@ -20,31 +21,32 @@ void Ethernet::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stac
     data += sizeof(Header);
     size -= sizeof(Header);
 
-    Type type = type_dict.at(p->h_.type);
-    switch (type) {
+    switch (p->ethernetType()) {
         case kIPv4:
-        case kIPv6:
+            Ipv4::fromBytes(data, size, stack);
+            break;
         case kARP:
         case kRARP:
             Arp::fromBytes(data, size, stack);
             break;
+        case kIPv6:
         default:
-            throw std::runtime_error(fmt::format("invalid ethernet type: {}", descType(type)));
+            break;
     }
 }
 
-Ethernet::Ethernet(Mac const& smac, Mac const& dmac, Type type)
+Ethernet::Ethernet(Mac const& smac, Mac const& dmac, Type eth_type)
 {
     bool found = false;
-    for (auto it: type_dict) {
-        if (it.second == type) {
+    for (auto [k, v]: type_dict) {
+        if (v == eth_type) {
             found = true;
-            h_.type = it.first;
+            h_.type = k;
             break;
         }
     }
     if (!found) {
-        throw std::runtime_error(fmt::format("invalid ethernet type: {}", descType(type)));
+        throw std::runtime_error(fmt::format("invalid ethernet type: {}", descType(eth_type)));
     }
     h_.dmac = dmac;
     h_.smac = smac;
@@ -61,7 +63,7 @@ Json Ethernet::toJson() const
 {
     Json j;
     j["type"] = descType(type());
-    j["ethernet-type"] = descType(type_dict.at(h_.type));
+    j["ethernet-type"] = descType(ethernetType());
     j["source-mac"] = h_.smac.toStr();
     j["dest-mac"] = h_.dmac.toStr();
     return j;
@@ -76,6 +78,14 @@ bool Ethernet::correlated(Protocol const& resp) const
         return p.h_.dmac == Mac::kBroadcast || h_.smac == p.h_.dmac;
     }
     return false;
+}
+
+Protocol::Type Ethernet::ethernetType() const
+{
+    if (type_dict.count(h_.type) != 0) {
+        return type_dict.at(h_.type);
+    }
+    return kUnknown;
 }
 
 Ethernet::Header const& Ethernet::getHeader() const { return h_; }

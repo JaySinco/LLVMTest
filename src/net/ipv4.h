@@ -1,53 +1,47 @@
 #pragma once
 #include "protocol.h"
 
-class ipv4 : public protocol
+namespace net
+{
+
+class Ipv4: public Protocol
 {
 public:
-    struct detail
+    struct Header
     {
-        u_char ver_hl;     // Version (4 bits) + Header length (4 bits)
-        u_char tos;        // Type of service
-        u_short tlen;      // Total length
-        u_short id;        // Identification
-        u_short flags_fo;  // Flags (3 bits) + Fragment offset (13 bits)
-        u_char ttl;        // Time to live
-        u_char type;       // IPv4 type
-        u_short crc;       // Header checksum
-        ip4 sip;           // Source address
-        ip4 dip;           // Destination address
+        uint8_t ver_hl;     // Version (4 bits) + Header length (4 bits)
+        uint8_t tos;        // Type of service
+        uint16_t tlen;      // Total length
+        uint16_t id;        // Identification
+        uint16_t flags_fo;  // Flags (3 bits) + Fragment offset (13 bits)
+        uint8_t ttl;        // Time to live
+        uint8_t type;       // IPv4 type
+        uint16_t crc;       // Header checksum
+        Ip4 sip;            // Source address
+        Ip4 dip;            // Destination address
     };
 
-    ipv4() = default;
+    Ipv4() = default;
+    Ipv4(Ip4 const& sip, Ip4 const& dip, uint8_t ttl, Type ipv4_type, bool forbid_slice);
+    ~Ipv4() override = default;
 
-    ipv4(const u_char *const start, const u_char *&end, const protocol *prev = nullptr);
+    static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
 
-    ipv4(const ip4 &sip, const ip4 &dip, u_char ttl, const std::string &type, bool forbid_slice);
+    void toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    Json toJson() const override;
+    Type type() const override;
+    bool correlated(Protocol const& resp) const override;
 
-    virtual ~ipv4() = default;
-
-    virtual void to_bytes(std::vector<u_char> &bytes) const override;
-
-    virtual json to_json() const override;
-
-    virtual std::string type() const override;
-
-    virtual std::string succ_type() const override;
-
-    virtual bool link_to(const protocol &rhs) const override;
-
-    const detail &get_detail() const;
-
-    bool operator==(const ipv4 &rhs) const;
-
-    u_short payload_size() const;
+    Header const& getHeader() const;
+    Type ipv4Type() const;
+    bool operator==(Ipv4 const& rhs) const;
+    uint16_t payloadSize() const;
 
 private:
-    detail d{0};
-
-    static std::map<u_char, std::string> type_dict;
-
-    static detail ntoh(const detail &d, bool reverse = false);
-
-    static detail hton(const detail &d);
+    Header h_{0};
+    static std::map<uint8_t, Type> type_dict;
+    static Header ntoh(Header const& h, bool reverse = false);
+    static Header hton(Header const& h);
 };
+
+}  // namespace net

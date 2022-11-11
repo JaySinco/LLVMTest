@@ -8,6 +8,8 @@ namespace net
 std::string Protocol::descType(Type type)
 {
     switch (type) {
+        case kUnknown:
+            return "unknown";
         case kEthernet:
             return "ethernet";
         case kIPv4:
@@ -34,11 +36,10 @@ std::string Protocol::descType(Type type)
             return "ssh";
         case kTelnet:
             return "telnet";
-        case kRdp:
+        case kRDP:
             return "rdp";
-        default:
-            return fmt::format("unknow {}", type);
     }
+    return "unimplemented";
 }
 
 uint16_t Protocol::checksum(void const* data, size_t size)
@@ -118,7 +119,5 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
     }
     return std::distance(stack_.begin(), it);
 }
-
-void ProtocolStack::push(ProtocolPtr p) {}
 
 }  // namespace net

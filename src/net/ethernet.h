@@ -15,7 +15,7 @@ public:
     };
 
     Ethernet() = default;
-    Ethernet(Mac const& smac, Mac const& dmac, Type type);
+    Ethernet(Mac const& smac, Mac const& dmac, Type eth_type);
     ~Ethernet() override = default;
 
     static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
@@ -25,6 +25,7 @@ public:
     Type type() const override;
     bool correlated(Protocol const& resp) const override;
 
+    Type ethernetType() const;
     Header const& getHeader() const;
 
 private:

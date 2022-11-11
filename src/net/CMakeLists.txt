@@ -4,6 +4,10 @@ set(MAIN ${CURRENT_DIR_NAME})
 add_library(${MAIN}
     type.cpp
     platform_$<IF:$<BOOL:${WIN32}>,win32,linux>.cpp
+    protocol.cpp
+    ethernet.cpp
+    arp.cpp
+    ipv4.cpp
 )
 target_link_libraries(${MAIN} utils nlohmann-json)
 if (WIN32)

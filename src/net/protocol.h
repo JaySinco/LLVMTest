@@ -12,6 +12,7 @@ class Protocol
 public:
     enum Type
     {
+        kUnknown,
         kEthernet,
         kIPv4,
         kIPv6,
@@ -25,7 +26,7 @@ public:
         kHTTPS,
         kSSH,
         kTelnet,
-        kRdp,
+        kRDP,
     };
 
     virtual ~Protocol() = default;
@@ -56,7 +57,8 @@ public:
 
     ProtocolPtr get(Protocol::Type type) const;
     size_t getIdx(Protocol::Type type) const;
-    void push(ProtocolPtr p);
+
+    void push(ProtocolPtr p) { stack_.push_back(p); }
 
     size_t size() const { return stack_.size(); };
 
