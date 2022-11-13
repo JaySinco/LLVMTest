@@ -3,14 +3,14 @@ set(MAIN ${CURRENT_DIR_NAME})
 
 add_library(${MAIN}
     type.cpp
-    platform.cpp
     platform_$<IF:$<BOOL:${WIN32}>,win32,linux>.cpp
+    transport.cpp
     protocol.cpp
     ethernet.cpp
     arp.cpp
     ipv4.cpp
 )
-target_link_libraries(${MAIN} utils nlohmann-json)
+target_link_libraries(${MAIN} utils nlohmann-json Boost::headers)
 if (WIN32)
     target_link_libraries(${MAIN} shlwapi ws2_32 iphlpapi npcap::npcap)
 elseif (UNIX)

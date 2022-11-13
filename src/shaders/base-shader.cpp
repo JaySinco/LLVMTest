@@ -168,7 +168,7 @@ static void setupTextureParam(std::string const& type, Texture text, std::string
     } else if (filter == "mipmap") {
         gl_filter = GL_LINEAR_MIPMAP_LINEAR;
     } else {
-        throw std::runtime_error(fmt::format("texture filter not support: {}", filter));
+        THROW_(fmt::format("texture filter not support: {}", filter));
     }
 
     GLint gl_wrap = 0;
@@ -177,7 +177,7 @@ static void setupTextureParam(std::string const& type, Texture text, std::string
     } else if (wrap == "repeat") {
         gl_wrap = GL_REPEAT;
     } else {
-        throw std::runtime_error(fmt::format("texture filter not support: {}", filter));
+        THROW_(fmt::format("texture filter not support: {}", filter));
     }
 
     GLenum gl_target = 0;
@@ -186,7 +186,7 @@ static void setupTextureParam(std::string const& type, Texture text, std::string
     } else if (type == "cube") {
         gl_target = GL_TEXTURE_CUBE_MAP;
     } else {
-        throw std::runtime_error(fmt::format("texture type not support: {}", type));
+        THROW_(fmt::format("texture type not support: {}", type));
     }
 
     glBindTexture(gl_target, text.id);
@@ -270,7 +270,7 @@ Texture BaseShader::loadTexture(std::string const& texture, std::string const& t
         Image image = LoadImage(abspath.c_str());
         text = loadTextureCubemap(image, CUBEMAP_LAYOUT_AUTO_DETECT);
     } else {
-        throw std::runtime_error(fmt::format("texture type not support: {}", type));
+        THROW_(fmt::format("texture type not support: {}", type));
     }
     setupTextureParam(type, text, filter, wrap);
     return text;

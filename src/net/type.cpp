@@ -1,6 +1,8 @@
 #include "type.h"
 #include "platform.h"
 #include <sstream>
+#include <regex>
+#include <boost/algorithm/string.hpp>
 
 namespace net
 {
@@ -30,6 +32,22 @@ std::string Mac::toStr() const
 const Ip4 Ip4::kNull = {0x0, 0x0, 0x0, 0x0};
 const Ip4 Ip4::kBroadcast = {0xff, 0xff, 0xff, 0xff};
 
+Ip4 Ip4::fromDottedDec(std::string const& s)
+{
+    static std::regex pat(R"(^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$)");
+    if (!regex_match(s, pat)) {
+        THROW_(fmt::format("invalid ip4: {}", s));
+    }
+    std::vector<std::string> parts;
+    boost::split(parts, s, boost::is_any_of("."));
+    Ip4 ip;
+    ip.b1 = std::stoi(parts[0]);
+    ip.b2 = std::stoi(parts[1]);
+    ip.b3 = std::stoi(parts[2]);
+    ip.b4 = std::stoi(parts[3]);
+    return ip;
+}
+
 Ip4::operator uint32_t() const
 {
     auto i = reinterpret_cast<uint32_t const*>(this);
@@ -42,6 +60,13 @@ bool Ip4::operator==(Ip4 const& rhs) const
 }
 
 bool Ip4::operator!=(Ip4 const& rhs) const { return !(*this == rhs); }
+
+bool Ip4::operator<(Ip4 const& rhs) const
+{
+    auto i = reinterpret_cast<uint32_t const*>(this);
+    auto j = reinterpret_cast<uint32_t const*>(&rhs);
+    return *i < *j;
+}
 
 uint32_t Ip4::operator&(Ip4 const& rhs) const
 {
@@ -91,7 +116,7 @@ Adaptor const& Adaptor::fit(Ip4 const& hint)
                (hint != Ip4::kNull ? apt.ip.onSameLAN(hint, apt.mask) : true);
     });
     if (it == apts.end()) {
-        throw std::runtime_error(fmt::format("no local adapter match {}", hint.toStr()));
+        THROW_(fmt::format("no local adapter match {}", hint.toStr()));
     }
     return *it;
 }

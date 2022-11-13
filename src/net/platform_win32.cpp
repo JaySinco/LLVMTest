@@ -51,32 +51,6 @@ static in_addr ip4ToInAddr(Ip4 const ip)
     return addr;
 }
 
-Ip4 ip4FromDottedDec(std::string const& s)
-{
-    in_addr addr;
-    if (inet_pton(AF_INET, s.c_str(), &addr) != 1) {
-        throw std::runtime_error("failed to call inet_pton");
-    }
-    return ip4FromInAddr(addr);
-}
-
-Ip4 ip4FromDomain(std::string const& s)
-{
-    addrinfo hints = {0};
-    hints.ai_family = AF_INET;
-    hints.ai_flags = AI_PASSIVE;
-    hints.ai_protocol = 0;
-    hints.ai_socktype = SOCK_STREAM;
-    addrinfo* first_addr;
-    auto ret = GetAddrInfoA(s.c_str(), nullptr, &hints, &first_addr);
-    if (ret != 0 || first_addr == nullptr) {
-        throw std::runtime_error("failed to get addr info");
-    }
-    auto ip = ip4FromInAddr(reinterpret_cast<sockaddr_in*>(first_addr->ai_addr)->sin_addr);
-    freeaddrinfo(first_addr);
-    return ip;
-}
-
 std::vector<Adaptor> const& allAdaptors()
 {
     static std::once_flag flag;
@@ -89,19 +63,19 @@ std::vector<Adaptor> const& allAdaptors()
         if (GetAdaptersInfo(plist, &buflen) == ERROR_BUFFER_OVERFLOW) {
             plist = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buflen));
             if (GetAdaptersInfo(plist, &buflen) != NO_ERROR) {
-                throw std::runtime_error("failed to get adapters info");
+                THROW_("failed to get adapters info");
             }
         }
         PIP_ADAPTER_INFO pinfo = plist;
         while (pinfo) {
             Adaptor apt;
-            Ip4 ip = ip4FromDottedDec(pinfo->IpAddressList.IpAddress.String);
+            Ip4 ip = Ip4::fromDottedDec(pinfo->IpAddressList.IpAddress.String);
             if (ip != Ip4::kNull) {
                 apt.name = std::string("\\Device\\NPF_") + pinfo->AdapterName;
                 apt.desc = pinfo->Description;
                 apt.ip = ip;
-                apt.mask = ip4FromDottedDec(pinfo->IpAddressList.IpMask.String);
-                apt.gateway = ip4FromDottedDec(pinfo->GatewayList.IpAddress.String);
+                apt.mask = Ip4::fromDottedDec(pinfo->IpAddressList.IpMask.String);
+                apt.gateway = Ip4::fromDottedDec(pinfo->GatewayList.IpAddress.String);
                 if (pinfo->AddressLength != sizeof(Mac)) {
                     spdlog::warn("incompatible mac length: {}", pinfo->AddressLength);
                     continue;
@@ -115,11 +89,102 @@ std::vector<Adaptor> const& allAdaptors()
             pinfo = pinfo->Next;
         }
         if (adapters.size() <= 0) {
-            throw std::runtime_error("failed to find any suitable adapter");
+            THROW_("failed to find any suitable adapter");
         }
     });
 
     return adapters;
+}
+
+static std::string pidToImageName(uint32_t pid, int to_sec = 60)
+{
+    static std::map<uint32_t, std::pair<std::string, std::chrono::system_clock::time_point>> cached;
+    auto now = std::chrono::system_clock::now();
+    auto it = cached.find(pid);
+    if (it != cached.end() && now - it->second.second < std::chrono::seconds(to_sec)) {
+        return it->second.first;
+    }
+
+    std::string image = fmt::format("pid({})", pid);
+    HANDLE handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (handle == nullptr) {
+        return image;
+    }
+    auto handle_guard = utils::scopeExit([&]() { CloseHandle(handle); });
+    char buf[1024];
+    DWORD size = sizeof(buf);
+    if (!QueryFullProcessImageNameA(handle, 0, buf, &size)) {
+        return image;
+    }
+    std::filesystem::path fp(std::string(buf, size));
+    image = fp.filename().string();
+    cached[pid] = std::make_pair(image, now);
+    return image;
+}
+
+static void tcpPortToImageSnapshot(std::map<PortMappingKey, std::string>& mappping)
+{
+    ULONG size = sizeof(MIB_TCPTABLE);
+    PMIB_TCPTABLE2 ptable = reinterpret_cast<MIB_TCPTABLE2*>(malloc(size));
+    auto ptable_guard = utils::scopeExit([&]() { free(ptable); });
+    DWORD ret = 0;
+    if ((ret = GetTcpTable2(ptable, &size, FALSE)) == ERROR_INSUFFICIENT_BUFFER) {
+        free(ptable);
+        ptable = reinterpret_cast<MIB_TCPTABLE2*>(malloc(size));
+        if (ptable == nullptr) {
+            THROW_(fmt::format("failed to allocate memory, size={}", size));
+        }
+    }
+    ret = GetTcpTable2(ptable, &size, FALSE);
+    if (ret != NO_ERROR) {
+        THROW_(fmt::format("failed to get tcp table, ret={}", ret));
+    }
+    for (int i = 0; i < ptable->dwNumEntries; ++i) {
+        in_addr addr;
+        addr.S_un.S_addr = ptable->table[i].dwLocalAddr;
+        Ip4 ip = ip4FromInAddr(addr);
+        uint16_t port = ntohs(ptable->table[i].dwLocalPort);
+        uint32_t pid = ptable->table[i].dwOwningPid;
+        if (pid != 0) {
+            mappping[std::make_tuple(Protocol::kTCP, ip, port)] = pidToImageName(pid);
+        }
+    }
+}
+
+static void udpPortToImageSnapshot(std::map<PortMappingKey, std::string>& mappping)
+{
+    ULONG size = sizeof(MIB_UDPTABLE_OWNER_PID);
+    PMIB_UDPTABLE_OWNER_PID ptable = reinterpret_cast<MIB_UDPTABLE_OWNER_PID*>(malloc(size));
+    auto ptable_guard = utils::scopeExit([&]() { free(ptable); });
+    DWORD ret = 0;
+    if ((ret = GetExtendedUdpTable(ptable, &size, FALSE, AF_INET, UDP_TABLE_OWNER_PID, 0)) ==
+        ERROR_INSUFFICIENT_BUFFER) {
+        free(ptable);
+        ptable = reinterpret_cast<MIB_UDPTABLE_OWNER_PID*>(malloc(size));
+        if (ptable == nullptr) {
+            THROW_(fmt::format("failed to allocate memory, size={}", size));
+        }
+    }
+    ret = GetExtendedUdpTable(ptable, &size, FALSE, AF_INET, UDP_TABLE_OWNER_PID, 0);
+    if (ret != NO_ERROR) {
+        THROW_(fmt::format("failed to get udp table, ret={}", ret));
+    }
+    for (int i = 0; i < ptable->dwNumEntries; ++i) {
+        in_addr addr;
+        addr.S_un.S_addr = ptable->table[i].dwLocalAddr;
+        Ip4 ip = ip4FromInAddr(addr);
+        uint16_t port = ntohs(ptable->table[i].dwLocalPort);
+        uint32_t pid = ptable->table[i].dwOwningPid;
+        if (pid != 0) {
+            mappping[std::make_tuple(Protocol::kUDP, ip, port)] = pidToImageName(pid);
+        }
+    }
+}
+
+void portToImageNameSnapshot(std::map<PortMappingKey, std::string>& mappping)
+{
+    tcpPortToImageSnapshot(mappping);
+    udpPortToImageSnapshot(mappping);
 }
 
 }  // namespace net

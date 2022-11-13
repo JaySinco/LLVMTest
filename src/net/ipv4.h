@@ -19,11 +19,13 @@ public:
         uint16_t crc;       // Header checksum
         Ip4 sip;            // Source address
         Ip4 dip;            // Destination address
+        ;                   // Variable length options
     };
 
     Ipv4() = default;
     Ipv4(Ip4 const& sip, Ip4 const& dip, uint8_t ttl, Type ipv4_type, bool forbid_slice);
-    ~Ipv4() override = default;
+    Ipv4(uint8_t const*& data, size_t& size);
+    ~Ipv4() override;
 
     static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
 
@@ -35,10 +37,12 @@ public:
     Header const& getHeader() const;
     Type ipv4Type() const;
     bool operator==(Ipv4 const& rhs) const;
+    uint16_t headerSize() const;
     uint16_t payloadSize() const;
 
 private:
-    Header h_{0};
+    Header* h_;
+
     static std::map<uint8_t, Type> type_dict;
     static Header ntoh(Header const& h, bool reverse = false);
     static Header hton(Header const& h);

@@ -256,7 +256,7 @@ public:
         if (!vec_.empty()) {
             return vec_[0];
         }
-        throw std::runtime_error("queue is empty!");
+        THROW_("queue is empty!");
     }
 
     void popTop()

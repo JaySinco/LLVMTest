@@ -67,7 +67,7 @@ ProtocolStack ProtocolStack::fromPacket(Packet const& pac)
     size_t size = pac.bytes.size();
     Ethernet::fromBytes(data, size, stack);
     if (size != 0) {
-        throw std::runtime_error(fmt::format("packet bytes not consumed: {}", size));
+        THROW_(fmt::format("packet bytes not consumed: {}", size));
     }
     return stack;
 }
@@ -113,8 +113,7 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
     auto it = std::find_if(stack_.begin(), stack_.end(),
                            [&](ProtocolPtr p) { return p->type() == type; });
     if (it == stack_.end()) {
-        throw std::runtime_error(
-            fmt::format("protocol stack don't have {}", Protocol::descType(type)));
+        THROW_(fmt::format("protocol stack don't have {}", Protocol::descType(type)));
     }
     return std::distance(stack_.begin(), it);
 }
@@ -129,7 +128,7 @@ void Unimplemented::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack&
 
 void Unimplemented::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    throw std::runtime_error("should not be called!");
+    THROW_("should not be called!");
 }
 
 Json Unimplemented::toJson() const

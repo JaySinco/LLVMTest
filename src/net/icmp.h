@@ -2,41 +2,58 @@
 #include "protocol.h"
 #include "ipv4.h"
 
-class icmp : public protocol
+namespace net
+{
+
+class Icmp: public Protocol
 {
 public:
-    struct detail
+    struct Header
     {
-        u_char type;  // Type
-        u_char code;  // Code
-        u_short crc;  // Checksum as a whole
-        union
-        {
-            struct
-            {
-                u_short id;  // Identification
-                u_short sn;  // Serial number
-            } s;
-            u_int i;
-        } u;
+        uint8_t type;  // Type
+        uint8_t code;  // Code
+        uint16_t crc;  // Checksum as a whole
     };
 
-    struct extra_detail
-    {
-        std::string raw;  // Raw data, including ping echo
-        ipv4 eip;         // Error ip header
-        u_char buf[8];    // At least 8 bytes behind ip header
+    struct NetmaskHeader
+    {                 // Type: 17,18
+        uint16_t id;  // Identification
+        uint16_t sn;  // Serial number
+        Ip4 mask;     // Subnet mask
+    };
+
+    struct TimestampHeader
+    {                   // Type: 13,14
+        uint16_t id;    // Identification
+        uint16_t sn;    // Serial number
+        uint32_t init;  // Initiate timestamp
+        uint32_t recv;  // Receive timestamp
+        uint32_t send;  // Send timestamp
+    };
+
+    struct UnreachableHeader
+    {                     // Type: 3
+        uint32_t unused;  // Unused, must be 0
+        Ipv4 eip;         // Error ip header
+        uint8_t buf[8];   // At least 8 bytes behind ip header
+    };
+
+    struct PingHeader
+    {                               // Type: 0,8
+        uint16_t id;                // Identification
+        uint16_t sn;                // Serial number
+        std::vector<uint8_t> echo;  // Echo data
     };
 
     icmp() = default;
 
-    icmp(const u_char *const start, const u_char *&end, const protocol *prev);
+    icmp(u_char const* const start, u_char const*& end, protocol const* prev);
 
-    icmp(const std::string &ping_echo);
+    icmp(std::string const& ping_echo);
 
     virtual ~icmp() = default;
 
-    virtual void to_bytes(std::vector<u_char> &bytes) const override;
+    virtual void to_bytes(std::vector<u_char>& bytes) const override;
 
     virtual json to_json() const override;
 
@@ -44,11 +61,11 @@ public:
 
     virtual std::string succ_type() const override;
 
-    virtual bool link_to(const protocol &rhs) const override;
+    virtual bool link_to(protocol const& rhs) const override;
 
-    const detail &get_detail() const;
+    detail const& get_detail() const;
 
-    const extra_detail &get_extra() const;
+    extra_detail const& get_extra() const;
 
     std::string icmp_type() const;
 
@@ -57,9 +74,11 @@ private:
 
     extra_detail extra;
 
-    static std::map<u_char, std::pair<std::string, std::map<u_char, std::string>>> type_dict;
+    static std::map<std::pair<uint8_t, uint8_t>, std::string> type_dict;
 
-    static detail ntoh(const detail &d, bool reverse = false);
+    static detail ntoh(detail const& d, bool reverse = false);
 
-    static detail hton(const detail &d);
+    static detail hton(detail const& d);
 };
+
+}  // namespace net

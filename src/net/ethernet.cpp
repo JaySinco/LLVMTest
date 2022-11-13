@@ -16,7 +16,7 @@ std::map<uint16_t, Protocol::Type> Ethernet::type_dict = {
 void Ethernet::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
 {
     if (size < sizeof(Header)) {
-        throw std::runtime_error("inadequate bytes for ethernet header");
+        THROW_("inadequate bytes for ethernet header");
     }
     auto p = std::make_shared<Ethernet>();
     p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
@@ -50,7 +50,7 @@ Ethernet::Ethernet(Mac const& smac, Mac const& dmac, Type eth_type)
         }
     }
     if (!found) {
-        throw std::runtime_error(fmt::format("invalid ethernet type: {}", descType(eth_type)));
+        THROW_(fmt::format("invalid ethernet type: {}", descType(eth_type)));
     }
     h_.dmac = dmac;
     h_.smac = smac;

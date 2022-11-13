@@ -28,9 +28,12 @@ struct Ip4
     static const Ip4 kNull;
     static const Ip4 kBroadcast;
 
+    static Ip4 fromDottedDec(std::string const& s);
+
     explicit operator uint32_t() const;
     bool operator==(Ip4 const& rhs) const;
     bool operator!=(Ip4 const& rhs) const;
+    bool operator<(Ip4 const& rhs) const;
     uint32_t operator&(Ip4 const& rhs) const;
     bool onSameLAN(Ip4 const& rhs, Ip4 const& mask) const;
     bool isSelf() const;

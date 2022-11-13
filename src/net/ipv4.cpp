@@ -10,22 +10,30 @@ std::map<uint8_t, Protocol::Type> Ipv4::type_dict = {
     {17, Protocol::kUDP},
 };
 
-void Ipv4::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
+Ipv4::Ipv4(uint8_t const*& data, size_t& size)
 {
     if (size < sizeof(Header)) {
-        throw std::runtime_error("inadequate bytes for ipv4 header");
+        THROW_("inadequate bytes for ipv4 header");
     }
-    auto p = std::make_shared<Ipv4>();
-    p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
-    if (p->h_.tlen != size) {
-        throw std::runtime_error(
-            fmt::format("invalid ipv4 total length: {} expected, got {}", p->h_.tlen, size));
+    Header hd = ntoh(*reinterpret_cast<Header const*>(data));
+    if (hd.tlen != size) {
+        THROW_(fmt::format("invalid ipv4 total length: {} expected, got {}", hd.tlen, size));
     }
-    stack.push(p);
-    size_t hs = 4 * (p->h_.ver_hl & 0xf);
+    size_t hs = 4 * (hd.ver_hl & 0xf);
+    uint8_t* buf = new uint8_t[hs]{0};
+    std::memcpy(buf, &hd, sizeof(Header));
+    std::memcpy(buf + sizeof(Header), data + sizeof(Header), hs - sizeof(Header));
+    h_ = reinterpret_cast<Header*>(buf);
     data += hs;
     size -= hs;
+}
 
+Ipv4::~Ipv4() { delete[] reinterpret_cast<uint8_t*>(h_); }
+
+void Ipv4::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
+{
+    auto p = std::make_shared<Ipv4>(data, size);
+    stack.push(p);
     switch (p->ipv4Type()) {
         case kICMP:
         case kTCP:
@@ -42,31 +50,38 @@ Ipv4::Ipv4(Ip4 const& sip, Ip4 const& dip, uint8_t ttl, Type ipv4_type, bool for
     for (auto [k, v]: type_dict) {
         if (v == ipv4_type) {
             found = true;
-            h_.type = k;
+            h_->type = k;
             break;
         }
     }
     if (!found) {
-        throw std::runtime_error(fmt::format("invalid ipv4 type: {}", descType(ipv4_type)));
+        THROW_(fmt::format("invalid ipv4 type: {}", descType(ipv4_type)));
     }
-    h_.ver_hl = (4 << 4) | (sizeof(Header) / 4);
-    h_.id = rand16u();
-    h_.flags_fo = forbid_slice ? 0x4000 : 0;
-    h_.ttl = ttl;
-    h_.sip = sip;
-    h_.dip = dip;
+    uint8_t* buf = new uint8_t[sizeof(Header)]{0};
+    h_ = reinterpret_cast<Header*>(buf);
+    h_->id = rand16u();
+    h_->ver_hl = (4 << 4) | (sizeof(Header) / 4);
+    h_->flags_fo = forbid_slice ? 0x4000 : 0;
+    h_->ttl = ttl;
+    h_->sip = sip;
+    h_->dip = dip;
 }
 
 void Ipv4::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
     auto pt = const_cast<Ipv4*>(this);
-    pt->h_.tlen = sizeof(Header) + bytes.size();
+    size_t hs = headerSize();
+    pt->h_->tlen = hs + bytes.size();
 
     auto hd = hton(h_);
-    hd.crc = checksum(&hd, sizeof(Header));
+    std::vector<uint8_t> buf;
+    buf.insert(buf.cbegin(), opt_.begin(), opt_.end());
+    auto it = reinterpret_cast<uint8_t const*>(&hd);
+    buf.insert(buf.cbegin(), it, it + sizeof(h_));
+    hd.crc = checksum(buf.data(), buf.size());
     pt->h_.crc = hd.crc;
 
-    auto it = reinterpret_cast<uint8_t const*>(&hd);
+    bytes.insert(bytes.cbegin(), opt_.begin(), opt_.end());
     bytes.insert(bytes.cbegin(), it, it + sizeof(h_));
 }
 
@@ -118,6 +133,8 @@ Protocol::Type Ipv4::ipv4Type() const
 }
 
 Ipv4::Header const& Ipv4::getHeader() const { return h_; }
+
+uint16_t Ipv4::headerSize() const { return 4 * (h_->ver_hl & 0xf); }
 
 uint16_t Ipv4::payloadSize() const { return h_.tlen - 4 * (h_.ver_hl & 0xf); }
 

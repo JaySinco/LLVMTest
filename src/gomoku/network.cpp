@@ -220,7 +220,7 @@ void FIRNet::loadParam()
     auto file_name = makeParamFileName();
     spdlog::info("loading parameters from {}", file_name);
     if (!std::filesystem::exists(file_name)) {
-        throw std::runtime_error(fmt::format("file not exist: {}", file_name));
+        THROW_(fmt::format("file not exist: {}", file_name));
     }
     torch::serialize::InputArchive input_archive;
     input_archive.load_from(file_name);
