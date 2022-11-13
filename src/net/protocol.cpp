@@ -1,6 +1,7 @@
 #include "protocol.h"
 #include "ethernet.h"
 #include <random>
+#include <chrono>
 
 namespace net
 {
@@ -28,9 +29,8 @@ std::string Protocol::descType(Type type)
             return "udp";
         case kDNS:
             return "dns";
-        default:
-            return "unimplemented";
     }
+    return "";
 }
 
 uint16_t Protocol::checksum(void const* data, size_t size)
@@ -60,20 +60,28 @@ uint16_t Protocol::rand16u()
     return dist(engine);
 }
 
-ProtocolStack ProtocolStack::fromBytes(uint8_t const* data, size_t size)
+ProtocolStack ProtocolStack::fromPacket(Packet const& pac)
 {
     ProtocolStack stack;
+    uint8_t const* data = pac.bytes.data();
+    size_t size = pac.bytes.size();
     Ethernet::fromBytes(data, size, stack);
+    if (size != 0) {
+        throw std::runtime_error(fmt::format("packet bytes not consumed: {}", size));
+    }
     return stack;
 }
 
-std::vector<uint8_t> ProtocolStack::toBytes() const
+Packet ProtocolStack::toPacket() const
 {
-    std::vector<uint8_t> data;
+    Packet pac;
     for (auto it = stack_.rbegin(); it != stack_.rend(); ++it) {
-        (*it)->toBytes(data, *this);
+        (*it)->toBytes(pac.bytes, *this);
     }
-    return data;
+    pac.t_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::system_clock::now().time_since_epoch())
+                   .count();
+    return pac;
 }
 
 Json ProtocolStack::toJson() const
@@ -110,5 +118,29 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
     }
     return std::distance(stack_.begin(), it);
 }
+
+void Unimplemented::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
+{
+    auto p = std::make_shared<Unimplemented>();
+    stack.push(p);
+    data += size;
+    size = 0;
+}
+
+void Unimplemented::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
+{
+    throw std::runtime_error("should not be called!");
+}
+
+Json Unimplemented::toJson() const
+{
+    Json j;
+    j["type"] = descType(type());
+    return j;
+}
+
+Protocol::Type Unimplemented::type() const { return kUnknown; };
+
+bool Unimplemented::correlated(Protocol const& resp) const { return false; };
 
 }  // namespace net

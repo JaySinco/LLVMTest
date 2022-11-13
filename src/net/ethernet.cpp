@@ -15,6 +15,9 @@ std::map<uint16_t, Protocol::Type> Ethernet::type_dict = {
 
 void Ethernet::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
 {
+    if (size < sizeof(Header)) {
+        throw std::runtime_error("inadequate bytes for ethernet header");
+    }
     auto p = std::make_shared<Ethernet>();
     p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
     stack.push(p);
@@ -31,6 +34,7 @@ void Ethernet::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stac
             break;
         case kIPv6:
         default:
+            Unimplemented::fromBytes(data, size, stack);
             break;
     }
 }

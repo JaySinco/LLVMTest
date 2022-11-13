@@ -6,6 +6,9 @@ namespace net
 
 void Arp::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
 {
+    if (size < sizeof(Header)) {
+        throw std::runtime_error("inadequate bytes for arp header");
+    }
     auto p = std::make_shared<Arp>();
     p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
     stack.push(p);
@@ -36,7 +39,7 @@ void Arp::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 Json Arp::toJson() const
 {
     Json j;
-    j["type"] = type();
+    j["type"] = descType(type());
     j["hardware-type"] = h_.hw_type;
     j["protocol-type"] = h_.prot_type;
     j["hardware-addr-len"] = h_.hw_len;

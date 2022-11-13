@@ -34,5 +34,11 @@ find_package(uWebSockets REQUIRED CONFIG)
 find_package(concurrentqueue REQUIRED CONFIG)
 find_package(threadpool REQUIRED CONFIG)
 
+if(UNIX)
+    find_package(libpcap REQUIRED CONFIG)
+elseif(WIN32)
+    find_package(npcap REQUIRED CONFIG)
+endif()
+
 include_directories(src)
 add_subdirectory(src)

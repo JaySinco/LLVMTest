@@ -12,10 +12,14 @@ std::map<uint8_t, Protocol::Type> Ipv4::type_dict = {
 
 void Ipv4::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
 {
+    if (size < sizeof(Header)) {
+        throw std::runtime_error("inadequate bytes for ipv4 header");
+    }
     auto p = std::make_shared<Ipv4>();
     p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
     if (p->h_.tlen != size) {
-        spdlog::warn("wrong ipv4 total length: expected={}, got={}", p->h_.tlen, size);
+        throw std::runtime_error(
+            fmt::format("invalid ipv4 total length: {} expected, got {}", p->h_.tlen, size));
     }
     stack.push(p);
     size_t hs = 4 * (p->h_.ver_hl & 0xf);
@@ -27,6 +31,7 @@ void Ipv4::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
         case kTCP:
         case kUDP:
         default:
+            Unimplemented::fromBytes(data, size, stack);
             break;
     }
 }
@@ -68,7 +73,7 @@ void Ipv4::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) cons
 Json Ipv4::toJson() const
 {
     Json j;
-    j["type"] = type();
+    j["type"] = descType(type());
     Type ip_type = ipv4Type();
     j["ipv4-type"] =
         ip_type == kUnknown ? fmt::format("unknown(0x{:x})", h_.type) : descType(ip_type);

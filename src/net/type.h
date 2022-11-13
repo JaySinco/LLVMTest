@@ -50,4 +50,10 @@ struct Adaptor
     static Adaptor const& fit(Ip4 const& hint = Ip4::kNull);
 };
 
+struct Packet
+{
+    int64_t t_ms;
+    std::vector<uint8_t> bytes;
+};
+
 }  // namespace net

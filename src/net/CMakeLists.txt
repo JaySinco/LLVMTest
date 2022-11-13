@@ -3,6 +3,7 @@ set(MAIN ${CURRENT_DIR_NAME})
 
 add_library(${MAIN}
     type.cpp
+    platform.cpp
     platform_$<IF:$<BOOL:${WIN32}>,win32,linux>.cpp
     protocol.cpp
     ethernet.cpp
@@ -11,8 +12,9 @@ add_library(${MAIN}
 )
 target_link_libraries(${MAIN} utils nlohmann-json)
 if (WIN32)
-    target_link_libraries(${MAIN} shlwapi ws2_32 iphlpapi)
+    target_link_libraries(${MAIN} shlwapi ws2_32 iphlpapi npcap::npcap)
 elseif (UNIX)
+    target_link_libraries(${MAIN} shlwapi ws2_32 iphlpapi libpcap::libpcap)
 endif()
 
 single_file_executable(tools-lsdev ${MAIN})

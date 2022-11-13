@@ -43,8 +43,8 @@ using ProtocolPtr = std::shared_ptr<Protocol>;
 class ProtocolStack
 {
 public:
-    static ProtocolStack fromBytes(uint8_t const* data, size_t size);
-    std::vector<uint8_t> toBytes() const;
+    static ProtocolStack fromPacket(Packet const& pac);
+    Packet toPacket() const;
     Json toJson() const;
     bool correlated(ProtocolStack const& resp) const;
 
@@ -59,6 +59,19 @@ public:
 
 private:
     std::vector<ProtocolPtr> stack_;
+};
+
+class Unimplemented: public Protocol
+{
+public:
+    ~Unimplemented() override = default;
+
+    static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
+
+    void toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    Json toJson() const override;
+    Type type() const override;
+    bool correlated(Protocol const& resp) const override;
 };
 
 }  // namespace net
