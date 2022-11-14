@@ -3,7 +3,7 @@
 namespace net
 {
 
-std::map<std::pair<uint8_t, uint8_t>, std::string> table = {
+std::map<std::pair<uint8_t, uint8_t>, std::string> Icmp::table = {
     {{0, 0}, "ping reply"},
     {{3, 0}, "network unreachable"},
     {{3, 1}, "host unreachable"},

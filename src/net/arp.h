@@ -18,6 +18,10 @@ public:
     Type type() const override;
     bool correlated(Protocol const& resp) const override;
 
+    Mac smac() const { return smac_; };
+
+    Mac dmac() const { return dmac_; };
+
 private:
     uint16_t hw_type_;    // Hardware type
     uint16_t prot_type_;  // Protocol type

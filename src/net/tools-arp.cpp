@@ -9,11 +9,11 @@ void onInterrupt(int) { end_attack = true; }
 int main(int argc, char** argv)
 {
     argparse::ArgumentParser prog("net-tools-arp");
-    prog.add_argument("ip").default_value("0.0.0.0").help("ipv4 address");
+    prog.add_argument("ip").default_value("0.0.0.0").help("ip4 address");
     prog.add_argument("-a", "--attack")
         .default_value(false)
         .implicit_value(true)
-        .help("attack network by pretending myself to be gateway");
+        .help("arp attack");
 
     try {
         prog.parse_args(argc, argv);
@@ -26,15 +26,11 @@ int main(int argc, char** argv)
     TRY_;
     auto ip =
         prog.is_used("ip") ? net::Ip4::fromDottedDec(prog.get<std::string>("ip")) : net::Ip4::kNull;
-    auto apt = net::Adaptor::fit(ip);
+    auto& apt = net::Adaptor::fit(ip);
     net::Transport tr(apt);
-    if (!prog.get<bool>("-attack")) {
-        // mac mac_;
-        // if (transport::ip2mac(handle, ip, mac_)) {
-        //     std::cout << ip.to_str() << " is at " << mac_.to_str() << "." << std::endl;
-        // } else {
-        //     std::cout << ip.to_str() << " is offline." << std::endl;
-        // }
+    if (!prog.get<bool>("--attack")) {
+        net::Mac mac = tr.getMacFromIp4(ip);
+        spdlog::info("{} is at {}", ip.toStr(), mac.toStr());
     } else {
         signal(SIGINT, onInterrupt);
         // mac gateway_mac;

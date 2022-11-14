@@ -110,7 +110,7 @@ Json Adaptor::toJson() const
 
 Adaptor const& Adaptor::fit(Ip4 const& hint)
 {
-    auto apts = allAdaptors();
+    auto& apts = allAdaptors();
     auto it = std::find_if(apts.begin(), apts.end(), [&](Adaptor const& apt) {
         return apt.mask != Ip4::kNull && apt.gateway != Ip4::kNull &&
                (hint != Ip4::kNull ? apt.ip.onSameLAN(hint, apt.mask) : true);
