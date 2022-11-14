@@ -2,110 +2,142 @@
 #include "ipv4.h"
 #include <boost/algorithm/string/join.hpp>
 
-std::map<std::string, std::map<u_short, std::string>> protocol::port_dict = {
-    {Protocol_Type_TCP,
-     {{22, Protocol_Type_SSH},
-      {23, Protocol_Type_TELNET},
-      {53, Protocol_Type_DNS},
-      {80, Protocol_Type_HTTP},
-      {443, Protocol_Type_HTTPS},
-      {3389, Protocol_Type_RDP}}}};
-
-std::string protocol::guess_protocol_by_port(u_short port, std::string const& type)
+namespace net
 {
-    if (port_dict.count(type) > 0) {
-        auto& type_dict = port_dict.at(type);
-        if (type_dict.count(port) > 0) {
-            return type_dict.at(port);
-        }
+
+std::map<uint16_t, Protocol::Type> Tcp::table = {
+    {53, kDNS},
+};
+
+Tcp::Tcp(BytesReader& reader)
+{
+    sport_ = reader.read16u();
+    dport_ = reader.read16u();
+    sn_ = reader.read32u();
+    an_ = reader.read32u();
+    hl_flags_ = reader.read16u();
+    wlen_ = reader.read16u();
+    crc_ = reader.read16u(false);
+    urp_ = reader.read16u();
+    opts_ = reader.readBytes(headerSize() - kFixedBytes);
+}
+
+void Tcp::decode(BytesReader& reader, ProtocolStack& stack)
+{
+    auto p = std::make_shared<Tcp>(reader);
+    stack.push(p);
+
+    switch (p->tcpType()) {
+        case kDNS:
+        default:
+            Unimplemented::decode(reader, stack);
+            break;
     }
-    return Protocol_Type_Unknow(-1);
 }
 
-tcp::tcp(u_char const* const start, u_char const*& end, protocol const* prev)
+void Tcp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    d = ntoh(*reinterpret_cast<detail const*>(start));
-    end = start + 4 * (d.hl_flags >> 12 & 0xf);
-    auto& ipdt = dynamic_cast<ipv4 const*>(prev)->get_detail();
-    extra.len = ipdt.tlen - 4 * (ipdt.ver_hl & 0xf);
-    pseudo_header ph;
-    ph.sip = ipdt.sip;
-    ph.dip = ipdt.dip;
-    ph.type = ipdt.type;
-    ph.zero_pad = 0;
-    ph.len = htons(extra.len);
-    size_t tlen = sizeof(pseudo_header) + extra.len;
-    u_char* buf = new u_char[tlen];
-    std::memcpy(buf, &ph, sizeof(pseudo_header));
-    std::memcpy(buf + sizeof(pseudo_header), start, extra.len);
-    extra.crc = calc_checksum(buf, tlen);
-    delete[] buf;
+    auto ipv4 = std::dynamic_pointer_cast<Ipv4>(stack.get(kIPv4));
+    crc_ = overallChecksum(ipv4->sip(), ipv4->dip(), bytes.data(), bytes.size());
+    BytesBuilder builder;
+    encodeHeader(builder);
+    builder.prependTo(bytes);
 }
 
-void tcp::to_bytes(std::vector<u_char>& bytes) const { THROW_("unimplemented method"); }
-
-json tcp::to_json() const
+Json Tcp::toJson() const
 {
-    json j;
-    j["type"] = type();
-    j["tcp-type"] = succ_type();
-    j["source-port"] = d.sport;
-    j["dest-port"] = d.dport;
-    size_t header_size = 4 * (d.hl_flags >> 12 & 0xf);
-    j["header-size"] = header_size;
-    j["total-size"] = extra.len;
-    j["sequence-no"] = d.sn;
-    j["acknowledge-no"] = d.an;
+    Json j;
+    j["type"] = descType(type());
+    Type tcp_type = tcpType();
+    j["tcp-type"] = tcp_type == kUnknown ? "unknown" : descType(tcp_type);
+    j["source-port"] = sport_;
+    j["dest-port"] = dport_;
+    j["header-size"] = headerSize();
+    j["sequence-no"] = sn_;
+    j["acknowledge-no"] = an_;
     std::vector<std::string> flags;
-    if (d.hl_flags >> 8 & 0x1) flags.push_back("ns");
-    if (d.hl_flags >> 7 & 0x1) flags.push_back("cwr");
-    if (d.hl_flags >> 6 & 0x1) flags.push_back("ece");
-    if (d.hl_flags >> 5 & 0x1) flags.push_back("urg");
-    if (d.hl_flags >> 4 & 0x1) flags.push_back("ack");
-    if (d.hl_flags >> 3 & 0x1) flags.push_back("psh");
-    if (d.hl_flags >> 2 & 0x1) flags.push_back("rst");
-    if (d.hl_flags >> 1 & 0x1) flags.push_back("syn");
-    if (d.hl_flags & 0x1) flags.push_back("fin");
+    if (hl_flags_ >> 8 & 0x1) {
+        flags.push_back("ns");
+    }
+    if (hl_flags_ >> 7 & 0x1) {
+        flags.push_back("cwr");
+    }
+    if (hl_flags_ >> 6 & 0x1) {
+        flags.push_back("ece");
+    }
+    if (hl_flags_ >> 5 & 0x1) {
+        flags.push_back("urg");
+    }
+    if (hl_flags_ >> 4 & 0x1) {
+        flags.push_back("ack");
+    }
+    if (hl_flags_ >> 3 & 0x1) {
+        flags.push_back("psh");
+    }
+    if (hl_flags_ >> 2 & 0x1) {
+        flags.push_back("rst");
+    }
+    if (hl_flags_ >> 1 & 0x1) {
+        flags.push_back("syn");
+    }
+    if (hl_flags_ & 0x1) {
+        flags.push_back("fin");
+    }
     j["flags"] = boost::algorithm::join(flags, ";");
-    j["window-size"] = d.wlen;
-    j["checksum"] = extra.crc;
-    j["urgent-pointer"] = d.urp;
+    j["window-size"] = wlen_;
+    j["checksum"] = crc_;
+    j["urgent-pointer"] = urp_;
     return j;
 }
 
-std::string tcp::type() const { return Protocol_Type_TCP; }
+Protocol::Type Tcp::type() const { return kTCP; }
 
-std::string tcp::succ_type() const
+Protocol::Type Tcp::tcpType() const
 {
-    std::string dtype = guess_protocol_by_port(d.dport, Protocol_Type_TCP);
-    if (is_specific(dtype)) {
-        return dtype;
+    if (table.count(dport_) != 0) {
+        return table.at(dport_);
     }
-    return guess_protocol_by_port(d.sport, Protocol_Type_TCP);
+    if (table.count(sport_) != 0) {
+        return table.at(sport_);
+    }
+    return kUnknown;
 }
 
-bool tcp::link_to(protocol const& rhs) const
+bool Tcp::correlated(Protocol const& resp) const
 {
-    if (type() == rhs.type()) {
-        auto p = dynamic_cast<tcp const&>(rhs);
-        return d.sport == p.d.dport && d.dport == p.d.sport;
+    if (type() == resp.type()) {
+        auto p = dynamic_cast<Tcp const&>(resp);
+        return sport_ == p.dport_ && dport_ == p.sport_;
     }
     return false;
 }
 
-tcp::detail const& tcp::get_detail() const { return d; }
+uint16_t Tcp::headerSize() const { return 4 * (hl_flags_ >> 12 & 0xf); }
 
-tcp::detail tcp::ntoh(detail const& d, bool reverse)
+void Tcp::encodeHeader(BytesBuilder& builder) const
 {
-    detail dt = d;
-    ntohx(dt.sport, !reverse, s);
-    ntohx(dt.dport, !reverse, s);
-    ntohx(dt.sn, !reverse, l);
-    ntohx(dt.an, !reverse, l);
-    ntohx(dt.hl_flags, !reverse, s);
-    ntohx(dt.wlen, !reverse, s);
-    ntohx(dt.urp, !reverse, s);
-    return dt;
+    builder.write16u(sport_);
+    builder.write16u(dport_);
+    builder.write32u(sn_);
+    builder.write32u(an_);
+    builder.write16u(hl_flags_);
+    builder.write16u(wlen_);
+    builder.write16u(crc_, false);
+    builder.write16u(urp_);
+    builder.writeBytes(opts_);
 }
 
-tcp::detail tcp::hton(detail const& d) { return ntoh(d, true); }
+uint16_t Tcp::overallChecksum(Ip4 sip, Ip4 dip, uint8_t const* payload, size_t size) const
+{
+    BytesBuilder builder;
+    builder.writeIp4(sip);  // pseudo header
+    builder.writeIp4(dip);
+    builder.write8u(0);
+    builder.write8u(6);
+    builder.write16u(headerSize() + size);
+    encodeHeader(builder);              // udp header
+    builder.writeBytes(payload, size);  // data
+    return checksum(builder.data(), builder.size());
+}
+
+}  // namespace net

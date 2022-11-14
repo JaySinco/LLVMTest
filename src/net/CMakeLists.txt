@@ -11,6 +11,7 @@ add_library(${MAIN}
     ipv4.cpp
     icmp.cpp
     udp.cpp
+    tcp.cpp
 )
 target_link_libraries(${MAIN} utils nlohmann-json Boost::headers)
 if (WIN32)
@@ -20,3 +21,4 @@ elseif (UNIX)
 endif()
 
 single_file_executable(tools-lsdev ${MAIN})
+single_file_executable(tools-arp ${MAIN} argparse::argparse)

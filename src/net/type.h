@@ -63,8 +63,10 @@ class BytesReader
 {
 public:
     explicit BytesReader(std::vector<uint8_t> const& bytes);
-    bool empty() const;
-    size_t size() const;
+
+    bool empty() const { return size_ == 0; }
+
+    size_t size() const { return size_; };
 
     uint8_t read8u();
     uint16_t read16u(bool ntoh = true);
@@ -83,9 +85,12 @@ private:
 class BytesBuilder
 {
 public:
-    BytesBuilder();
-    uint8_t const* data() const;
-    size_t size() const;
+    BytesBuilder() = default;
+
+    uint8_t const* data() const { return data_.data(); }
+
+    size_t size() const { return data_.size(); }
+
     void prependTo(std::vector<uint8_t>& bytes);
 
     void write8u(uint8_t b);
@@ -93,7 +98,7 @@ public:
     void write32u(uint32_t b, bool hton = true);
     void writeIp4(Ip4 b);
     void writeMac(Mac const& b);
-    void writeBytes(uint8_t const* data, size_t size);
+    void writeBytes(uint8_t const* b, size_t size);
     void writeBytes(std::vector<uint8_t> const& b);
 
 private:

@@ -2,6 +2,7 @@
 #include "platform.h"
 #include "icmp.h"
 #include "udp.h"
+#include "tcp.h"
 
 namespace net
 {
@@ -37,6 +38,8 @@ void Ipv4::decode(BytesReader& reader, ProtocolStack& stack)
             Icmp::decode(reader, stack);
             break;
         case kTCP:
+            Tcp::decode(reader, stack);
+            break;
         case kUDP:
             Udp::decode(reader, stack);
             break;

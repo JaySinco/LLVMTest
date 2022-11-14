@@ -1,60 +1,40 @@
 #pragma once
 #include "protocol.h"
 
-class tcp : public protocol
+namespace net
+{
+
+class Tcp: public Protocol
 {
 public:
-    struct detail
-    {
-        u_short sport;     // Source port
-        u_short dport;     // Destination port
-        u_int sn;          // Sequence number
-        u_int an;          // Acknowledgment number
-        u_short hl_flags;  // Header length (4 bits) + Reserved (3 bits) + Flags (9 bits)
-        u_short wlen;      // Window Size
-        u_short crc;       // Checksum
-        u_short urp;       // Urgent pointer
-    };
+    Tcp() = default;
+    explicit Tcp(BytesReader& reader);
+    ~Tcp() override = default;
 
-    struct extra_detail
-    {
-        u_short len;  // Datagram length, >= 20
-        u_short crc;  // Computed checksum
-    };
+    static void decode(BytesReader& reader, ProtocolStack& stack);
+    void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    Json toJson() const override;
+    Type type() const override;
+    bool correlated(Protocol const& resp) const override;
 
-    struct pseudo_header
-    {
-        ip4 sip;          // IPv4 Source address
-        ip4 dip;          // IPv4 Destination address
-        u_char zero_pad;  // Zero
-        u_char type;      // IPv4 type
-        u_short len;      // TCP Datagram length
-    };
-
-    tcp() = default;
-
-    tcp(const u_char *const start, const u_char *&end, const protocol *prev);
-
-    virtual ~tcp() = default;
-
-    virtual void to_bytes(std::vector<u_char> &bytes) const override;
-
-    virtual json to_json() const override;
-
-    virtual std::string type() const override;
-
-    virtual std::string succ_type() const override;
-
-    virtual bool link_to(const protocol &rhs) const override;
-
-    const detail &get_detail() const;
+    Type tcpType() const;
+    uint16_t headerSize() const;
 
 private:
-    detail d{0};
+    uint16_t sport_;             // Source port
+    uint16_t dport_;             // Destination port
+    uint32_t sn_;                // Sequence number
+    uint32_t an_;                // Acknowledgment number
+    uint16_t hl_flags_;          // Header length (4 bits) + Reserved (3 bits) + Flags (9 bits)
+    uint16_t wlen_;              // Window Size
+    mutable uint16_t crc_;       // Checksum
+    uint16_t urp_;               // Urgent pointer
+    std::vector<uint8_t> opts_;  // Variable length options
 
-    extra_detail extra;
-
-    static detail ntoh(const detail &d, bool reverse = false);
-
-    static detail hton(const detail &d);
+    static constexpr size_t kFixedBytes = 20;
+    void encodeHeader(BytesBuilder& builder) const;
+    uint16_t overallChecksum(Ip4 sip, Ip4 dip, uint8_t const* payload, size_t size) const;
+    static std::map<uint16_t, Type> table;
 };
+
+}  // namespace net

@@ -42,7 +42,7 @@ void Udp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 Json Udp::toJson() const
 {
     Json j;
-    j["type"] = type();
+    j["type"] = descType(type());
     Type udp_type = udpType();
     j["udp-type"] = udp_type == kUnknown ? "unknown" : descType(udp_type);
     j["source-port"] = sport_;

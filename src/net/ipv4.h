@@ -40,8 +40,8 @@ private:
     Ip4 dip_;                    // Destination address
     std::vector<uint8_t> opts_;  // Variable length options
 
-    uint16_t headerChecksum() const;
     static constexpr size_t kFixedBytes = 20;
+    uint16_t headerChecksum() const;
     static std::map<uint8_t, Type> table;
 };
 
