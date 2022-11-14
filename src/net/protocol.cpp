@@ -10,7 +10,7 @@ std::string Protocol::descType(Type type)
 {
     switch (type) {
         case kUnknown:
-            return "unknown";
+            THROW_(fmt::format("unknown type should be detailed"));
         case kEthernet:
             return "ethernet";
         case kIPv4:
@@ -30,7 +30,7 @@ std::string Protocol::descType(Type type)
         case kDNS:
             return "dns";
     }
-    return "";
+    THROW_("should not reach here");
 }
 
 uint16_t Protocol::checksum(void const* data, size_t size)
@@ -60,23 +60,22 @@ uint16_t Protocol::rand16u()
     return dist(engine);
 }
 
-ProtocolStack ProtocolStack::fromPacket(Packet const& pac)
+ProtocolStack ProtocolStack::decode(Packet const& pac)
 {
     ProtocolStack stack;
-    uint8_t const* data = pac.bytes.data();
-    size_t size = pac.bytes.size();
-    Ethernet::fromBytes(data, size, stack);
-    if (size != 0) {
-        THROW_(fmt::format("packet bytes not consumed: {}", size));
+    BytesReader reader(pac.bytes);
+    Ethernet::decode(reader, stack);
+    if (!reader.empty()) {
+        THROW_(fmt::format("packet bytes not consumed: {}", reader.size()));
     }
     return stack;
 }
 
-Packet ProtocolStack::toPacket() const
+Packet ProtocolStack::encode() const
 {
     Packet pac;
     for (auto it = stack_.rbegin(); it != stack_.rend(); ++it) {
-        (*it)->toBytes(pac.bytes, *this);
+        (*it)->encode(pac.bytes, *this);
     }
     pac.t_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                    std::chrono::system_clock::now().time_since_epoch())
@@ -118,23 +117,23 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
     return std::distance(stack_.begin(), it);
 }
 
-void Unimplemented::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
+void Unimplemented::decode(BytesReader& reader, ProtocolStack& stack)
 {
     auto p = std::make_shared<Unimplemented>();
+    p->buf_ = reader.readAll();
     stack.push(p);
-    data += size;
-    size = 0;
 }
 
-void Unimplemented::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
+void Unimplemented::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    THROW_("should not be called!");
+    THROW_("should not be called");
 }
 
 Json Unimplemented::toJson() const
 {
     Json j;
-    j["type"] = descType(type());
+    j["type"] = "unimplemented";
+    j["total-size"] = buf_.size();
     return j;
 }
 

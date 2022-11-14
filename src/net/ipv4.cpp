@@ -1,45 +1,47 @@
 #include "ipv4.h"
 #include "platform.h"
+#include "icmp.h"
+#include "udp.h"
 
 namespace net
 {
 
-std::map<uint8_t, Protocol::Type> Ipv4::type_dict = {
+std::map<uint8_t, Protocol::Type> Ipv4::table = {
     {1, Protocol::kICMP},
     {6, Protocol::kTCP},
     {17, Protocol::kUDP},
 };
 
-Ipv4::Ipv4(uint8_t const*& data, size_t& size)
+Ipv4::Ipv4(BytesReader& reader)
 {
-    if (size < sizeof(Header)) {
-        THROW_("inadequate bytes for ipv4 header");
-    }
-    Header hd = ntoh(*reinterpret_cast<Header const*>(data));
-    if (hd.tlen != size) {
-        THROW_(fmt::format("invalid ipv4 total length: {} expected, got {}", hd.tlen, size));
-    }
-    size_t hs = 4 * (hd.ver_hl & 0xf);
-    uint8_t* buf = new uint8_t[hs]{0};
-    std::memcpy(buf, &hd, sizeof(Header));
-    std::memcpy(buf + sizeof(Header), data + sizeof(Header), hs - sizeof(Header));
-    h_ = reinterpret_cast<Header*>(buf);
-    data += hs;
-    size -= hs;
+    ver_hl_ = reader.read8u();
+    tos_ = reader.read8u();
+    tlen_ = reader.read16u();
+    id_ = reader.read16u();
+    flags_fo_ = reader.read16u();
+    ttl_ = reader.read8u();
+    type_ = reader.read8u();
+    crc_ = reader.read16u(false);
+    sip_ = reader.readIp4();
+    dip_ = reader.readIp4();
+    opts_ = reader.readBytes(headerSize() - kFixedBytes);
 }
 
-Ipv4::~Ipv4() { delete[] reinterpret_cast<uint8_t*>(h_); }
-
-void Ipv4::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
+void Ipv4::decode(BytesReader& reader, ProtocolStack& stack)
 {
-    auto p = std::make_shared<Ipv4>(data, size);
+    auto p = std::make_shared<Ipv4>(reader);
     stack.push(p);
+
     switch (p->ipv4Type()) {
         case kICMP:
+            Icmp::decode(reader, stack);
+            break;
         case kTCP:
         case kUDP:
+            Udp::decode(reader, stack);
+            break;
         default:
-            Unimplemented::fromBytes(data, size, stack);
+            Unimplemented::decode(reader, stack);
             break;
     }
 }
@@ -47,42 +49,35 @@ void Ipv4::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
 Ipv4::Ipv4(Ip4 const& sip, Ip4 const& dip, uint8_t ttl, Type ipv4_type, bool forbid_slice)
 {
     bool found = false;
-    for (auto [k, v]: type_dict) {
+    for (auto [k, v]: table) {
         if (v == ipv4_type) {
             found = true;
-            h_->type = k;
+            type_ = k;
             break;
         }
     }
     if (!found) {
         THROW_(fmt::format("invalid ipv4 type: {}", descType(ipv4_type)));
     }
-    uint8_t* buf = new uint8_t[sizeof(Header)]{0};
-    h_ = reinterpret_cast<Header*>(buf);
-    h_->id = rand16u();
-    h_->ver_hl = (4 << 4) | (sizeof(Header) / 4);
-    h_->flags_fo = forbid_slice ? 0x4000 : 0;
-    h_->ttl = ttl;
-    h_->sip = sip;
-    h_->dip = dip;
+
+    ver_hl_ = (4 << 4) | (kFixedBytes / 4);
+    tos_ = 0;
+    tlen_ = 0;
+    id_ = rand16u();
+    flags_fo_ = forbid_slice ? 0x4000 : 0;
+    ttl_ = ttl;
+    crc_ = 0;
+    sip_ = sip;
+    dip_ = dip;
 }
 
-void Ipv4::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
+void Ipv4::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    auto pt = const_cast<Ipv4*>(this);
-    size_t hs = headerSize();
-    pt->h_->tlen = hs + bytes.size();
-
-    auto hd = hton(h_);
-    std::vector<uint8_t> buf;
-    buf.insert(buf.cbegin(), opt_.begin(), opt_.end());
-    auto it = reinterpret_cast<uint8_t const*>(&hd);
-    buf.insert(buf.cbegin(), it, it + sizeof(h_));
-    hd.crc = checksum(buf.data(), buf.size());
-    pt->h_.crc = hd.crc;
-
-    bytes.insert(bytes.cbegin(), opt_.begin(), opt_.end());
-    bytes.insert(bytes.cbegin(), it, it + sizeof(h_));
+    tlen_ = headerSize() + bytes.size();
+    crc_ = headerChecksum();
+    BytesBuilder builder;
+    encodeHeader(builder);
+    builder.prependTo(bytes);
 }
 
 Json Ipv4::toJson() const
@@ -91,25 +86,19 @@ Json Ipv4::toJson() const
     j["type"] = descType(type());
     Type ip_type = ipv4Type();
     j["ipv4-type"] =
-        ip_type == kUnknown ? fmt::format("unknown(0x{:x})", h_.type) : descType(ip_type);
-    j["version"] = h_.ver_hl >> 4;
-    j["tos"] = h_.tos;
-    size_t header_size = 4 * (h_.ver_hl & 0xf);
-    j["header-size"] = header_size;
-    int crc = -1;
-    if (header_size == sizeof(Header)) {
-        auto dt = hton(h_);
-        crc = checksum(&dt, header_size);
-    }
-    j["header-checksum"] = crc;
-    j["total-size"] = h_.tlen;
-    j["id"] = h_.id;
-    j["more-fragment"] = h_.flags_fo & 0x2000 ? true : false;
-    j["forbid-slice"] = h_.flags_fo & 0x4000 ? true : false;
-    j["fragment-offset"] = (h_.flags_fo & 0x1fff) * 8;
-    j["ttl"] = static_cast<int>(h_.ttl);
-    j["source-ip"] = h_.sip.toStr();
-    j["dest-ip"] = h_.dip.toStr();
+        ip_type == kUnknown ? fmt::format("unknown(0x{:x})", type_) : descType(ip_type);
+    j["version"] = ver_hl_ >> 4;
+    j["tos"] = tos_;
+    j["header-size"] = headerSize();
+    j["header-checksum"] = headerChecksum();
+    j["total-size"] = tlen_;
+    j["id"] = id_;
+    j["more-fragment"] = flags_fo_ & 0x2000 ? true : false;
+    j["forbid-slice"] = flags_fo_ & 0x4000 ? true : false;
+    j["fragment-offset"] = (flags_fo_ & 0x1fff) * 8;
+    j["ttl"] = static_cast<int>(ttl_);
+    j["source-ip"] = sip_.toStr();
+    j["dest-ip"] = dip_.toStr();
     return j;
 }
 
@@ -119,40 +108,43 @@ bool Ipv4::correlated(Protocol const& resp) const
 {
     if (type() == resp.type()) {
         auto p = dynamic_cast<Ipv4 const&>(resp);
-        return h_.sip == p.h_.dip;
+        return sip_ == p.dip_;
     }
     return false;
 }
 
 Protocol::Type Ipv4::ipv4Type() const
 {
-    if (type_dict.count(h_.type) != 0) {
-        return type_dict.at(h_.type);
+    if (table.count(type_) != 0) {
+        return table.at(type_);
     }
     return kUnknown;
 }
 
-Ipv4::Header const& Ipv4::getHeader() const { return h_; }
-
-uint16_t Ipv4::headerSize() const { return 4 * (h_->ver_hl & 0xf); }
-
-uint16_t Ipv4::payloadSize() const { return h_.tlen - 4 * (h_.ver_hl & 0xf); }
-
-Ipv4::Header Ipv4::ntoh(Header const& h, bool reverse)
+void Ipv4::encodeHeader(BytesBuilder& builder) const
 {
-    Header hd = h;
-    ntohx(hd.tlen, reverse, s);
-    ntohx(hd.id, reverse, s);
-    ntohx(hd.flags_fo, reverse, s);
-    return hd;
+    builder.write8u(ver_hl_);
+    builder.write8u(tos_);
+    builder.write16u(tlen_);
+    builder.write16u(id_);
+    builder.write16u(flags_fo_);
+    builder.write8u(ttl_);
+    builder.write8u(type_);
+    builder.write16u(crc_, false);
+    builder.writeIp4(sip_);
+    builder.writeIp4(dip_);
+    builder.writeBytes(opts_);
 }
 
-Ipv4::Header Ipv4::hton(Header const& h) { return ntoh(h, true); }
-
-bool Ipv4::operator==(Ipv4 const& rhs) const
+uint16_t Ipv4::headerChecksum() const
 {
-    return h_.ver_hl == rhs.h_.ver_hl && h_.id == rhs.h_.id && h_.flags_fo == rhs.h_.flags_fo &&
-           h_.type == rhs.h_.type && h_.sip == rhs.h_.sip && h_.dip == rhs.h_.dip;
+    BytesBuilder builder;
+    encodeHeader(builder);
+    return checksum(builder.data(), builder.size());
 }
+
+uint16_t Ipv4::headerSize() const { return 4 * (ver_hl_ & 0xf); }
+
+uint16_t Ipv4::payloadSize() const { return tlen_ - headerSize(); }
 
 }  // namespace net

@@ -8,77 +8,44 @@ namespace net
 class Icmp: public Protocol
 {
 public:
-    struct Header
-    {
-        uint8_t type;  // Type
-        uint8_t code;  // Code
-        uint16_t crc;  // Checksum as a whole
-    };
+    Icmp() = default;
+    explicit Icmp(BytesReader& reader);
+    static Icmp pingAsk(std::string const& echo);
+    ~Icmp() override = default;
 
-    struct NetmaskHeader
-    {                 // Type: 17,18
-        uint16_t id;  // Identification
-        uint16_t sn;  // Serial number
-        Ip4 mask;     // Subnet mask
-    };
-
-    struct TimestampHeader
-    {                   // Type: 13,14
-        uint16_t id;    // Identification
-        uint16_t sn;    // Serial number
-        uint32_t init;  // Initiate timestamp
-        uint32_t recv;  // Receive timestamp
-        uint32_t send;  // Send timestamp
-    };
-
-    struct UnreachableHeader
-    {                     // Type: 3
-        uint32_t unused;  // Unused, must be 0
-        Ipv4 eip;         // Error ip header
-        uint8_t buf[8];   // At least 8 bytes behind ip header
-    };
-
-    struct PingHeader
-    {                               // Type: 0,8
-        uint16_t id;                // Identification
-        uint16_t sn;                // Serial number
-        std::vector<uint8_t> echo;  // Echo data
-    };
-
-    icmp() = default;
-
-    icmp(u_char const* const start, u_char const*& end, protocol const* prev);
-
-    icmp(std::string const& ping_echo);
-
-    virtual ~icmp() = default;
-
-    virtual void to_bytes(std::vector<u_char>& bytes) const override;
-
-    virtual json to_json() const override;
-
-    virtual std::string type() const override;
-
-    virtual std::string succ_type() const override;
-
-    virtual bool link_to(protocol const& rhs) const override;
-
-    detail const& get_detail() const;
-
-    extra_detail const& get_extra() const;
-
-    std::string icmp_type() const;
+    static void decode(BytesReader& reader, ProtocolStack& stack);
+    void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    Json toJson() const override;
+    Type type() const override;
+    bool correlated(Protocol const& resp) const override;
 
 private:
-    detail d{0};
+    uint8_t type_;          // Type
+    uint8_t code_;          // Code
+    mutable uint16_t crc_;  // Checksum as a whole
+    uint16_t id_;           // Identification
+    uint16_t sn_;           // Serial number
+    std::vector<uint8_t> buf_;
 
-    extra_detail extra;
+    // Netmask: 17,18
+    Ip4 mask_;  // Subnet mask
 
-    static std::map<std::pair<uint8_t, uint8_t>, std::string> type_dict;
+    // Timestamp: 13,14
+    uint32_t init_;  // Initiate timestamp
+    uint32_t recv_;  // Receive timestamp
+    uint32_t send_;  // Send timestamp
 
-    static detail ntoh(detail const& d, bool reverse = false);
+    // Unreachable: 3
+    Ipv4 eip_;  // Error ip header
+    ;           // At least 8 bytes behind ip header
 
-    static detail hton(detail const& d);
+    // Ping: 0,8
+    ;  // Echo data
+
+    std::string icmpDesc() const;
+    void encodeOverall(BytesBuilder& builder) const;
+    uint16_t overallChecksum() const;
+    static std::map<std::pair<uint8_t, uint8_t>, std::string> table;
 };
 
 }  // namespace net

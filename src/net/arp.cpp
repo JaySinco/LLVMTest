@@ -4,81 +4,83 @@
 namespace net
 {
 
-void Arp::fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack)
+Arp::Arp(BytesReader& reader)
 {
-    if (size < sizeof(Header)) {
-        THROW_("inadequate bytes for arp header");
-    }
-    auto p = std::make_shared<Arp>();
-    p->h_ = ntoh(*reinterpret_cast<Header const*>(data));
+    hw_type_ = reader.read16u();
+    prot_type_ = reader.read16u();
+    hw_len_ = reader.read8u();
+    prot_len_ = reader.read8u();
+    op_ = reader.read16u();
+    smac_ = reader.readMac();
+    sip_ = reader.readIp4();
+    dmac_ = reader.readMac();
+    dip_ = reader.readIp4();
+}
+
+void Arp::decode(BytesReader& reader, ProtocolStack& stack)
+{
+    auto p = std::make_shared<Arp>(reader);
     stack.push(p);
-    data += sizeof(Header);
-    size -= sizeof(Header);
 }
 
 Arp::Arp(Mac const& smac, Ip4 const& sip, Mac const& dmac, Ip4 const& dip, bool reply, bool reverse)
 {
-    h_.hw_type = 1;
-    h_.prot_type = 0x0800;
-    h_.hw_len = 6;
-    h_.prot_len = 4;
-    h_.op = reverse ? (reply ? 4 : 3) : (reply ? 2 : 1);
-    h_.smac = smac;
-    h_.sip = sip;
-    h_.dmac = dmac;
-    h_.dip = dip;
+    hw_type_ = 1;
+    prot_type_ = 0x0800;
+    hw_len_ = 6;
+    prot_len_ = 4;
+    op_ = reverse ? (reply ? 4 : 3) : (reply ? 2 : 1);
+    smac_ = smac;
+    sip_ = sip;
+    dmac_ = dmac;
+    dip_ = dip;
 }
 
-void Arp::toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
+void Arp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    auto hd = hton(h_);
-    auto it = reinterpret_cast<uint8_t const*>(&hd);
-    bytes.insert(bytes.cbegin(), it, it + sizeof(h_));
+    BytesBuilder builder;
+    builder.write16u(hw_type_);
+    builder.write16u(prot_type_);
+    builder.write8u(hw_len_);
+    builder.write8u(prot_len_);
+    builder.write16u(op_);
+    builder.writeMac(smac_);
+    builder.writeIp4(sip_);
+    builder.writeMac(dmac_);
+    builder.writeIp4(dip_);
+    builder.prependTo(bytes);
 }
 
 Json Arp::toJson() const
 {
     Json j;
     j["type"] = descType(type());
-    j["hardware-type"] = h_.hw_type;
-    j["protocol-type"] = h_.prot_type;
-    j["hardware-addr-len"] = h_.hw_len;
-    j["protocol-addr-len"] = h_.prot_len;
-    j["operate"] = (h_.op == 1 || h_.op == 3)   ? "request"
-                   : (h_.op == 2 || h_.op == 4) ? "reply"
-                                                : fmt::format("invalid(0x{:x})", h_.op);
-    j["source-mac"] = h_.smac.toStr();
-    j["source-ip"] = h_.sip.toStr();
-    j["dest-mac"] = h_.dmac.toStr();
-    j["dest-ip"] = h_.dip.toStr();
+    j["hardware-type"] = hw_type_;
+    j["protocol-type"] = prot_type_;
+    j["hardware-addr-len"] = hw_len_;
+    j["protocol-addr-len"] = prot_len_;
+    j["operate"] = (op_ == 1 || op_ == 3)   ? "request"
+                   : (op_ == 2 || op_ == 4) ? "reply"
+                                            : fmt::format("invalid(0x{:x})", op_);
+    j["source-mac"] = smac_.toStr();
+    j["source-ip"] = sip_.toStr();
+    j["dest-mac"] = dmac_.toStr();
+    j["dest-ip"] = dip_.toStr();
     return j;
 }
 
 Protocol::Type Arp::type() const
 {
-    return (h_.op == 1 || h_.op == 2) ? kARP : (h_.op == 3 || h_.op == 4) ? kRARP : kUnknown;
+    return (op_ == 1 || op_ == 2) ? kARP : (op_ == 3 || op_ == 4) ? kRARP : kUnknown;
 }
 
 bool Arp::correlated(Protocol const& resp) const
 {
     if (type() == resp.type()) {
         auto p = dynamic_cast<Arp const&>(resp);
-        return (h_.op == 1 || h_.op == 3) && (p.h_.op == 2 || p.h_.op == 4) && (h_.dip == p.h_.sip);
+        return (op_ == 1 || op_ == 3) && (p.op_ == 2 || p.op_ == 4) && (dip_ == p.sip_);
     }
     return false;
 }
-
-Arp::Header const& Arp::getHeader() const { return h_; }
-
-Arp::Header Arp::ntoh(Header const& h, bool reverse)
-{
-    Header hd = h;
-    ntohx(hd.hw_type, reverse, s);
-    ntohx(hd.prot_type, reverse, s);
-    ntohx(hd.op, reverse, s);
-    return hd;
-}
-
-Arp::Header Arp::hton(Header const& h) { return ntoh(h, true); }
 
 }  // namespace net

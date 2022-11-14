@@ -9,6 +9,8 @@ add_library(${MAIN}
     ethernet.cpp
     arp.cpp
     ipv4.cpp
+    icmp.cpp
+    udp.cpp
 )
 target_link_libraries(${MAIN} utils nlohmann-json Boost::headers)
 if (WIN32)

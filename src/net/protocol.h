@@ -26,7 +26,7 @@ public:
 
     virtual ~Protocol() = default;
 
-    virtual void toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const = 0;
+    virtual void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const = 0;
     virtual Json toJson() const = 0;
     virtual Type type() const = 0;
     virtual bool correlated(Protocol const& resp) const = 0;
@@ -43,8 +43,8 @@ using ProtocolPtr = std::shared_ptr<Protocol>;
 class ProtocolStack
 {
 public:
-    static ProtocolStack fromPacket(Packet const& pac);
-    Packet toPacket() const;
+    static ProtocolStack decode(Packet const& pac);
+    Packet encode() const;
     Json toJson() const;
     bool correlated(ProtocolStack const& resp) const;
 
@@ -66,12 +66,14 @@ class Unimplemented: public Protocol
 public:
     ~Unimplemented() override = default;
 
-    static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
-
-    void toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    static void decode(BytesReader& reader, ProtocolStack& stack);
+    void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
     bool correlated(Protocol const& resp) const override;
+
+private:
+    std::vector<uint8_t> buf_;  // leftover data
 };
 
 }  // namespace net

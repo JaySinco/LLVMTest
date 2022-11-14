@@ -3,7 +3,7 @@
 namespace net
 {
 
-std::map<std::pair<uint8_t, uint8_t>, std::string> type_dict = {
+std::map<std::pair<uint8_t, uint8_t>, std::string> table = {
     {{0, 0}, "ping reply"},
     {{3, 0}, "network unreachable"},
     {{3, 1}, "host unreachable"},
@@ -41,110 +41,176 @@ std::map<std::pair<uint8_t, uint8_t>, std::string> type_dict = {
     {{18, 0}, "netmask reply"},
 };
 
-icmp::icmp(u_char const* const start, u_char const*& end, protocol const* prev)
+Icmp::Icmp(BytesReader& reader)
 {
-    d = ntoh(*reinterpret_cast<detail const*>(start));
-    auto ip = dynamic_cast<ipv4 const*>(prev);
-    extra.raw = std::string(start + sizeof(detail), start + ip->payload_size());
-    if (icmp_type() == "error") {
-        u_char const* pend = end;
-        extra.eip = ipv4(start + sizeof(detail), pend);
-        std::memcpy(&extra.buf, pend, 8);
+    type_ = reader.read8u();
+    code_ = reader.read8u();
+    crc_ = reader.read16u(false);
+
+    // Netmask: 17,18
+    if (type_ == 17 || type_ == 18) {
+        id_ = reader.read16u();
+        sn_ = reader.read16u();
+        mask_ = reader.readIp4();
+    }
+    // Timestamp: 13,14
+    else if (type_ == 13 || type_ == 14) {
+        id_ = reader.read16u();
+        sn_ = reader.read16u();
+        init_ = reader.read32u();
+        recv_ = reader.read32u();
+        send_ = reader.read32u();
+    }
+    // Unreachable: 3
+    else if (type_ == 3) {
+        uint32_t unused = reader.read32u();
+        eip_ = Ipv4(reader);
+        buf_ = reader.readAll();
+    }
+    // Ping: 0,8
+    else if (type_ == 0 || type_ == 8) {
+        id_ = reader.read16u();
+        sn_ = reader.read16u();
+        buf_ = reader.readAll();
+    } else {
     }
 }
 
-icmp::icmp(std::string const& ping_echo)
+Icmp Icmp::pingAsk(std::string const& echo)
 {
-    d.type = 8;
-    d.code = 0;
-    d.u.s.id = rand_ushort();
-    d.u.s.sn = rand_ushort();
-    extra.raw = ping_echo;
+    Icmp p;
+    p.type_ = 8;
+    p.code_ = 0;
+    p.crc_ = 0;
+    p.id_ = rand16u();
+    p.sn_ = rand16u();
+    p.buf_ = std::vector<uint8_t>(echo.begin(), echo.end());
+    p.crc_ = p.overallChecksum();
+    return p;
 }
 
-void icmp::to_bytes(std::vector<u_char>& bytes) const
+void Icmp::decode(BytesReader& reader, ProtocolStack& stack)
 {
-    auto dt = hton(d);
-    size_t tlen = sizeof(detail) + extra.raw.size();
-    u_char* buf = new u_char[tlen];
-    std::memcpy(buf, &dt, sizeof(detail));
-    std::memcpy(buf + sizeof(detail), extra.raw.data(), extra.raw.size());
-    dt.crc = calc_checksum(buf, tlen);
-    const_cast<icmp&>(*this).d.crc = dt.crc;
-    std::memcpy(buf, &dt, sizeof(detail));
-    bytes.insert(bytes.cbegin(), buf, buf + tlen);
-    delete[] buf;
+    auto p = std::make_shared<Icmp>(reader);
+    stack.push(p);
 }
 
-json icmp::to_json() const
+void Icmp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    json j;
-    j["type"] = type();
-    std::string tp = icmp_type();
-    j["icmp-type"] = tp;
-    if (type_dict.count(d.type) > 0) {
-        auto& code_dict = type_dict.at(d.type).second;
-        if (code_dict.count(d.code) > 0) {
-            j["desc"] = code_dict.at(d.code);
-        }
-    }
-    j["id"] = d.u.s.id;
-    j["serial-no"] = d.u.s.sn;
-    size_t tlen = sizeof(detail) + extra.raw.size();
-    u_char* buf = new u_char[tlen];
-    auto dt = hton(d);
-    std::memcpy(buf, &dt, sizeof(detail));
-    std::memcpy(buf + sizeof(detail), extra.raw.data(), extra.raw.size());
-    j["checksum"] = calc_checksum(buf, tlen);
-    delete[] buf;
+    BytesBuilder builder;
+    encodeOverall(builder);
+    builder.prependTo(bytes);
+}
 
-    if (tp == "ping-reply" || tp == "ping-ask") {
-        j["echo"] = extra.raw;
+Json Icmp::toJson() const
+{
+    Json j;
+    j["type"] = descType(type());
+    j["desc"] = icmpDesc();
+    j["checksum"] = overallChecksum();
+
+    // Netmask: 17,18
+    if (type_ == 17 || type_ == 18) {
+        j["id"] = id_;
+        j["serial-no"] = sn_;
+        j["netmask"] = mask_.toStr();
     }
-    if (tp == "error") {
-        json ep;
-        ep["ipv4"] = extra.eip.to_json();
-        auto error_type = extra.eip.succ_type();
-        if (error_type == Protocol_Type_TCP || error_type == Protocol_Type_UDP) {
-            ep["source-port"] = ntohs(*reinterpret_cast<u_short const*>(&extra.buf[0]));
-            ep["dest-port"] =
-                ntohs(*reinterpret_cast<u_short const*>(&extra.buf[0] + sizeof(u_short)));
-        }
-        j["error-header"] = ep;
+    // Timestamp: 13,14
+    else if (type_ == 13 || type_ == 14) {
+        j["id"] = id_;
+        j["serial-no"] = sn_;
+        j["initiate-timestamp"] = init_;
+        j["receive-timestamp"] = recv_;
+        j["send-timestamp"] = send_;
+    }
+    // Unreachable: 3
+    else if (type_ == 3) {
+        j["ipv4"] = eip_.toJson();
+    }
+    // Ping: 0,8
+    else if (type_ == 0 || type_ == 8) {
+        j["id"] = id_;
+        j["serial-no"] = sn_;
+        j["echo"] = std::string(buf_.begin(), buf_.end());
+    } else {
     }
     return j;
 }
 
-std::string icmp::type() const { return Protocol_Type_ICMP; }
+Protocol::Type Icmp::type() const { return kICMP; }
 
-std::string icmp::succ_type() const { return Protocol_Type_Void; }
-
-bool icmp::link_to(protocol const& rhs) const
+bool Icmp::correlated(Protocol const& resp) const
 {
-    if (type() == rhs.type()) {
-        auto p = dynamic_cast<icmp const&>(rhs);
-        return d.u.s.id == p.d.u.s.id && d.u.s.sn == p.d.u.s.sn;
+    if (type() == resp.type()) {
+        auto p = dynamic_cast<Icmp const&>(resp);
+
+        // Netmask: 17,18
+        if (type_ == 17 && p.type_ == 18) {
+            return id_ == p.id_ && sn_ == p.sn_;
+        }
+        // Timestamp: 13,14
+        else if (type_ == 13 && p.type_ == 14) {
+            return id_ == p.id_ && sn_ == p.sn_;
+        }
+        // Unreachable: 3
+        else if (type_ == 3) {
+            return false;
+        }
+        // Ping: 0,8
+        else if (type_ == 8 && p.type_ == 0) {
+            return id_ == p.id_ && sn_ == p.sn_;
+        } else {
+        }
     }
     return false;
 }
 
-icmp::detail const& icmp::get_detail() const { return d; }
-
-icmp::extra_detail const& icmp::get_extra() const { return extra; }
-
-std::string icmp::icmp_type() const
+void Icmp::encodeOverall(BytesBuilder& builder) const
 {
-    return type_dict.count(d.type) > 0 ? type_dict.at(d.type).first : Protocol_Type_Unknow(d.type);
+    builder.write8u(type_);
+    builder.write8u(code_);
+    builder.write16u(crc_, false);
+
+    // Netmask: 17,18
+    if (type_ == 17 || type_ == 18) {
+        builder.write16u(id_);
+        builder.write16u(sn_);
+        builder.writeIp4(mask_);
+    }
+    // Timestamp: 13,14
+    else if (type_ == 13 || type_ == 14) {
+        builder.write16u(id_);
+        builder.write16u(sn_);
+        builder.write32u(init_);
+        builder.write32u(recv_);
+        builder.write32u(send_);
+    }
+    // Unreachable: 3
+    else if (type_ == 3) {
+        builder.write32u(0);
+        eip_.encodeHeader(builder);
+        builder.writeBytes(buf_);
+    }
+    // Ping: 0,8
+    else if (type_ == 0 || type_ == 8) {
+        builder.write16u(id_);
+        builder.write16u(sn_);
+        builder.writeBytes(buf_);
+    } else {
+    }
 }
 
-icmp::detail icmp::ntoh(detail const& d, bool reverse)
+uint16_t Icmp::overallChecksum() const
 {
-    detail dt = d;
-    ntohx(dt.u.s.id, !reverse, s);
-    ntohx(dt.u.s.sn, !reverse, s);
-    return dt;
+    BytesBuilder builder;
+    encodeOverall(builder);
+    return checksum(builder.data(), builder.size());
 }
 
-icmp::detail icmp::hton(detail const& d) { return ntoh(d, true); }
+std::string Icmp::icmpDesc() const
+{
+    auto key = std::make_pair(type_, code_);
+    return table.count(key) > 0 ? table.at(key) : fmt::format("unknown({}, {}})", type_, code_);
+}
 
 }  // namespace net

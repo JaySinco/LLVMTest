@@ -7,45 +7,42 @@ namespace net
 class Ipv4: public Protocol
 {
 public:
-    struct Header
-    {
-        uint8_t ver_hl;     // Version (4 bits) + Header length (4 bits)
-        uint8_t tos;        // Type of service
-        uint16_t tlen;      // Total length
-        uint16_t id;        // Identification
-        uint16_t flags_fo;  // Flags (3 bits) + Fragment offset (13 bits)
-        uint8_t ttl;        // Time to live
-        uint8_t type;       // IPv4 type
-        uint16_t crc;       // Header checksum
-        Ip4 sip;            // Source address
-        Ip4 dip;            // Destination address
-        ;                   // Variable length options
-    };
-
     Ipv4() = default;
     Ipv4(Ip4 const& sip, Ip4 const& dip, uint8_t ttl, Type ipv4_type, bool forbid_slice);
-    Ipv4(uint8_t const*& data, size_t& size);
-    ~Ipv4() override;
+    explicit Ipv4(BytesReader& reader);
+    ~Ipv4() override = default;
 
-    static void fromBytes(uint8_t const*& data, size_t& size, ProtocolStack& stack);
-
-    void toBytes(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    static void decode(BytesReader& reader, ProtocolStack& stack);
+    void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
     bool correlated(Protocol const& resp) const override;
 
-    Header const& getHeader() const;
     Type ipv4Type() const;
-    bool operator==(Ipv4 const& rhs) const;
     uint16_t headerSize() const;
     uint16_t payloadSize() const;
+    void encodeHeader(BytesBuilder& builder) const;
+
+    Ip4 sip() const { return sip_; };
+
+    Ip4 dip() const { return dip_; };
 
 private:
-    Header* h_;
+    uint8_t ver_hl_;             // Version (4 bits) + Header length (4 bits)
+    uint8_t tos_;                // Type of service
+    mutable uint16_t tlen_;      // Total length
+    uint16_t id_;                // Identification
+    uint16_t flags_fo_;          // Flags (3 bits) + Fragment offset (13 bits)
+    uint8_t ttl_;                // Time to live
+    uint8_t type_;               // IPv4 type
+    mutable uint16_t crc_;       // Header checksum
+    Ip4 sip_;                    // Source address
+    Ip4 dip_;                    // Destination address
+    std::vector<uint8_t> opts_;  // Variable length options
 
-    static std::map<uint8_t, Type> type_dict;
-    static Header ntoh(Header const& h, bool reverse = false);
-    static Header hton(Header const& h);
+    uint16_t headerChecksum() const;
+    static constexpr size_t kFixedBytes = 20;
+    static std::map<uint8_t, Type> table;
 };
 
 }  // namespace net
