@@ -18,9 +18,9 @@ static Adaptor const& selectAdaptor(Ip4 hint)
                (hint != Ip4::kNull ? apt.ip.onSameLAN(hint, apt.mask) : apt.gateway != Ip4::kNull);
     });
     if (it == apts.end()) {
-        THROW_(fmt::format("no adapter on same LAN as {}", hint.toStr()));
+        MY_THROW("no adapter on same LAN as {}", hint.toStr());
     }
-    spdlog::info("{} ({})", it->desc, it->ip.toStr());
+    ILOG("{} ({})", it->desc, it->ip.toStr());
     return *it;
 }
 
@@ -29,22 +29,22 @@ Driver::Driver(Ip4 hint, int to_ms): Driver(selectAdaptor(hint), to_ms) {}
 Driver::Driver(Adaptor const& apt, int to_ms): apt_(apt)
 {
     if (pcap_init(PCAP_CHAR_ENC_UTF_8, errbuf) != 0) {
-        THROW_(fmt::format("failed to init pcap: {}", errbuf));
+        MY_THROW("failed to init pcap: {}", errbuf);
     }
     pcap_t* p = pcap_create(apt.name.c_str(), errbuf);
     if (p == nullptr) {
-        THROW_(fmt::format("failed to create pcap: {}", errbuf));
+        MY_THROW("failed to create pcap: {}", errbuf);
     }
     pcap_set_snaplen(p, 65535);
     pcap_set_promisc(p, 1);
     pcap_set_timeout(p, to_ms);
     if (pcap_can_set_rfmon(p)) {
-        spdlog::info("pcap set radio frequency monitor mode");
+        ILOG("pcap set radio frequency monitor mode");
         pcap_set_rfmon(p, 1);
     }
     int ec = pcap_activate(p);
     if (ec > 0) {
-        spdlog::warn("activate pcap: {}", pcap_statustostr(ec));
+        WLOG("activate pcap: {}", pcap_statustostr(ec));
     } else if (ec < 0) {
         std::string msg;
         if (ec == PCAP_ERROR) {
@@ -52,7 +52,7 @@ Driver::Driver(Adaptor const& apt, int to_ms): apt_(apt)
         } else {
             msg = pcap_statustostr(ec);
         }
-        THROW_(fmt::format("failed to activate pcap: {}", msg));
+        MY_THROW("failed to activate pcap: {}", msg);
     }
     p_ = p;
 }
@@ -67,7 +67,7 @@ void Driver::send(Packet const& pac) const
 {
     auto p = reinterpret_cast<pcap_t*>(p_);
     if (pcap_sendpacket(p, pac.bytes.data(), pac.bytes.size()) != 0) {
-        THROW_(fmt::format("failed to send packet: {}", pcap_geterr(p)));
+        MY_THROW("failed to send packet: {}", pcap_geterr(p));
     }
 }
 
@@ -80,11 +80,11 @@ Expected<Packet> Driver::recv() const
     uint8_t const* data;
     int ec = pcap_next_ex(p, &info, &data);
     if (ec == 0) {
-        return Error::packetExpired();
+        return Error::packetExpired(LOG_FSTR("packet expired"));
     } else if (ec == PCAP_ERROR) {
-        return Error::catchAll(pcap_geterr(p));
+        return Error::catchAll(LOG_FSTR("{}", pcap_geterr(p)));
     } else if (ec != 1) {
-        return Error::catchAll(fmt::format("failed to recv packet: {}", ec));
+        return Error::catchAll(LOG_FSTR("failed to recv packet: {}", ec));
     }
     Packet pac;
     pac.t_ms = info->ts.tv_sec * 1000 + info->ts.tv_usec / 1000;
@@ -104,13 +104,13 @@ Expected<ProtocolStack> Driver::request(ProtocolStack const& req, int to_ms, boo
             auto timeout = std::chrono::milliseconds(to_ms);
             auto elasped = now - start;
             if (elasped >= timeout) {
-                return Error::timeout(timeout, elasped);
+                return Error::timeout(LOG_FSTR("timeout after {}", elasped));
             }
         }
         Expected<Packet> pac = recv();
         if (!pac) {
-            if (pac.error().typeOf(Error::kPacketExpired)) {
-                spdlog::warn("skip expired packet");
+            if (pac.error().packetExpired()) {
+                WLOG("skip expired packet");
                 continue;
             } else {
                 return Error::unexpected(pac.error());
@@ -136,10 +136,10 @@ Expected<Mac> Driver::getMac(Ip4 ip, bool use_cache, int to_ms) const
         auto it = cached.find(ip);
         if (it != cached.end()) {
             if (now - it->second.second < std::chrono::seconds(30)) {
-                spdlog::warn("use cached mac for {}", ip.toStr());
+                WLOG("use cached mac for {}", ip.toStr());
                 return it->second.first;
             } else {
-                spdlog::info("cached mac for {} expired, send arp to update", ip.toStr());
+                ILOG("cached mac for {} expired, send arp to update", ip.toStr());
             }
         }
     }
@@ -148,12 +148,12 @@ Expected<Mac> Driver::getMac(Ip4 ip, bool use_cache, int to_ms) const
     ProtocolStack req = broadcastedARP(apt_.mac, apt_.ip, Mac::kNull, ip);
     Packet pac = req.encode();
     std::thread send_loop([&] {
-        TRY_;
+        MY_TRY;
         while (!over) {
             send(pac);
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        CATCH_;
+        MY_CATCH;
     });
     auto thread_guard = utils::scopeExit([&]() {
         over = true;
@@ -189,20 +189,19 @@ nonstd::unexpected_type<Error> Error::catchAll(std::string const& msg)
     return unexpected(err);
 }
 
-nonstd::unexpected_type<Error> Error::timeout(std::chrono::system_clock::duration timeout,
-                                              std::chrono::system_clock::duration elasped)
+nonstd::unexpected_type<Error> Error::timeout(std::string const& msg)
 {
     Error err;
     err.flags_ |= kTimeout;
-    err.msg_ = fmt::format("{} elasped, which exceeds {}", elasped, timeout);
+    err.msg_ = msg;
     return unexpected(err);
 }
 
-nonstd::unexpected_type<Error> Error::packetExpired()
+nonstd::unexpected_type<Error> Error::packetExpired(std::string const& msg)
 {
     Error err;
     err.flags_ |= kPacketExpired;
-    err.msg_ = "packet expired";
+    err.msg_ = msg;
     return unexpected(err);
 }
 

@@ -2,13 +2,13 @@
 
 int main(int argc, char** argv)
 {
-    TRY_;
-    spdlog::info("cuda_available={}", torch::cuda::is_available());
+    MY_TRY;
+    ILOG("cuda_available={}", torch::cuda::is_available());
 
     env::Hopper env;
     policy::pg::PG plc(env, params::pg::hopper());
     plc.train();
     plc.eval(true);
-    CATCH_;
+    MY_CATCH;
     return 0;
 }

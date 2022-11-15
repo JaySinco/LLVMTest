@@ -76,7 +76,7 @@ Env::Env(std::string const& model_path, int frame_skip, bool show_ui)
     char error[1000] = {0};
     m = mj_loadXML(model_path.c_str(), nullptr, error, 1000);
     if (!m) {
-        THROW_(fmt::format("failed to load xml: {}", error));
+        MY_THROW("failed to load xml: {}", error);
     }
     d = mj_makeData(m);
     mj_forward(m, d);
@@ -186,14 +186,14 @@ void Env::alignScale()
 
 void Env::render()
 {
-    TRY_;
+    MY_TRY;
     glfwInit();
     glfwWindowHint(GLFW_SAMPLES, 4);
     vmode_ = *glfwGetVideoMode(glfwGetPrimaryMonitor());
     window_ = glfwCreateWindow(800, 500, "gym", nullptr, nullptr);
     if (!window_) {
         glfwTerminate();
-        THROW_("failed to create window");
+        MY_THROW("failed to create window");
     }
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(1);
@@ -279,10 +279,10 @@ void Env::render()
 
     glfwDestroyWindow(window_);
     glfwTerminate();
-    CATCH_;
+    MY_CATCH;
 
     ui_has_exited_ = true;
-    spdlog::info("render exit");
+    ILOG("render exit");
 }
 
 }  // namespace env

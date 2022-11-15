@@ -8,14 +8,14 @@ std::mt19937 g_random_engine(g_random_device());
 
 void runCmdTrain(int64_t verno)
 {
-    spdlog::info("verno={}", verno);
+    ILOG("verno={}", verno);
     auto net = std::make_shared<FIRNet>(verno);
     train(net);
 }
 
 void runCmdPlay(int color, int64_t verno, int itermax)
 {
-    spdlog::info("color={}, verno={}, itermax={}", color, verno, itermax);
+    ILOG("color={}, verno={}, itermax={}", color, verno, itermax);
     auto net = std::make_shared<FIRNet>(verno);
     auto p1 = MCTSDeepPlayer(net, itermax, kCpuct);
     if (color == 0) {
@@ -32,7 +32,7 @@ void runCmdPlay(int color, int64_t verno, int itermax)
 
 void runCmdBenchmark(int64_t verno1, int64_t verno2, int itermax)
 {
-    spdlog::info("verno1={}, verno2={}, itermax={}", verno1, verno2, itermax);
+    ILOG("verno1={}, verno2={}, itermax={}", verno1, verno2, itermax);
     auto net1 = std::make_shared<FIRNet>(verno1);
     auto net2 = std::make_shared<FIRNet>(verno2);
     auto p1 = MCTSDeepPlayer(net1, itermax, kCpuct);
@@ -42,7 +42,7 @@ void runCmdBenchmark(int64_t verno1, int64_t verno2, int itermax)
 
 int main(int argc, char* argv[])
 {
-    TRY_;
+    MY_TRY;
     argparse::ArgumentParser prog("gomoku");
 
     // gomoku train
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
     try {
         prog.parse_args(argc, argv);
     } catch (std::exception const& err) {
-        spdlog::error("{}\n", err.what());
+        ELOG("{}\n", err.what());
         if (prog.is_subcommand_used("train")) {
             std::cerr << train_cmd;
         } else if (prog.is_subcommand_used("play")) {
@@ -114,5 +114,5 @@ int main(int argc, char* argv[])
         std::cerr << prog;
         std::exit(0);
     }
-    CATCH_;
+    MY_CATCH;
 }

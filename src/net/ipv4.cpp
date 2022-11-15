@@ -60,7 +60,7 @@ Ipv4::Ipv4(Ip4 sip, Ip4 dip, uint8_t ttl, Type ipv4_type, bool forbid_slice)
         }
     }
     if (!found) {
-        THROW_(fmt::format("invalid ipv4 type: {}", descType(ipv4_type)));
+        MY_THROW("invalid ipv4 type: {}", descType(ipv4_type));
     }
 
     ver_hl_ = (4 << 4) | (kFixedBytes / 4);
@@ -88,8 +88,7 @@ Json Ipv4::toJson() const
     Json j;
     j["type"] = descType(type());
     Type ip_type = ipv4Type();
-    j["ipv4-type"] =
-        ip_type == kUnknown ? fmt::format("unknown(0x{:x})", type_) : descType(ip_type);
+    j["ipv4-type"] = ip_type == kUnknown ? FSTR("unknown(0x{:x})", type_) : descType(ip_type);
     j["version"] = ver_hl_ >> 4;
     j["tos"] = tos_;
     j["header-size"] = headerSize();

@@ -1,7 +1,7 @@
 #pragma once
 #include "protocol.h"
 
-class dns : public protocol
+class dns: public protocol
 {
 public:
     struct detail
@@ -41,13 +41,13 @@ public:
 
     dns() = default;
 
-    dns(const u_char *const start, const u_char *&end, const protocol *prev = nullptr);
+    dns(u_char const* const start, u_char const*& end, protocol const* prev = nullptr);
 
-    dns(const std::string &query_domain);
+    dns(std::string const& query_domain);
 
     virtual ~dns() = default;
 
-    virtual void to_bytes(std::vector<u_char> &bytes) const override;
+    virtual void to_bytes(std::vector<u_char>& bytes) const override;
 
     virtual json to_json() const override;
 
@@ -55,23 +55,23 @@ public:
 
     virtual std::string succ_type() const override;
 
-    virtual bool link_to(const protocol &rhs) const override;
+    virtual bool link_to(protocol const& rhs) const override;
 
-    const detail &get_detail() const;
+    detail const& get_detail() const;
 
-    const extra_detail &get_extra() const;
+    extra_detail const& get_extra() const;
 
 private:
     detail d{0};
 
     extra_detail extra;
 
-    static std::string encode_domain(const std::string &domain);
+    static std::string encode_domain(std::string const& domain);
 
-    static std::string decode_domain(const u_char *const pstart, const u_char *const pend,
-                                     const u_char *&it);
+    static std::string decode_domain(u_char const* const pstart, u_char const* const pend,
+                                     u_char const*& it);
 
-    static detail ntoh(const detail &d, bool reverse = false);
+    static detail ntoh(detail const& d, bool reverse = false);
 
-    static detail hton(const detail &d);
+    static detail hton(detail const& d);
 };

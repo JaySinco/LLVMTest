@@ -67,16 +67,16 @@ cpp_int matrixChainMulti(int const* dims, int n)
         auto la = [&](int i, int j, auto& lai) -> std::string {
             std::string s = "";
             if (i == j) {
-                s = fmt::format("A{}", i);
+                s = FSTR("A{}", i);
             } else {
                 auto k = dp[i][j].i;
-                s = fmt::format("({}{})", lai(i, k, lai), lai(k + 1, j, lai));
+                s = FSTR("({}{})", lai(i, k, lai), lai(k + 1, j, lai));
             }
             return s;
         };
         return la(i, j, la);
     };
-    spdlog::debug("ans={}", ans(1, n));
+    VLOG("ans={}", ans(1, n));
     return dp[1][n].v;
 }
 
@@ -220,7 +220,7 @@ TEST_CASE("dynamic_programming")
             {{1, 5, 8, 9, 10, 17, 17, 20, 24, 30}, {10}},
         };
         for (auto& [a, b]: samples) {
-            INFO(fmt::format("arr={}", a));
+            INFO(FSTR("arr={}", a));
             auto c = rodCutting(a.data(), a.size());
             CHECK(ranges::accumulate(c, 0) == a.size());
             CHECK(c == b);
@@ -233,7 +233,7 @@ TEST_CASE("dynamic_programming")
             {{30, 35, 15, 5, 10, 20, 25}, 15125},
         };
         for (auto& [a, b]: samples) {
-            INFO(fmt::format("arr={}", a));
+            INFO(FSTR("arr={}", a));
             auto c = matrixChainMulti(a.data(), a.size() - 1);
             CHECK(c == b);
         }
@@ -245,7 +245,7 @@ TEST_CASE("dynamic_programming")
             {"ABCBDAB", "BDCABA", "BCBA"},
         };
         for (auto& [a, b, c]: samples) {
-            INFO(fmt::format("a={}, b={}", a, b));
+            INFO(FSTR("a={}, b={}", a, b));
             auto r = longestCommonSubseq(a, b);
             CHECK(r == c);
         }
@@ -262,7 +262,7 @@ TEST_CASE("dynamic_programming")
              {0, 1, 2, 23, 43, 44, 45, 46}},
         };
         for (auto& [a, b]: samples) {
-            INFO(fmt::format("arr={}", a));
+            INFO(FSTR("arr={}", a));
             auto c = longestIncreasingSubseq(a.data(), a.size());
             CHECK(b == c);
         }
@@ -277,7 +277,7 @@ TEST_CASE("dynamic_programming")
             {"xrbascedceafrhd", "raecear"},
         };
         for (auto& [a, b]: samples) {
-            INFO(fmt::format("s={}", a));
+            INFO(FSTR("s={}", a));
             auto c = longestPalindromeSubseq(a);
             CHECK(b == c);
         }

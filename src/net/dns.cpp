@@ -172,7 +172,7 @@ std::string dns::encode_domain(std::string const& domain)
     boost::split(svec, domain, boost::is_any_of("."));
     for (auto const& s: svec) {
         if (s.size() > 63) {
-            THROW_("segment of domain exceed 63: {}"_format(s));
+            MY_THROW("segment of domain exceed 63: {}", s);
         }
         bytes.push_back(static_cast<u_char>(s.size()));
         bytes.insert(bytes.end(), s.cbegin(), s.cend());

@@ -10,13 +10,13 @@ int main(int argc, char** argv)
     try {
         prog.parse_args(argc, argv);
     } catch (std::exception const& err) {
-        spdlog::error("{}\n", err.what());
+        ELOG("{}\n", err.what());
         std::cerr << prog;
         std::exit(1);
     }
 
-    TRY_;
-    auto raw = utils::readFile((__RESDIR__ / "manifests.json").wstring());
+    MY_TRY;
+    auto raw = utils::readFile((CURR_RESDIR / "manifests.json").wstring());
     auto manifests = nlohmann::json::parse(raw.value());
     if (prog.is_used("manifest")) {
         auto m = prog.get<std::string>("manifest");
@@ -28,7 +28,7 @@ int main(int argc, char** argv)
             }
         }
         if (idx < 0) {
-            std::cerr << fmt::format("unknow manifest: {}", m) << std::endl;
+            std::cerr << FSTR("unknow manifest: {}", m) << std::endl;
             return 1;
         }
         auto& j = manifests[idx];
@@ -46,5 +46,5 @@ int main(int argc, char** argv)
         }
         return 0;
     }
-    CATCH_;
+    MY_CATCH;
 }

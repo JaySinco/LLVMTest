@@ -22,9 +22,9 @@ std::string Mac::toStr() const
 {
     auto c = reinterpret_cast<uint8_t const*>(this);
     std::ostringstream ss;
-    ss << fmt::format("{:02x}", c[0]);
+    ss << FSTR("{:02x}", c[0]);
     for (int i = 1; i < 6; ++i) {
-        ss << fmt::format("-{:02x}", c[i]);
+        ss << FSTR("-{:02x}", c[i]);
     }
     return ss.str();
 }
@@ -36,7 +36,7 @@ Ip4 Ip4::fromDottedDec(std::string const& s)
 {
     static std::regex pat(R"(^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$)");
     if (!regex_match(s, pat)) {
-        THROW_(fmt::format("invalid ip4: {}", s));
+        MY_THROW("invalid ip4: {}", s);
     }
     std::vector<std::string> parts;
     boost::split(parts, s, boost::is_any_of("."));
@@ -110,9 +110,9 @@ BytesReader::BytesReader(std::vector<uint8_t> const& bytes)
 {
 }
 
-#define CHECK_SIZE(n)                                                                 \
-    if (size_ < n) {                                                                  \
-        THROW_(fmt::format("inadequate bytes: {} expected, only {} left", n, size_)); \
+#define CHECK_SIZE(n)                                                      \
+    if (size_ < n) {                                                       \
+        MY_THROW("inadequate bytes: {} expected, only {} left", n, size_); \
     }
 
 uint8_t BytesReader::read8u()

@@ -10,7 +10,7 @@ std::string Protocol::descType(Type type)
 {
     switch (type) {
         case kUnknown:
-            THROW_(fmt::format("unknown type should be detailed"));
+            MY_THROW("unknown type should be detailed");
         case kEthernet:
             return "ethernet";
         case kIPv4:
@@ -30,7 +30,7 @@ std::string Protocol::descType(Type type)
         case kDNS:
             return "dns";
     }
-    THROW_("should not reach here");
+    MY_THROW("should not reach here");
 }
 
 uint16_t Protocol::checksum(void const* data, size_t size)
@@ -66,8 +66,7 @@ ProtocolStack ProtocolStack::decode(Packet const& pac)
     BytesReader reader(pac.bytes);
     Ethernet::decode(reader, stack);
     if (!reader.empty()) {
-        THROW_(fmt::format("{} bytes not consumed, current stack: {}", reader.size(),
-                           stack.toJson().dump(3)));
+        MY_THROW("{} bytes not consumed, current stack: {}", reader.size(), stack.toJson().dump(3));
     }
     return stack;
 }
@@ -113,7 +112,7 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
     auto it = std::find_if(stack_.begin(), stack_.end(),
                            [&](ProtocolPtr p) { return p->type() == type; });
     if (it == stack_.end()) {
-        THROW_(fmt::format("protocol stack don't have {}", Protocol::descType(type)));
+        MY_THROW("protocol stack don't have {}", Protocol::descType(type));
     }
     return std::distance(stack_.begin(), it);
 }
@@ -133,7 +132,7 @@ void Unimplemented::decode(BytesReader& reader, ProtocolStack& stack)
 
 void Unimplemented::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
-    THROW_("should not be called");
+    MY_THROW("should not be called");
 }
 
 Json Unimplemented::toJson() const

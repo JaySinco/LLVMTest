@@ -6,7 +6,7 @@ namespace env
 class Hopper: public Env
 {
 public:
-    explicit Hopper(bool show_ui = true): Env((__RESDIR__ / "hopper.xml").string(), 4, show_ui) {}
+    explicit Hopper(bool show_ui = true): Env((CURR_RESDIR / "hopper.xml").string(), 4, show_ui) {}
 
     int obSpace() const override { return m->nq - 1 + m->nv; }
 

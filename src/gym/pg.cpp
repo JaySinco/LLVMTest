@@ -61,7 +61,7 @@ void PG::train()
         learn(torch::cat(observes), torch::cat(actions), torch::cat(rewards), torch::cat(alives));
     }
     monitor.join();
-    spdlog::info("training over");
+    ILOG("training over");
 }
 
 torch::Tensor PG::getAction(torch::Tensor observe)

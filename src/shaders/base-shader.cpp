@@ -38,9 +38,9 @@ static unsigned int generateCubemapTexture(void const* data, int size, int forma
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
     if (id > 0) {
-        spdlog::info("cubemap texture[{}] loaded successfully ({}x{})", id, size, size);
+        ILOG("cubemap texture[{}] loaded successfully ({}x{})", id, size, size);
     } else {
-        spdlog::error("failed to load cubemap texture");
+        ELOG("failed to load cubemap texture");
     }
 
     return id;
@@ -72,7 +72,7 @@ static TextureCubemap loadTextureCubemap(Image image, int layout)
     }
 
     if (layout == CUBEMAP_LAYOUT_AUTO_DETECT) {
-        spdlog::error("failed to detect cubemap image layout");
+        ELOG("failed to detect cubemap image layout");
         return cubemap;
     }
 
@@ -149,7 +149,7 @@ static TextureCubemap loadTextureCubemap(Image image, int layout)
 
     cubemap.id = generateCubemapTexture(faces.data, size, faces.format);
     if (cubemap.id == 0) {
-        spdlog::error("failed to load cubemap image");
+        ELOG("failed to load cubemap image");
     }
 
     UnloadImage(faces);
@@ -168,7 +168,7 @@ static void setupTextureParam(std::string const& type, Texture text, std::string
     } else if (filter == "mipmap") {
         gl_filter = GL_LINEAR_MIPMAP_LINEAR;
     } else {
-        THROW_(fmt::format("texture filter not support: {}", filter));
+        MY_THROW("texture filter not support: {}", filter);
     }
 
     GLint gl_wrap = 0;
@@ -177,7 +177,7 @@ static void setupTextureParam(std::string const& type, Texture text, std::string
     } else if (wrap == "repeat") {
         gl_wrap = GL_REPEAT;
     } else {
-        THROW_(fmt::format("texture filter not support: {}", filter));
+        MY_THROW("texture filter not support: {}", filter);
     }
 
     GLenum gl_target = 0;
@@ -186,7 +186,7 @@ static void setupTextureParam(std::string const& type, Texture text, std::string
     } else if (type == "cube") {
         gl_target = GL_TEXTURE_CUBE_MAP;
     } else {
-        THROW_(fmt::format("texture type not support: {}", type));
+        MY_THROW("texture type not support: {}", type);
     }
 
     glBindTexture(gl_target, text.id);
@@ -215,8 +215,8 @@ void BaseShader::loadManifest(nlohmann::json const& j)
 
 Shader BaseShader::loadShader(std::string const& vertex, std::string const& fragment)
 {
-    return LoadShader((__RESDIR__ / vertex).string().c_str(),
-                      (__RESDIR__ / fragment).string().c_str());
+    return LoadShader((CURR_RESDIR / vertex).string().c_str(),
+                      (CURR_RESDIR / fragment).string().c_str());
 }
 
 RenderTexture2D BaseShader::loadBufferTexture(int width, int height, std::string const& filter,
@@ -248,11 +248,11 @@ RenderTexture2D BaseShader::loadBufferTexture(int width, int height, std::string
                             RL_ATTACHMENT_RENDERBUFFER, 0);
 
         if (rlFramebufferComplete(target.id)) {
-            spdlog::info("FBO: [ID {}] Framebuffer object created successfully", target.id);
+            ILOG("FBO: [ID {}] Framebuffer object created successfully", target.id);
         }
         rlDisableFramebuffer();
     } else {
-        spdlog::error("FBO: Framebuffer object can not be created");
+        ELOG("FBO: Framebuffer object can not be created");
     }
 
     setupTextureParam("2d", target.texture, filter, wrap);
@@ -262,7 +262,7 @@ RenderTexture2D BaseShader::loadBufferTexture(int width, int height, std::string
 Texture BaseShader::loadTexture(std::string const& texture, std::string const& type,
                                 std::string const& filter, std::string const& wrap)
 {
-    auto abspath = (utils::kSourceRepo / fmt::format("res/{}", texture)).string();
+    auto abspath = (utils::kSourceRepo / FSTR("res/{}", texture)).string();
     Texture text;
     if (type == "2d") {
         text = LoadTexture(abspath.c_str());
@@ -270,7 +270,7 @@ Texture BaseShader::loadTexture(std::string const& texture, std::string const& t
         Image image = LoadImage(abspath.c_str());
         text = loadTextureCubemap(image, CUBEMAP_LAYOUT_AUTO_DETECT);
     } else {
-        THROW_(fmt::format("texture type not support: {}", type));
+        MY_THROW("texture type not support: {}", type);
     }
     setupTextureParam(type, text, filter, wrap);
     return text;
@@ -278,5 +278,5 @@ Texture BaseShader::loadTexture(std::string const& texture, std::string const& t
 
 Model BaseShader::loadModel(std::string const& model)
 {
-    return LoadModel((utils::kSourceRepo / fmt::format("res/{}", model)).string().c_str());
+    return LoadModel((utils::kSourceRepo / FSTR("res/{}", model)).string().c_str());
 }

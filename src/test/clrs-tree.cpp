@@ -419,7 +419,7 @@ TEST_CASE("binary_search_tree")
     SECTION("red_black")
     {
         for (auto& [a, b]: samples) {
-            INFO(fmt::format("arr={}", a));
+            INFO(FSTR("arr={}", a));
             RedBlackTree rb(a.data(), a.size());
             REQUIRE(rb.check());
             std::vector<int> c;
@@ -431,7 +431,7 @@ TEST_CASE("binary_search_tree")
     SECTION("plain")
     {
         for (auto& [a, b]: samples) {
-            INFO(fmt::format("arr={}", a));
+            INFO(FSTR("arr={}", a));
             BinarySearchTree bt(a.data(), a.size());
             REQUIRE(bt.check());
             std::vector<int> c;

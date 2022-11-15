@@ -63,7 +63,7 @@ std::vector<Adaptor> const& allAdaptors()
         if (GetAdaptersInfo(plist, &buflen) == ERROR_BUFFER_OVERFLOW) {
             plist = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buflen));
             if (GetAdaptersInfo(plist, &buflen) != NO_ERROR) {
-                THROW_("failed to get adapters info");
+                MY_THROW("failed to get adapters info");
             }
         }
         PIP_ADAPTER_INFO pinfo = plist;
@@ -77,7 +77,7 @@ std::vector<Adaptor> const& allAdaptors()
                 apt.mask = Ip4::fromDottedDec(pinfo->IpAddressList.IpMask.String);
                 apt.gateway = Ip4::fromDottedDec(pinfo->GatewayList.IpAddress.String);
                 if (pinfo->AddressLength != sizeof(Mac)) {
-                    spdlog::warn("incompatible mac length: {}", pinfo->AddressLength);
+                    WLOG("incompatible mac length: {}", pinfo->AddressLength);
                     continue;
                 }
                 auto c = reinterpret_cast<uint8_t*>(&apt.mac);
@@ -89,7 +89,7 @@ std::vector<Adaptor> const& allAdaptors()
             pinfo = pinfo->Next;
         }
         if (adapters.size() <= 0) {
-            THROW_("failed to find any suitable adapter");
+            MY_THROW("failed to find any suitable adapter");
         }
     });
 
@@ -105,7 +105,7 @@ static std::string pidToImageName(uint32_t pid, int to_sec = 60)
         return it->second.first;
     }
 
-    std::string image = fmt::format("pid({})", pid);
+    std::string image = FSTR("pid({})", pid);
     HANDLE handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
     if (handle == nullptr) {
         return image;
@@ -132,12 +132,12 @@ static void tcpPortToImageSnapshot(std::map<PortMappingKey, std::string>& mapppi
         free(ptable);
         ptable = reinterpret_cast<MIB_TCPTABLE2*>(malloc(size));
         if (ptable == nullptr) {
-            THROW_(fmt::format("failed to allocate memory, size={}", size));
+            MY_THROW("failed to allocate memory, size={}", size);
         }
     }
     ret = GetTcpTable2(ptable, &size, FALSE);
     if (ret != NO_ERROR) {
-        THROW_(fmt::format("failed to get tcp table, ret={}", ret));
+        MY_THROW("failed to get tcp table, ret={}", ret);
     }
     for (int i = 0; i < ptable->dwNumEntries; ++i) {
         in_addr addr;
@@ -162,12 +162,12 @@ static void udpPortToImageSnapshot(std::map<PortMappingKey, std::string>& mapppi
         free(ptable);
         ptable = reinterpret_cast<MIB_UDPTABLE_OWNER_PID*>(malloc(size));
         if (ptable == nullptr) {
-            THROW_(fmt::format("failed to allocate memory, size={}", size));
+            MY_THROW("failed to allocate memory, size={}", size);
         }
     }
     ret = GetExtendedUdpTable(ptable, &size, FALSE, AF_INET, UDP_TABLE_OWNER_PID, 0);
     if (ret != NO_ERROR) {
-        THROW_(fmt::format("failed to get udp table, ret={}", ret));
+        MY_THROW("failed to get udp table, ret={}", ret);
     }
     for (int i = 0; i < ptable->dwNumEntries; ++i) {
         in_addr addr;

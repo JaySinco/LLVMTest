@@ -2,11 +2,11 @@
 
 int main(int argc, char** argv)
 {
-    TRY_;
+    MY_TRY;
     net::Json j;
     for (auto const& apt: net::allAdaptors()) {
         j.push_back(apt.toJson());
     }
-    spdlog::info(j.dump(3));
-    CATCH_;
+    ILOG("{}", j.dump(3));
+    MY_CATCH;
 }

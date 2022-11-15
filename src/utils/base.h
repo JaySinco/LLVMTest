@@ -5,17 +5,23 @@
 #include <iostream>
 #include <string_view>
 #include <spdlog/spdlog.h>
-#define __DIRNAME__ (std::filesystem::path(__FILE__).parent_path())
-#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#define __RESDIR__ (__DIRNAME__ / "res")
-#define THROW_(s) throw utils::Error(fmt::format("[{}:{}] {}", __FILENAME__, __LINE__, (s)));
-#define TRY_ try {
-#define CATCH_                        \
+#define CURR_DIRNAME (std::filesystem::path(__FILE__).parent_path())
+#define CURR_FILENAME (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#define CURR_RESDIR (CURR_DIRNAME / "res")
+#define FSTR(f, ...) (fmt::format(f, __VA_ARGS__))
+#define LOG_FSTR(f, ...) (FSTR("[{}:{}] " f, CURR_FILENAME, __LINE__, __VA_ARGS__))
+#define MY_THROW(f, ...) throw utils::Error(LOG_FSTR(f, __VA_ARGS__))
+#define MY_TRY try {
+#define MY_CATCH                      \
     }                                 \
     catch (const std::exception& err) \
     {                                 \
-        spdlog::error(err.what());    \
+        ELOG("{}", err.what());       \
     }
+#define VLOG(f, ...) (spdlog::debug(LOG_FSTR(f, __VA_ARGS__)))
+#define ILOG(f, ...) (spdlog::info(LOG_FSTR(f, __VA_ARGS__)))
+#define WLOG(f, ...) (spdlog::warn(LOG_FSTR(f, __VA_ARGS__)))
+#define ELOG(f, ...) (spdlog::error(LOG_FSTR(f, __VA_ARGS__)))
 
 namespace utils
 {

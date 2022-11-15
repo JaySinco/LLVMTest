@@ -4,8 +4,8 @@
 
 int main(int argc, char** argv)
 {
-    auto key_file = (__RESDIR__ / "key.pem").generic_string();
-    auto cert_file = (__RESDIR__ / "cert.pem").generic_string();
+    auto key_file = (CURR_RESDIR / "key.pem").generic_string();
+    auto cert_file = (CURR_RESDIR / "cert.pem").generic_string();
 
     uWS::SocketContextOptions opt;
     opt.key_file_name = key_file.c_str();
@@ -16,7 +16,7 @@ int main(int argc, char** argv)
         .listen(8080,
                 [](auto* listen_socket) {
                     if (listen_socket) {
-                        spdlog::info(
+                        ILOG(
                             "listening on port {}",
                             us_socket_local_port(1, reinterpret_cast<us_socket_t*>(listen_socket)));
                     }

@@ -171,7 +171,7 @@ float FIRNet::calcInitLR() const
         multiplier = 1e-3;
     }
     float lr = kInitLearningRate * multiplier;
-    spdlog::info("init learning_rate={}", lr);
+    ILOG("init learning_rate={}", lr);
     return lr;
 }
 
@@ -192,7 +192,7 @@ void FIRNet::adjustLR()
     if (multiplier < 1.0f) {
         float lr = kInitLearningRate * multiplier;
         this->setLR(lr);
-        spdlog::info("adjusted learning_rate={}", lr);
+        ILOG("adjusted learning_rate={}", lr);
     }
 }
 
@@ -218,9 +218,9 @@ std::string FIRNet::makeParamFileName() const
 void FIRNet::loadParam()
 {
     auto file_name = makeParamFileName();
-    spdlog::info("loading parameters from {}", file_name);
+    ILOG("loading parameters from {}", file_name);
     if (!std::filesystem::exists(file_name)) {
-        THROW_(fmt::format("file not exist: {}", file_name));
+        MY_THROW("file not exist: {}", file_name);
     }
     torch::serialize::InputArchive input_archive;
     input_archive.load_from(file_name);
@@ -230,7 +230,7 @@ void FIRNet::loadParam()
 void FIRNet::saveParam()
 {
     auto file_name = makeParamFileName();
-    spdlog::info("saving parameters into {}", file_name);
+    ILOG("saving parameters into {}", file_name);
     torch::serialize::OutputArchive output_archive;
     module_.save(output_archive);
     output_archive.save_to(file_name);
@@ -336,8 +336,8 @@ void FIRNet::evalState(State const& state, float value[1],
         priors_sum += prior;
     }
     if (priors_sum < 1e-8) {
-        spdlog::info("wield policy prob, lr might be too large: sum={}, available_move_n={}",
-                     priors_sum, net_move_priors.size());
+        ILOG("wield policy prob, lr might be too large: sum={}, available_move_n={}", priors_sum,
+             net_move_priors.size());
         for (auto& item: net_move_priors) {
             item.second = 1.0f / static_cast<float>(net_move_priors.size());
         }

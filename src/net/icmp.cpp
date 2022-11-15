@@ -210,7 +210,7 @@ uint16_t Icmp::overallChecksum() const
 std::string Icmp::icmpDesc() const
 {
     auto key = std::make_pair(type_, code_);
-    return table.count(key) > 0 ? table.at(key) : fmt::format("unknown({}, {}})", type_, code_);
+    return table.count(key) > 0 ? table.at(key) : FSTR("unknown({}, {}})", type_, code_);
 }
 
 }  // namespace net

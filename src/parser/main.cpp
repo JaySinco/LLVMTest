@@ -45,9 +45,9 @@ struct ErrorHandler
         Iterator ln_end = boost::spirit::get_line_end(err_pos, last);
         int ln_pos = std::distance(ln_start, err_pos);
         int line = boost::spirit::get_line(err_pos);
-        spdlog::error("{}({},{}): error: {} expected\n{}\n{}^",
-                      utils::ws2s(source_file.filename().generic_wstring()), line, ln_pos + 1, what,
-                      utils::ws2s(std::wstring(ln_start, ln_end)), std::string(ln_pos, ' '));
+        ELOG("{}({},{}): error: {} expected\n{}\n{}^",
+             utils::ws2s(source_file.filename().generic_wstring()), line, ln_pos + 1, what,
+             utils::ws2s(std::wstring(ln_start, ln_end)), std::string(ln_pos, ' '));
     }
 
     std::filesystem::path source_file;
@@ -86,7 +86,7 @@ void parsing(std::filesystem::path const& source_file)
     parser::Expression<Iterator> expr(source_file);
     ast::Employee attr;
     bool ok = qi::parse(beg, end, expr, attr);
-    spdlog::info("{} {}", ok, utils::ws2s(attr.surname));
+    ILOG("{} {}", ok, utils::ws2s(attr.surname));
 }
 
-int main(int argc, char** argv) { parsing(__RESDIR__ / "input.txt"); }
+int main(int argc, char** argv) { parsing(CURR_RESDIR / "input.txt"); }

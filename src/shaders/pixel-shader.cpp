@@ -57,7 +57,7 @@ void PixelShader::getLocation(Shader shader)
     shader_loc_[shader.id]["iMouse"] = GetShaderLocation(shader, "iMouse");
     shader_loc_[shader.id]["iDate"] = GetShaderLocation(shader, "iDate");
     for (int i = kChannel0; i < kChannelMax; ++i) {
-        std::string s = fmt::format("iChannel{}", i);
+        std::string s = FSTR("iChannel{}", i);
         shader_loc_[shader.id][s] = GetShaderLocation(shader, s.c_str());
     }
 }
@@ -108,7 +108,7 @@ void PixelShader::bindShaderUniform(Shader shader)
     SetShaderValue(shader, shader_loc_[shader.id]["iDate"], date_, SHADER_UNIFORM_VEC4);
 
     for (int i = kChannel0; i < kChannelMax; ++i) {
-        std::string s = fmt::format("iChannel{}", i);
+        std::string s = FSTR("iChannel{}", i);
         switch (channel_[i].type) {
             case kChannelUnused:
                 break;
@@ -150,7 +150,7 @@ void PixelShader::loadManifest(nlohmann::json const& j)
     std::memset(date_, 0, sizeof(date_));
     std::memset(mouse_, 0, sizeof(mouse_));
     for (int i = kChannel0; i < kChannelMax; ++i) {
-        std::string k = fmt::format("channel{}", i);
+        std::string k = FSTR("channel{}", i);
         if (!j.contains(k)) {
             channel_[i].type = kChannelUnused;
         } else {

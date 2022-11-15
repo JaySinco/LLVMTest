@@ -23,7 +23,7 @@ int main(int argc, char** argv)
             for (int j = 0; j != 20; ++j) {
                 if (q.try_dequeue(item)) {
                     ++dequeued[item];
-                    spdlog::info("dequeue {}", item);
+                    ILOG("dequeue {}", item);
                 }
             }
         });
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
     int item;
     while (q.try_dequeue(item)) {
         ++dequeued[item];
-        spdlog::info("dequeue_ {}", item);
+        ILOG("dequeue_ {}", item);
     }
 
     for (int i: dequeued) {

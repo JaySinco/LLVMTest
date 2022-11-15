@@ -256,7 +256,7 @@ public:
         if (!vec_.empty()) {
             return vec_[0];
         }
-        THROW_("queue is empty!");
+        MY_THROW("queue is empty!");
     }
 
     void popTop()
@@ -334,7 +334,7 @@ TEST_CASE("select_ith_order")
         {{2, 3, 8, 6, 1}, 4, 6},
     };
     for (auto& [a, b, c]: samples) {
-        INFO(fmt::format("arr={}, i={}", a, b));
+        INFO(FSTR("arr={}, i={}", a, b));
         int i = selectIthOrder(a.data(), a.size(), b);
         REQUIRE(i == c);
     }
@@ -427,14 +427,14 @@ TEST_CASE("sort")
         samples.emplace_back(copy, origin);
     }
 
-#define SORT_SECTION(x)                     \
-    SECTION(#x)                             \
-    {                                       \
-        for (auto& [a, b]: samples) {       \
-            INFO(fmt::format("arr={}", a)); \
-            x(a.data(), a.size());          \
-            REQUIRE(a == b);                \
-        }                                   \
+#define SORT_SECTION(x)               \
+    SECTION(#x)                       \
+    {                                 \
+        for (auto& [a, b]: samples) { \
+            INFO(FSTR("arr={}", a));  \
+            x(a.data(), a.size());    \
+            REQUIRE(a == b);          \
+        }                             \
     }
 
     SORT_SECTION(insertionSort);

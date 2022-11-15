@@ -51,7 +51,7 @@ Ethernet::Ethernet(Mac smac, Mac dmac, Type eth_type)
         }
     }
     if (!found) {
-        THROW_(fmt::format("invalid ethernet type: {}", descType(eth_type)));
+        MY_THROW("invalid ethernet type: {}", descType(eth_type));
     }
     dmac_ = dmac;
     smac_ = smac;
@@ -71,8 +71,7 @@ Json Ethernet::toJson() const
     Json j;
     j["type"] = descType(type());
     Type eth_type = ethernetType();
-    j["ethernet-type"] =
-        eth_type == kUnknown ? fmt::format("unknown(0x{:x})", type_) : descType(eth_type);
+    j["ethernet-type"] = eth_type == kUnknown ? FSTR("unknown(0x{:x})", type_) : descType(eth_type);
     j["source-mac"] = smac_.toStr();
     j["dest-mac"] = dmac_.toStr();
     return j;

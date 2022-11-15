@@ -18,24 +18,24 @@ int main(int argc, char** argv)
     try {
         prog.parse_args(argc, argv);
     } catch (std::exception const& err) {
-        spdlog::error("{}\n", err.what());
+        ELOG("{}\n", err.what());
         std::cerr << prog;
         std::exit(1);
     }
 
-    TRY_;
+    MY_TRY;
     auto ip = net::Ip4::fromDottedDec(prog.get<std::string>("ip"));
     net::Driver driver(ip);
     if (!prog.get<bool>("--attack")) {
         auto mac = driver.getMac(ip);
         if (!mac) {
-            if (mac.error().typeOf(net::Error::kTimeout)) {
-                spdlog::info("{} is offline", ip.toStr());
+            if (mac.error().timeout()) {
+                ILOG("{} is offline", ip.toStr());
             } else {
-                spdlog::error(mac.error().what());
+                ELOG("{}", mac.error().what());
             }
         } else {
-            spdlog::info("{} is at {}", ip.toStr(), (*mac).toStr());
+            ILOG("{} is at {}", ip.toStr(), (*mac).toStr());
         }
 
     } else {
@@ -58,5 +58,5 @@ int main(int argc, char** argv)
         //     LOG(INFO) << "gateway's mac restored to {}"_format(gateway_mac.to_str());
         // }
     }
-    CATCH_;
+    MY_CATCH;
 }
