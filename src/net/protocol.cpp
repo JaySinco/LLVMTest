@@ -66,7 +66,8 @@ ProtocolStack ProtocolStack::decode(Packet const& pac)
     BytesReader reader(pac.bytes);
     Ethernet::decode(reader, stack);
     if (!reader.empty()) {
-        THROW_(fmt::format("packet bytes not consumed: {}", reader.size()));
+        THROW_(fmt::format("{} bytes not consumed, current stack: {}", reader.size(),
+                           stack.toJson().dump(3)));
     }
     return stack;
 }
@@ -86,8 +87,8 @@ Packet ProtocolStack::encode() const
 Json ProtocolStack::toJson() const
 {
     Json j;
-    for (auto& p: stack_) {
-        j.push_back(p->toJson());
+    for (auto it = stack_.rbegin(); it != stack_.rend(); ++it) {
+        j.push_back((*it)->toJson());
     }
     return j;
 }
@@ -115,6 +116,12 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
         THROW_(fmt::format("protocol stack don't have {}", Protocol::descType(type)));
     }
     return std::distance(stack_.begin(), it);
+}
+
+bool ProtocolStack::has(Protocol::Type type) const
+{
+    return std::find_if(stack_.begin(), stack_.end(),
+                        [&](ProtocolPtr p) { return p->type() == type; }) != stack_.end();
 }
 
 void Unimplemented::decode(BytesReader& reader, ProtocolStack& stack)

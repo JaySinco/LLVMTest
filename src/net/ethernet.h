@@ -8,7 +8,7 @@ class Ethernet: public Protocol
 {
 public:
     Ethernet() = default;
-    Ethernet(Mac const& smac, Mac const& dmac, Type eth_type);
+    Ethernet(Mac smac, Mac dmac, Type eth_type);
     explicit Ethernet(BytesReader& reader);
     ~Ethernet() override = default;
 

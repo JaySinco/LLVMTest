@@ -31,7 +31,7 @@ uint32_t ntohl(uint32_t netlong) { return ::ntohl(netlong); }
 
 uint16_t ntohs(uint16_t netshort) { return ::ntohs(netshort); }
 
-static Ip4 ip4FromInAddr(in_addr const& addr)
+static Ip4 ip4FromInAddr(in_addr addr)
 {
     Ip4 ip;
     ip.b1 = addr.S_un.S_un_b.s_b1;
@@ -41,7 +41,7 @@ static Ip4 ip4FromInAddr(in_addr const& addr)
     return ip;
 }
 
-static in_addr ip4ToInAddr(Ip4 const ip)
+static in_addr ip4ToInAddr(Ip4 ip)
 {
     in_addr addr;
     addr.S_un.S_un_b.s_b1 = ip.b1;

@@ -40,7 +40,7 @@ void Ethernet::decode(BytesReader& reader, ProtocolStack& stack)
     }
 }
 
-Ethernet::Ethernet(Mac const& smac, Mac const& dmac, Type eth_type)
+Ethernet::Ethernet(Mac smac, Mac dmac, Type eth_type)
 {
     bool found = false;
     for (auto [k, v]: table) {

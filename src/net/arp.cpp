@@ -15,6 +15,7 @@ Arp::Arp(BytesReader& reader)
     sip_ = reader.readIp4();
     dmac_ = reader.readMac();
     dip_ = reader.readIp4();
+    reader.readAll();  // consume ethernet padding
 }
 
 void Arp::decode(BytesReader& reader, ProtocolStack& stack)
@@ -23,7 +24,7 @@ void Arp::decode(BytesReader& reader, ProtocolStack& stack)
     stack.push(p);
 }
 
-Arp::Arp(Mac const& smac, Ip4 const& sip, Mac const& dmac, Ip4 const& dip, bool reply, bool reverse)
+Arp::Arp(Mac smac, Ip4 sip, Mac dmac, Ip4 dip, bool reply, bool reverse)
 {
     hw_type_ = 1;
     prot_type_ = 0x0800;

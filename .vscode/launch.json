@@ -5,10 +5,8 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/clrs",
-            "args": [
-                "~[benchmark]"
-            ],
+            "program": "${workspaceFolder}/bin/net-tools-arp",
+            "args": [],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
             "stopAtEntry": false,

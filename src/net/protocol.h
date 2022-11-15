@@ -53,6 +53,8 @@ public:
     ProtocolPtr get(Protocol::Type type) const;
     size_t getIdx(Protocol::Type type) const;
 
+    bool has(Protocol::Type type) const;
+
     void push(ProtocolPtr p) { stack_.push_back(p); }
 
     size_t size() const { return stack_.size(); };

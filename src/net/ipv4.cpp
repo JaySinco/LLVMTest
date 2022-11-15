@@ -49,7 +49,7 @@ void Ipv4::decode(BytesReader& reader, ProtocolStack& stack)
     }
 }
 
-Ipv4::Ipv4(Ip4 const& sip, Ip4 const& dip, uint8_t ttl, Type ipv4_type, bool forbid_slice)
+Ipv4::Ipv4(Ip4 sip, Ip4 dip, uint8_t ttl, Type ipv4_type, bool forbid_slice)
 {
     bool found = false;
     for (auto [k, v]: table) {

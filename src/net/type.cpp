@@ -22,9 +22,9 @@ std::string Mac::toStr() const
 {
     auto c = reinterpret_cast<uint8_t const*>(this);
     std::ostringstream ss;
-    ss << fmt::format("{:02X}", c[0]);
+    ss << fmt::format("{:02x}", c[0]);
     for (int i = 1; i < 6; ++i) {
-        ss << fmt::format("-{:02X}", c[i]);
+        ss << fmt::format("-{:02x}", c[i]);
     }
     return ss.str();
 }
@@ -73,10 +73,7 @@ uint32_t Ip4::operator&(Ip4 const& rhs) const
     return static_cast<uint32_t>(*this) & static_cast<uint32_t>(rhs);
 }
 
-bool Ip4::onSameLAN(Ip4 const& rhs, Ip4 const& mask) const
-{
-    return (*this & mask) == (rhs & mask);
-}
+bool Ip4::onSameLAN(Ip4 rhs, Ip4 mask) const { return (*this & mask) == (rhs & mask); }
 
 bool Ip4::isSelf() const
 {
@@ -106,19 +103,6 @@ Json Adaptor::toJson() const
     j["mask"] = mask.toStr();
     j["gateway"] = gateway.toStr();
     return j;
-}
-
-Adaptor const& Adaptor::fit(Ip4 const& hint)
-{
-    auto& apts = allAdaptors();
-    auto it = std::find_if(apts.begin(), apts.end(), [&](Adaptor const& apt) {
-        return apt.mask != Ip4::kNull && apt.gateway != Ip4::kNull &&
-               (hint != Ip4::kNull ? apt.ip.onSameLAN(hint, apt.mask) : true);
-    });
-    if (it == apts.end()) {
-        THROW_(fmt::format("no local adapter match {}", hint.toStr()));
-    }
-    return *it;
 }
 
 BytesReader::BytesReader(std::vector<uint8_t> const& bytes)
@@ -224,7 +208,7 @@ void BytesBuilder::writeIp4(Ip4 b)
     data_.insert(data_.end(), d, d + sizeof(Ip4));
 }
 
-void BytesBuilder::writeMac(Mac const& b)
+void BytesBuilder::writeMac(Mac b)
 {
     uint8_t const* d = reinterpret_cast<uint8_t const*>(&b);
     data_.insert(data_.end(), d, d + sizeof(Mac));

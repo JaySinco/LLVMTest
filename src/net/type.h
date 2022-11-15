@@ -35,7 +35,7 @@ struct Ip4
     bool operator!=(Ip4 const& rhs) const;
     bool operator<(Ip4 const& rhs) const;
     uint32_t operator&(Ip4 const& rhs) const;
-    bool onSameLAN(Ip4 const& rhs, Ip4 const& mask) const;
+    bool onSameLAN(Ip4 rhs, Ip4 mask) const;
     bool isSelf() const;
     std::string toStr() const;
 };
@@ -50,7 +50,6 @@ struct Adaptor
     Mac mac;
 
     Json toJson() const;
-    static Adaptor const& fit(Ip4 const& hint = Ip4::kNull);
 };
 
 struct Packet
@@ -97,7 +96,7 @@ public:
     void write16u(uint16_t b, bool hton = true);
     void write32u(uint32_t b, bool hton = true);
     void writeIp4(Ip4 b);
-    void writeMac(Mac const& b);
+    void writeMac(Mac b);
     void writeBytes(uint8_t const* b, size_t size);
     void writeBytes(std::vector<uint8_t> const& b);
 

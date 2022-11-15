@@ -8,7 +8,7 @@ class Ipv4: public Protocol
 {
 public:
     Ipv4() = default;
-    Ipv4(Ip4 const& sip, Ip4 const& dip, uint8_t ttl, Type ipv4_type, bool forbid_slice);
+    Ipv4(Ip4 sip, Ip4 dip, uint8_t ttl, Type ipv4_type, bool forbid_slice);
     explicit Ipv4(BytesReader& reader);
     ~Ipv4() override = default;
 

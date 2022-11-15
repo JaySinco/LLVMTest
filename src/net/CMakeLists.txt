@@ -4,7 +4,7 @@ set(MAIN ${CURRENT_DIR_NAME})
 add_library(${MAIN}
     type.cpp
     platform_$<IF:$<BOOL:${WIN32}>,win32,linux>.cpp
-    transport.cpp
+    driver.cpp
     protocol.cpp
     ethernet.cpp
     arp.cpp

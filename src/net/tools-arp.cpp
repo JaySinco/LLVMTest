@@ -1,4 +1,4 @@
-#include "transport.h"
+#include "driver.h"
 #include <signal.h>
 #include <argparse/argparse.hpp>
 
@@ -9,11 +9,11 @@ void onInterrupt(int) { end_attack = true; }
 int main(int argc, char** argv)
 {
     argparse::ArgumentParser prog("net-tools-arp");
-    prog.add_argument("ip").default_value("0.0.0.0").help("ip4 address");
+    prog.add_argument("ip").required().help("ip4 address");
     prog.add_argument("-a", "--attack")
         .default_value(false)
         .implicit_value(true)
-        .help("arp attack");
+        .help("mobilize arp attack");
 
     try {
         prog.parse_args(argc, argv);
@@ -24,13 +24,20 @@ int main(int argc, char** argv)
     }
 
     TRY_;
-    auto ip =
-        prog.is_used("ip") ? net::Ip4::fromDottedDec(prog.get<std::string>("ip")) : net::Ip4::kNull;
-    auto& apt = net::Adaptor::fit(ip);
-    net::Transport tr(apt);
+    auto ip = net::Ip4::fromDottedDec(prog.get<std::string>("ip"));
+    net::Driver driver(ip);
     if (!prog.get<bool>("--attack")) {
-        net::Mac mac = tr.getMacFromIp4(ip);
-        spdlog::info("{} is at {}", ip.toStr(), mac.toStr());
+        auto mac = driver.getMac(ip);
+        if (!mac) {
+            if (mac.error().typeOf(net::Error::kTimeout)) {
+                spdlog::info("{} is offline", ip.toStr());
+            } else {
+                spdlog::error(mac.error().what());
+            }
+        } else {
+            spdlog::info("{} is at {}", ip.toStr(), (*mac).toStr());
+        }
+
     } else {
         signal(SIGINT, onInterrupt);
         // mac gateway_mac;
