@@ -11,6 +11,10 @@
 #include <sstream>
 #include <iconv.h>
 #include <libcharset.h>
+#include <fmt/chrono.h>
+#include <spdlog/details/os.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace utils
 {
@@ -127,6 +131,42 @@ std::wstring getExeDir()
     (wcsrchr(buf, L'\\'))[0] = 0;
     return buf;
 #endif
+}
+
+void initLogger(std::string const& program, std::string const& logdir,
+                spdlog::level::level_enum minloglevel, spdlog::level::level_enum stderrlevel,
+                spdlog::level::level_enum logbuflevel, int logbufsecs)
+{
+    if (spdlog::get(program)) {
+        return;
+    }
+    std::filesystem::path fpath(logdir);
+    std::string fname =
+        FSTR("{}.{:%Y%m%d-%H%M%S}.{}.log", std::filesystem::path(program).stem().string(),
+             spdlog::details::os::localtime(), spdlog::details::os::pid());
+    fpath /= fname;
+
+    std::vector<spdlog::sink_ptr> sinks;
+    auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+        fpath.string(), 100 * 1024 * 1024, 10, true);
+    file_sink->set_level(spdlog::level::trace);
+    file_sink->set_pattern("%L%m%d %H:%M:%S.%f %t %s:%#] %v");
+    sinks.push_back(file_sink);
+
+    auto console_sink = std::make_shared<spdlog::sinks::stderr_color_sink_mt>();
+    console_sink->set_level(stderrlevel);
+    console_sink->set_pattern("%L%m%d %H:%M:%S.%f %t %s:%#] %v");
+    sinks.push_back(console_sink);
+
+    auto logger = std::make_shared<spdlog::logger>(program, sinks.begin(), sinks.end());
+    logger->set_level(minloglevel);
+    logger->flush_on(logbuflevel);
+    spdlog::set_default_logger(logger);
+    spdlog::flush_every(std::chrono::seconds(logbufsecs));
+
+    VLOG("### GIT HASH: {} ###", _GIT_HASH);
+    VLOG("### GIT BRANCH: {} ###", _GIT_BRANCH);
+    VLOG("### BUILD AT: {} {} ###", __DATE__, __TIME__);
 }
 
 }  // namespace utils

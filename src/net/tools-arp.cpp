@@ -32,7 +32,7 @@ int main(int argc, char** argv)
             if (mac.error().timeout()) {
                 ILOG("{} is offline", ip.toStr());
             } else {
-                ELOG("{}", mac.error().what());
+                ELOG(mac.error().what());
             }
         } else {
             ILOG("{} is at {}", ip.toStr(), (*mac).toStr());

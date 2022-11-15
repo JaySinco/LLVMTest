@@ -16,12 +16,13 @@
     }                                 \
     catch (const std::exception& err) \
     {                                 \
-        ELOG("{}", err.what());       \
+        ELOG(err.what());             \
     }
-#define VLOG(f, ...) (spdlog::debug(LOG_FSTR(f, __VA_ARGS__)))
-#define ILOG(f, ...) (spdlog::info(LOG_FSTR(f, __VA_ARGS__)))
-#define WLOG(f, ...) (spdlog::warn(LOG_FSTR(f, __VA_ARGS__)))
-#define ELOG(f, ...) (spdlog::error(LOG_FSTR(f, __VA_ARGS__)))
+#define LOG_FUNC(level, ...) SPDLOG_LOGGER_CALL(spdlog::default_logger_raw(), level, __VA_ARGS__)
+#define VLOG(...) (LOG_FUNC(spdlog::level::debug, __VA_ARGS__))
+#define ILOG(...) (LOG_FUNC(spdlog::level::info, __VA_ARGS__))
+#define WLOG(...) (LOG_FUNC(spdlog::level::warn, __VA_ARGS__))
+#define ELOG(...) (LOG_FUNC(spdlog::level::err, __VA_ARGS__))
 
 namespace utils
 {
@@ -78,32 +79,10 @@ enum class CodePage
 std::string ws2s(std::wstring_view ws, CodePage cp = CodePage::kLOCAL);
 std::wstring s2ws(std::string_view s, CodePage cp = CodePage::kLOCAL);
 
-void initLogger(
-    // Program name
-    std::string const& program,
-
-    // If specified, logfiles are written into this directory
-    // instead of the default logging directory.
-    std::string const& logdir = "",
-
-    // Messages logged at a lower level than this don't actually get logged anywhere.
-    spdlog::level::level_enum minloglevel = spdlog::level::debug,
-
-    // Log messages at a level >= this flag are automatically sent to
-    // stderr in addition to log files.
-    spdlog::level::level_enum stderrthreshold = spdlog::level::info,
-
-    // Set whether log messages go to stderr in addition to logfiles.
-    bool alsologtostderr = true,
-
-    // Log messages at a level <= this flag are buffered.
-    // Log messages at a higher level are flushed immediately.
-    spdlog::level::level_enum logbuflevel = spdlog::level::warn,
-
-    // Sets the maximum number of seconds which logs may be buffered for.
-    int logbufsecs = 30,
-
-    // Sets the maximum log file size (in MB).
-    int maxlogsize = 100);
+void initLogger(std::string const& program,
+                std::string const& logdir = ws2s(getExeDir() + L"/logs"),
+                spdlog::level::level_enum minloglevel = spdlog::level::debug,
+                spdlog::level::level_enum stderrlevel = spdlog::level::info,
+                spdlog::level::level_enum logbuflevel = spdlog::level::err, int logbufsecs = 30);
 
 }  // namespace utils
