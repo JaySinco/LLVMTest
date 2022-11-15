@@ -78,4 +78,32 @@ enum class CodePage
 std::string ws2s(std::wstring_view ws, CodePage cp = CodePage::kLOCAL);
 std::wstring s2ws(std::string_view s, CodePage cp = CodePage::kLOCAL);
 
+void initLogger(
+    // Program name
+    std::string const& program,
+
+    // If specified, logfiles are written into this directory
+    // instead of the default logging directory.
+    std::string const& logdir = "",
+
+    // Messages logged at a lower level than this don't actually get logged anywhere.
+    spdlog::level::level_enum minloglevel = spdlog::level::debug,
+
+    // Log messages at a level >= this flag are automatically sent to
+    // stderr in addition to log files.
+    spdlog::level::level_enum stderrthreshold = spdlog::level::info,
+
+    // Set whether log messages go to stderr in addition to logfiles.
+    bool alsologtostderr = true,
+
+    // Log messages at a level <= this flag are buffered.
+    // Log messages at a higher level are flushed immediately.
+    spdlog::level::level_enum logbuflevel = spdlog::level::warn,
+
+    // Sets the maximum number of seconds which logs may be buffered for.
+    int logbufsecs = 30,
+
+    // Sets the maximum log file size (in MB).
+    int maxlogsize = 100);
+
 }  // namespace utils

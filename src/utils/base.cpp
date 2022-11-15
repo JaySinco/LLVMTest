@@ -15,7 +15,7 @@
 namespace utils
 {
 
-std::filesystem::path const kSourceRepo(SOURCE_REPO);
+std::filesystem::path const kSourceRepo(_SOURCE_REPO);
 
 class IconvWrapper
 {

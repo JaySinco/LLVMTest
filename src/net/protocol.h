@@ -1,6 +1,5 @@
 #pragma once
 #include "type.h"
-#define ntohx(field, reverse, suffix) field = ((reverse) ? hton##suffix : ntoh##suffix)(field);
 
 namespace net
 {
