@@ -3,6 +3,7 @@
 
 int main(int argc, char** argv)
 {
+    utils::initLogger(argv[0]);
     moodycamel::ConcurrentQueue<int> q;
     int dequeued[100] = {0};
     std::thread threads[20];

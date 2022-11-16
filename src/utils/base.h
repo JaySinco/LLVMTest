@@ -27,8 +27,6 @@
 namespace utils
 {
 
-extern std::filesystem::path const kSourceRepo;
-
 struct Error: public std::runtime_error
 {
     explicit Error(std::string const& s): std::runtime_error(s){};
@@ -65,6 +63,7 @@ template <class... Ts>
 Overloaded(Ts...) -> Overloaded<Ts...>;
 
 std::wstring getExeDir();
+std::filesystem::path sourceRepo();
 
 Expected<std::string> readFile(std::wstring_view path);
 
@@ -80,9 +79,6 @@ std::string ws2s(std::wstring_view ws, CodePage cp = CodePage::kLOCAL);
 std::wstring s2ws(std::string_view s, CodePage cp = CodePage::kLOCAL);
 
 void initLogger(std::string const& program,
-                std::string const& logdir = ws2s(getExeDir() + L"/logs"),
-                spdlog::level::level_enum minloglevel = spdlog::level::debug,
-                spdlog::level::level_enum stderrlevel = spdlog::level::info,
-                spdlog::level::level_enum logbuflevel = spdlog::level::err, int logbufsecs = 30);
+                std::string const& log_dir = ws2s(getExeDir() + L"/logs"));
 
 }  // namespace utils

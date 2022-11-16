@@ -1,6 +1,5 @@
 #pragma once
 #include "game.h"
-#include <torch/torch.h>
 
 constexpr int kBatchSize = 512;
 constexpr int kBufferSize = 10000;
@@ -65,35 +64,13 @@ public:
 
 std::ostream& operator<<(std::ostream& out, DataSet const& set);
 
-class FIRNetModule: public torch::nn::Module
-{
-public:
-    FIRNetModule();
-    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor input);
-
-private:
-    torch::nn::Conv2d conv1_;
-    torch::nn::Conv2d conv2_;
-    torch::nn::Conv2d conv3_;
-    torch::nn::Conv2d act_conv1_;
-    torch::nn::Linear act_fc1_;
-    torch::nn::Conv2d val_conv1_;
-    torch::nn::Linear val_fc1_;
-    torch::nn::Linear val_fc2_;
-};
-
 class FIRNet
 {
-    int64_t update_cnt_;
-    FIRNetModule module_;
-    torch::optim::Adam optimizer_;
-
 public:
     explicit FIRNet(int64_t verno);
     ~FIRNet();
 
-    int64_t verno() const { return update_cnt_; }
-
+    int64_t verno() const;
     void saveParam();
     void loadParam();
     void setLR(float lr);
@@ -103,4 +80,8 @@ public:
     float trainStep(MiniBatch* batch);
     void evalState(State const& state, float value[1],
                    std::vector<std::pair<Move, float>>& move_priors);
+
+private:
+    struct Impl;
+    Impl* impl_;
 };

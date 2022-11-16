@@ -96,6 +96,8 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
+    utils::initLogger(argv[0]);
+
     // run cmd
     if (prog.is_subcommand_used("train")) {
         auto verno = train_cmd.get<int64_t>("verno");

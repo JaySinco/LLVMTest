@@ -470,6 +470,7 @@ TEST_CASE("sort_benchmark", "[benchmark]")
 
 int main(int argc, char* argv[])
 {
+    utils::initLogger(argv[0]);
     Catch::Session session;
     auto& config = session.configData();
     config.benchmarkSamples = 10;

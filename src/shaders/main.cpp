@@ -16,6 +16,7 @@ int main(int argc, char** argv)
     }
 
     MY_TRY;
+    utils::initLogger(argv[0]);
     auto raw = utils::readFile((CURR_RESDIR / "manifests.json").wstring());
     auto manifests = nlohmann::json::parse(raw.value());
     if (prog.is_used("manifest")) {

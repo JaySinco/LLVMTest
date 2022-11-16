@@ -19,8 +19,6 @@
 namespace utils
 {
 
-std::filesystem::path const kSourceRepo(_SOURCE_REPO);
-
 class IconvWrapper
 {
 public:
@@ -133,30 +131,40 @@ std::wstring getExeDir()
 #endif
 }
 
-void initLogger(std::string const& program, std::string const& logdir,
-                spdlog::level::level_enum minloglevel, spdlog::level::level_enum stderrlevel,
-                spdlog::level::level_enum logbuflevel, int logbufsecs)
+std::filesystem::path sourceRepo() { return std::filesystem::path(_SOURCE_REPO); }
+
+void initLogger(std::string const& program, std::string const& log_dir)
 {
+    bool alsologtostderr = true;
+    auto minloglevel = spdlog::level::debug;
+    auto stderrlevel = spdlog::level::info;
+    auto logbuflevel = spdlog::level::err;
+    int logbufsecs = 30;
+    int maxlogsize = 100;  // MB
+
     if (spdlog::get(program)) {
         return;
     }
-    std::filesystem::path fpath(logdir);
-    std::string fname =
-        FSTR("{}.{:%Y%m%d-%H%M%S}.{}.log", std::filesystem::path(program).stem().string(),
-             spdlog::details::os::localtime(), spdlog::details::os::pid());
-    fpath /= fname;
-
     std::vector<spdlog::sink_ptr> sinks;
-    auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-        fpath.string(), 100 * 1024 * 1024, 10, true);
-    file_sink->set_level(spdlog::level::trace);
-    file_sink->set_pattern("%L%m%d %H:%M:%S.%f %t %s:%#] %v");
-    sinks.push_back(file_sink);
+    if (!log_dir.empty()) {
+        std::filesystem::path fpath(log_dir);
+        std::string fname =
+            FSTR("{}_{:%Y%m%d.%H%M%S}_{}.log", std::filesystem::path(program).stem().string(),
+                 spdlog::details::os::localtime(), spdlog::details::os::pid());
+        fpath /= fname;
 
-    auto console_sink = std::make_shared<spdlog::sinks::stderr_color_sink_mt>();
-    console_sink->set_level(stderrlevel);
-    console_sink->set_pattern("%L%m%d %H:%M:%S.%f %t %s:%#] %v");
-    sinks.push_back(console_sink);
+        auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+            fpath.string(), maxlogsize * 1024 * 1024, 10, true);
+        file_sink->set_level(spdlog::level::trace);
+        file_sink->set_pattern("%L%m%d %H:%M:%S.%f %t %s:%#] %v");
+        sinks.push_back(file_sink);
+    }
+    if (alsologtostderr) {
+        auto console_sink = std::make_shared<spdlog::sinks::stderr_color_sink_mt>();
+        console_sink->set_level(stderrlevel);
+        console_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [%s:%#] %v");
+        sinks.push_back(console_sink);
+    }
 
     auto logger = std::make_shared<spdlog::logger>(program, sinks.begin(), sinks.end());
     logger->set_level(minloglevel);

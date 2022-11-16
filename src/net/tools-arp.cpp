@@ -24,6 +24,7 @@ int main(int argc, char** argv)
     }
 
     MY_TRY;
+    utils::initLogger(argv[0]);
     auto ip = net::Ip4::fromDottedDec(prog.get<std::string>("ip"));
     net::Driver driver(ip);
     if (!prog.get<bool>("--attack")) {

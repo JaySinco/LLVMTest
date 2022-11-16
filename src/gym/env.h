@@ -1,6 +1,6 @@
 #pragma once
 #include "utils/base.h"
-#include <torch/torch.h>
+#include <torch/types.h>
 #include <mujoco/mujoco.h>
 #include <GLFW/glfw3.h>
 #include <string>

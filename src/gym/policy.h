@@ -1,5 +1,6 @@
 #pragma once
 #include "env.h"
+#include <torch/data.h>
 
 namespace policy
 {

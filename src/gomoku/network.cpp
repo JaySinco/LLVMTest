@@ -1,6 +1,7 @@
 #include "network.h"
 #include <iomanip>
 #include <filesystem>
+#include <torch/torch.h>
 
 void SampleData::flipVerticing()
 {
@@ -130,6 +131,23 @@ std::ostream& operator<<(std::ostream& out, DataSet const& set)
     return out;
 }
 
+class FIRNetModule: public torch::nn::Module
+{
+public:
+    FIRNetModule();
+    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor input);
+
+private:
+    torch::nn::Conv2d conv1_;
+    torch::nn::Conv2d conv2_;
+    torch::nn::Conv2d conv3_;
+    torch::nn::Conv2d act_conv1_;
+    torch::nn::Linear act_fc1_;
+    torch::nn::Conv2d val_conv1_;
+    torch::nn::Linear val_fc1_;
+    torch::nn::Linear val_fc2_;
+};
+
 FIRNetModule::FIRNetModule()
     : conv1_(torch::nn::Conv2dOptions(kInputFeatureNum, 32, 3).padding(1)),
       conv2_(torch::nn::Conv2dOptions(32, 64, 3).padding(1)),
@@ -139,6 +157,7 @@ FIRNetModule::FIRNetModule()
       val_conv1_(128, 2, 1),
       val_fc1_(2 * kBoardMaxRow * kBoardMaxCol, 64),
       val_fc2_(64, 1)
+
 {
     register_module("conv1", conv1_);
     register_module("conv2", conv2_);
@@ -150,22 +169,33 @@ FIRNetModule::FIRNetModule()
     register_module("val_fc2", val_fc2_);
 }
 
-FIRNet::FIRNet(int64_t verno): update_cnt_(verno), optimizer_(module_.parameters(), kWeightDecay)
+struct FIRNet::Impl
 {
-    if (update_cnt_ > 0) {
+    explicit Impl(int64_t verno): update_cnt(verno), optimizer(module.parameters(), kWeightDecay) {}
+
+    FIRNetModule module;
+    int64_t update_cnt;
+    torch::optim::Adam optimizer;
+};
+
+FIRNet::FIRNet(int64_t verno): impl_(new Impl(verno))
+{
+    if (impl_->update_cnt > 0) {
         loadParam();
     }
     this->setLR(calcInitLR());
 }
 
+int64_t FIRNet::verno() const { return impl_->update_cnt; }
+
 float FIRNet::calcInitLR() const
 {
     float multiplier;
-    if (update_cnt_ < kDropStepLR1) {
+    if (impl_->update_cnt < kDropStepLR1) {
         multiplier = 1.0f;
-    } else if (update_cnt_ >= kDropStepLR1 && update_cnt_ < kDropStepLR2) {
+    } else if (impl_->update_cnt >= kDropStepLR1 && impl_->update_cnt < kDropStepLR2) {
         multiplier = 1e-1;
-    } else if (update_cnt_ >= kDropStepLR2 && update_cnt_ < kDropStepLR3) {
+    } else if (impl_->update_cnt >= kDropStepLR2 && impl_->update_cnt < kDropStepLR3) {
         multiplier = 1e-2;
     } else {
         multiplier = 1e-3;
@@ -178,7 +208,7 @@ float FIRNet::calcInitLR() const
 void FIRNet::adjustLR()
 {
     float multiplier = 1.0f;
-    switch (update_cnt_) {
+    switch (impl_->update_cnt) {
         case kDropStepLR1:
             multiplier = 1e-1;
             break;
@@ -198,7 +228,7 @@ void FIRNet::adjustLR()
 
 void FIRNet::setLR(float lr)
 {
-    for (auto& group: optimizer_.param_groups()) {
+    for (auto& group: impl_->optimizer.param_groups()) {
         if (group.has_options()) {
             auto& options = static_cast<torch::optim::AdamOptions&>(group.options());
             options.lr(lr);
@@ -206,12 +236,12 @@ void FIRNet::setLR(float lr)
     }
 }
 
-FIRNet::~FIRNet() = default;
+FIRNet::~FIRNet() { delete impl_; };
 
 std::string FIRNet::makeParamFileName() const
 {
     std::ostringstream filename;
-    filename << "FIR-" << kBoardMaxRow << "x" << kBoardMaxCol << "@" << update_cnt_ << ".pt";
+    filename << "FIR-" << kBoardMaxRow << "x" << kBoardMaxCol << "@" << impl_->update_cnt << ".pt";
     return utils::ws2s(utils::getExeDir()) + "\\" + filename.str();
 }
 
@@ -224,7 +254,7 @@ void FIRNet::loadParam()
     }
     torch::serialize::InputArchive input_archive;
     input_archive.load_from(file_name);
-    module_.load(input_archive);
+    impl_->module.load(input_archive);
 }
 
 void FIRNet::saveParam()
@@ -232,7 +262,7 @@ void FIRNet::saveParam()
     auto file_name = makeParamFileName();
     ILOG("saving parameters into {}", file_name);
     torch::serialize::OutputArchive output_archive;
-    module_.save(output_archive);
+    impl_->module.save(output_archive);
     output_archive.save_to(file_name);
 }
 
@@ -319,7 +349,7 @@ void FIRNet::evalState(State const& state, float value[1],
                        std::vector<std::pair<Move, float>>& net_move_priors)
 {
     torch::NoGradGuard no_grad;
-    module_.eval();
+    impl_->module.eval();
     float buf[kInputFeatureNum * kBoardSize] = {0.0f};
     state.fillFeatureArray(buf);
     std::uniform_int_distribution<int> uniform(0, 7);
@@ -327,7 +357,7 @@ void FIRNet::evalState(State const& state, float value[1],
     mappingData(transform_id, buf);
     auto data = torch::from_blob(
         buf, {1, kInputFeatureNum, kBoardMaxRow, kBoardMaxCol}, [](void* buf) {}, torch::kFloat32);
-    auto&& [x_act, x_val] = module_.forward(data);
+    auto&& [x_act, x_val] = impl_->module.forward(data);
     float priors_sum = 0.0f;
     for (auto const mv: state.getOptions()) {
         Move mapped = mappingMove(transform_id, mv);
@@ -351,7 +381,7 @@ void FIRNet::evalState(State const& state, float value[1],
 
 float FIRNet::trainStep(MiniBatch* batch)
 {
-    module_.train();
+    impl_->module.train();
     auto data = torch::from_blob(
         batch->data, {kBatchSize, kInputFeatureNum, kBoardMaxRow, kBoardMaxCol}, [](void* buf) {},
         torch::kFloat32);
@@ -359,14 +389,14 @@ float FIRNet::trainStep(MiniBatch* batch)
         batch->p_label, {kBatchSize, kBoardSize}, [](void* buf) {}, torch::kFloat32);
     auto val_label = torch::from_blob(
         batch->p_label, {kBatchSize, 1}, [](void* buf) {}, torch::kFloat32);
-    auto&& [x_act, x_val] = module_.forward(data);
+    auto&& [x_act, x_val] = impl_->module.forward(data);
     auto value_loss = torch::mse_loss(x_val, val_label);
     auto policy_loss = -torch::mean(torch::sum(plc_label * torch::log(x_act), 1));
     auto loss = value_loss + policy_loss;
-    optimizer_.zero_grad();
+    impl_->optimizer.zero_grad();
     loss.backward();
-    optimizer_.step();
+    impl_->optimizer.step();
     adjustLR();
-    ++update_cnt_;
+    ++impl_->update_cnt;
     return loss.item<float>();
 }

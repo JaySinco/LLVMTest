@@ -262,7 +262,7 @@ RenderTexture2D BaseShader::loadBufferTexture(int width, int height, std::string
 Texture BaseShader::loadTexture(std::string const& texture, std::string const& type,
                                 std::string const& filter, std::string const& wrap)
 {
-    auto abspath = (utils::kSourceRepo / FSTR("res/{}", texture)).string();
+    auto abspath = (utils::sourceRepo() / FSTR("res/{}", texture)).string();
     Texture text;
     if (type == "2d") {
         text = LoadTexture(abspath.c_str());
@@ -278,5 +278,5 @@ Texture BaseShader::loadTexture(std::string const& texture, std::string const& t
 
 Model BaseShader::loadModel(std::string const& model)
 {
-    return LoadModel((utils::kSourceRepo / FSTR("res/{}", model)).string().c_str());
+    return LoadModel((utils::sourceRepo() / FSTR("res/{}", model)).string().c_str());
 }

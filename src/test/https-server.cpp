@@ -4,6 +4,7 @@
 
 int main(int argc, char** argv)
 {
+    utils::initLogger(argv[0]);
     auto key_file = (CURR_RESDIR / "key.pem").generic_string();
     auto cert_file = (CURR_RESDIR / "cert.pem").generic_string();
 

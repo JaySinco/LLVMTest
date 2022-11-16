@@ -1,5 +1,6 @@
 #include "mcts.h"
 #include <iomanip>
+#include <sstream>
 
 MCTSNode::~MCTSNode()
 {

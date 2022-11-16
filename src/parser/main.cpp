@@ -89,4 +89,8 @@ void parsing(std::filesystem::path const& source_file)
     ILOG("{} {}", ok, utils::ws2s(attr.surname));
 }
 
-int main(int argc, char** argv) { parsing(CURR_RESDIR / "input.txt"); }
+int main(int argc, char** argv)
+{
+    utils::initLogger(argv[0]);
+    parsing(CURR_RESDIR / "input.txt");
+}

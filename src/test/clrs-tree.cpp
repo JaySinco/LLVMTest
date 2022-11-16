@@ -483,6 +483,7 @@ TEST_CASE("binary_search_tree")
 
 int main(int argc, char* argv[])
 {
+    utils::initLogger(argv[0]);
     Catch::Session session;
     auto& config = session.configData();
     config.shouldDebugBreak = true;
