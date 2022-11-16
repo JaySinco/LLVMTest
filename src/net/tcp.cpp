@@ -6,7 +6,7 @@ namespace net
 {
 
 std::map<uint16_t, Protocol::Type> Tcp::table = {
-    {53, kDNS},
+    {22, kSSH}, {23, kTelnet}, {53, kDNS}, {80, kHTTP}, {443, kHTTPS}, {3389, kRDP},
 };
 
 Tcp::Tcp(BytesReader& reader)
@@ -28,7 +28,6 @@ void Tcp::decode(BytesReader& reader, ProtocolStack& stack)
     stack.push(p);
 
     switch (p->tcpType()) {
-        case kDNS:
         default:
             Unimplemented::decode(reader, stack);
             break;

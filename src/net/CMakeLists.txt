@@ -12,6 +12,7 @@ add_library(${MAIN}
     icmp.cpp
     udp.cpp
     tcp.cpp
+    dns.cpp
 )
 target_link_libraries(${MAIN} utils nlohmann-json Boost::headers)
 if (WIN32)

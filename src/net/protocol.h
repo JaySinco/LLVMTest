@@ -21,6 +21,11 @@ public:
         kTCP,
         kUDP,
         kDNS,
+        kHTTP,
+        kHTTPS,
+        kSSH,
+        kTelnet,
+        kRDP,
     };
 
     virtual ~Protocol() = default;

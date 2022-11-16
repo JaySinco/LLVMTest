@@ -63,9 +63,11 @@ class BytesReader
 public:
     explicit BytesReader(std::vector<uint8_t> const& bytes);
 
-    bool empty() const { return size_ == 0; }
+    uint8_t const* data() const { return data_; }
 
-    size_t size() const { return size_; };
+    size_t size() const { return size_; }
+
+    bool empty() const { return size_ == 0; }
 
     uint8_t read8u();
     uint16_t read16u(bool ntoh = true);

@@ -29,6 +29,16 @@ std::string Protocol::descType(Type type)
             return "udp";
         case kDNS:
             return "dns";
+        case kHTTP:
+            return "http";
+        case kHTTPS:
+            return "https";
+        case kSSH:
+            return "ssh";
+        case kTelnet:
+            return "telnet";
+        case kRDP:
+            return "rdp";
     }
     MY_THROW("should not reach here");
 }

@@ -1,77 +1,65 @@
 #pragma once
 #include "protocol.h"
 
-class dns: public protocol
+namespace net
+{
+
+class Dns: public Protocol
 {
 public:
-    struct detail
-    {
-        u_short id;     // Identification
-        u_short flags;  // Flags
-        u_short qrn;    // Query number
-        u_short rrn;    // Reply resource record number
-        u_short arn;    // Auth resource record number
-        u_short ern;    // Extra resource record number
-    };
+    Dns() = default;
+    explicit Dns(BytesReader& reader);
+    static Dns query(std::string const& domain);
+    ~Dns() override = default;
 
-    struct query_detail
-    {
-        std::string domain;  // Query domain
-        u_short type;        // Query type
-        u_short cls;         // Query class
-    };
-
-    struct res_detail
-    {
-        std::string domain;  // Domain
-        u_short type;        // Query type
-        u_short cls;         // Query class
-        u_int ttl;           // Time to live
-        u_short dlen;        // Resource data length
-        std::string data;    // Resource data
-    };
-
-    struct extra_detail
-    {
-        std::vector<query_detail> query;  // Query
-        std::vector<res_detail> reply;    // Reply
-        std::vector<res_detail> auth;     // Auth
-        std::vector<res_detail> extra;    // Extra
-    };
-
-    dns() = default;
-
-    dns(u_char const* const start, u_char const*& end, protocol const* prev = nullptr);
-
-    dns(std::string const& query_domain);
-
-    virtual ~dns() = default;
-
-    virtual void to_bytes(std::vector<u_char>& bytes) const override;
-
-    virtual json to_json() const override;
-
-    virtual std::string type() const override;
-
-    virtual std::string succ_type() const override;
-
-    virtual bool link_to(protocol const& rhs) const override;
-
-    detail const& get_detail() const;
-
-    extra_detail const& get_extra() const;
+    static void decode(BytesReader& reader, ProtocolStack& stack);
+    void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
+    Json toJson() const override;
+    Type type() const override;
+    bool correlated(Protocol const& resp) const override;
 
 private:
-    detail d{0};
+    uint16_t id_;     // Identification
+    uint16_t flags_;  // Flags
+    uint16_t qrn_;    // Query number
+    uint16_t rrn_;    // Reply resource record number
+    uint16_t arn_;    // Auth resource record number
+    uint16_t ern_;    // Extra resource record number
 
-    extra_detail extra;
+    struct Query
+    {
+        std::string domain;  // Query domain
+        uint16_t type;       // Query type
+        uint16_t cls;        // Query class
+    };
 
-    static std::string encode_domain(std::string const& domain);
+    struct Resource
+    {
+        std::string domain;         // Domain
+        uint16_t type;              // Query type
+        uint16_t cls;               // Query class
+        uint32_t ttl;               // Time to live
+        std::vector<uint8_t> data;  // Resource data
+    };
 
-    static std::string decode_domain(u_char const* const pstart, u_char const* const pend,
-                                     u_char const*& it);
+    std::vector<Query> query_;     // Query
+    std::vector<Resource> reply_;  // Reply
+    std::vector<Resource> auth_;   // Auth
+    std::vector<Resource> extra_;  // Extra
 
-    static detail ntoh(detail const& d, bool reverse = false);
+    static constexpr size_t kFixedBytes = 12;
 
-    static detail hton(detail const& d);
+    static Json toJsonQuery(Query const& query);
+    static Json toJsonResource(Resource const& res);
+
+    static void encodeQuery(BytesBuilder& builder, Query const& query);
+    static Query decodeQuery(BytesReader& reader);
+
+    static void encodeResource(BytesBuilder& builder, Resource const& res);
+    static Resource decodeResource(BytesReader& reader);
+
+    static void encodeDomain(BytesBuilder& builder, std::string const& domain);
+    static std::string decodeDomain(BytesReader& reader);
 };
+
+}  // namespace net

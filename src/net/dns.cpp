@@ -1,201 +1,244 @@
 #include "dns.h"
 #include <boost/algorithm/string.hpp>
 
-dns::dns(u_char const* const start, u_char const*& end, protocol const* prev)
+namespace net
 {
-    d = ntoh(*reinterpret_cast<detail const*>(start));
-    auto it = start + sizeof(detail);
-    for (int i = 0; i < d.qrn; ++i) {
-        query_detail qr;
-        qr.domain = decode_domain(start, end, it);
-        qr.type = ntohs(*reinterpret_cast<u_short const*>(it));
-        it += sizeof(u_short);
-        qr.cls = ntohs(*reinterpret_cast<u_short const*>(it));
-        it += sizeof(u_short);
-        extra.query.push_back(qr);
+
+Dns::Dns(BytesReader& reader)
+{
+    id_ = reader.read16u();
+    flags_ = reader.read16u();
+    qrn_ = reader.read16u();
+    rrn_ = reader.read16u();
+    arn_ = reader.read16u();
+    ern_ = reader.read16u();
+
+    for (int i = 0; i < qrn_; ++i) {
+        query_.push_back(decodeQuery(reader));
     }
-    auto parse_res = [&](std::vector<res_detail>& vec, u_short count) {
-        for (int i = 0; i < count; ++i) {
-            res_detail rr;
-            rr.domain = decode_domain(start, end, it);
-            rr.type = ntohs(*reinterpret_cast<const u_short*>(it));
-            it += sizeof(u_short);
-            rr.cls = ntohs(*reinterpret_cast<const u_short*>(it));
-            it += sizeof(u_short);
-            rr.ttl = ntohl(*reinterpret_cast<const u_int*>(it));
-            it += sizeof(u_int);
-            rr.dlen = ntohs(*reinterpret_cast<const u_short*>(it));
-            it += sizeof(u_short);
-            if (rr.type == 5) {  // CNAME
-                rr.data = decode_domain(start, end, it);
-            } else {
-                rr.data = std::string(it, it + rr.dlen);
-                it += rr.dlen;
-            }
-            vec.push_back(rr);
-        }
-    };
-    parse_res(extra.reply, d.rrn);
-    parse_res(extra.auth, d.arn);
-    parse_res(extra.extra, d.ern);
+    for (int i = 0; i < rrn_; ++i) {
+        reply_.push_back(decodeResource(reader));
+    }
+    for (int i = 0; i < arn_; ++i) {
+        auth_.push_back(decodeResource(reader));
+    }
+    for (int i = 0; i < ern_; ++i) {
+        extra_.push_back(decodeResource(reader));
+    }
 }
 
-dns::dns(std::string const& query_domain)
+Dns Dns::query(std::string const& domain)
 {
-    d.id = rand_ushort();
-    d.flags |= 0 << 15;          // qr
-    d.flags |= (0 & 0xf) << 11;  // opcode
-    d.flags |= 0 << 10;          // authoritative answer
-    d.flags |= 1 << 9;           // truncated
-    d.flags |= 1 << 8;           // recursion desired
-    d.flags |= 0 << 7;           // recursion available
-    d.flags |= (0 & 0xf);        // rcode
-    d.qrn = 1;
-    query_detail qr;
-    qr.domain = query_domain;
+    Dns p;
+    p.id_ = rand16u();
+    p.flags_ |= 0 << 15;          // qr
+    p.flags_ |= (0 & 0xf) << 11;  // opcode
+    p.flags_ |= 0 << 10;          // authoritative answer
+    p.flags_ |= 1 << 9;           // truncated
+    p.flags_ |= 1 << 8;           // recursion desired
+    p.flags_ |= 0 << 7;           // recursion available
+    p.flags_ |= (0 & 0xf);        // rcode
+    p.qrn_ = 1;
+    p.rrn_ = 0;
+    p.arn_ = 0;
+    p.ern_ = 0;
+
+    Query qr;
+    qr.domain = domain;
     qr.type = 1;  // A
     qr.cls = 1;   // internet address
-    extra.query.push_back(qr);
+    p.query_.push_back(qr);
+
+    return p;
 }
 
-void dns::to_bytes(std::vector<u_char>& bytes) const
+void Dns::decode(BytesReader& reader, ProtocolStack& stack)
 {
-    auto dt = hton(d);
-    auto it = reinterpret_cast<u_char const*>(&dt);
-    bytes.insert(bytes.cbegin(), it, it + sizeof(detail));
-    for (auto const& qr: extra.query) {
-        std::string name = encode_domain(qr.domain);
-        bytes.insert(bytes.end(), name.cbegin(), name.cend());
-        u_short type = htons(qr.type);
-        auto pt = reinterpret_cast<u_char*>(&type);
-        bytes.insert(bytes.end(), pt, pt + sizeof(u_short));
-        u_short cls = htons(qr.cls);
-        auto pc = reinterpret_cast<u_char*>(&cls);
-        bytes.insert(bytes.end(), pc, pc + sizeof(u_short));
+    auto p = std::make_shared<Dns>(reader);
+    stack.push(p);
+}
+
+void Dns::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
+{
+    BytesBuilder builder;
+    builder.write16u(id_);
+    builder.write16u(flags_);
+    builder.write16u(qrn_);
+    builder.write16u(rrn_);
+    builder.write16u(arn_);
+    builder.write16u(ern_);
+
+    for (auto const& q: query_) {
+        encodeQuery(builder, q);
     }
-    auto encode_res = [&](std::vector<res_detail> const& rd) {
-        for (const auto& rr: rd) {
-            std::string name = encode_domain(rr.domain);
-            bytes.insert(bytes.end(), name.cbegin(), name.cend());
-            u_short type = htons(rr.type);
-            auto pt = reinterpret_cast<u_char*>(&type);
-            bytes.insert(bytes.end(), pt, pt + sizeof(u_short));
-            u_short cls = htons(rr.cls);
-            auto pc = reinterpret_cast<u_char*>(&cls);
-            bytes.insert(bytes.end(), pc, pc + sizeof(u_short));
-            u_int ttl = htonl(rr.ttl);
-            auto pl = reinterpret_cast<u_char*>(&ttl);
-            bytes.insert(bytes.end(), pl, pl + sizeof(u_int));
-            u_short dlen = htons(rr.dlen);
-            auto pd = reinterpret_cast<u_char*>(&dlen);
-            bytes.insert(bytes.end(), pd, pd + sizeof(u_short));
-            bytes.insert(bytes.end(), rr.data.data(), rr.data.data() + rr.data.size());
-        }
-    };
-    encode_res(extra.reply);
-    encode_res(extra.auth);
-    encode_res(extra.extra);
+    for (auto const& r: reply_) {
+        encodeResource(builder, r);
+    }
+    for (auto const& a: auth_) {
+        encodeResource(builder, a);
+    }
+    for (auto const& e: extra_) {
+        encodeResource(builder, e);
+    }
+
+    builder.prependTo(bytes);
 }
 
-json dns::to_json() const
+Json Dns::toJson() const
 {
-    json j;
-    j["type"] = type();
-    j["id"] = d.id;
-    j["dns-type"] = d.flags & 0x8000 ? "reply" : "query";
-    j["opcode"] = (d.flags >> 11) & 0xf;
-    j["authoritative-answer"] = d.flags & 0x400 ? true : false;
-    j["truncated"] = d.flags & 0x200 ? true : false;
-    j["recursion-desired"] = d.flags & 0x100 ? true : false;
-    j["recursion-available"] = d.flags & 0x80 ? true : false;
-    j["rcode"] = d.flags & 0xf;
-    j["query-no"] = d.qrn;
-    j["reply-no"] = d.rrn;
-    j["author-no"] = d.arn;
-    j["extra-no"] = d.ern;
-    if (d.qrn > 0) {
-        json query;
-        for (auto const& qr: extra.query) {
-            json r;
-            r["domain"] = qr.domain;
-            r["query-type"] = qr.type;
-            r["query-class"] = qr.cls;
-            query.push_back(r);
+    Json j;
+    j["type"] = descType(type());
+    j["id"] = id_;
+    j["dns-type"] = flags_ & 0x8000 ? "reply" : "query";
+    j["opcode"] = (flags_ >> 11) & 0xf;
+    j["authoritative-answer"] = flags_ & 0x400 ? true : false;
+    j["truncated"] = flags_ & 0x200 ? true : false;
+    j["recursion-desired"] = flags_ & 0x100 ? true : false;
+    j["recursion-available"] = flags_ & 0x80 ? true : false;
+    j["rcode"] = flags_ & 0xf;
+    j["query-no"] = qrn_;
+    j["reply-no"] = rrn_;
+    j["author-no"] = arn_;
+    j["extra-no"] = ern_;
+
+    if (qrn_ > 0) {
+        Json query;
+        for (auto const& q: query_) {
+            query.push_back(toJsonQuery(q));
         }
         j["query"] = query;
     }
-    auto jsonify_res = [](std::vector<res_detail> const& rd) -> json {
-        json res;
-        for (const auto& rr: rd) {
-            json r;
-            r["domain"] = rr.domain;
-            r["query-type"] = rr.type;
-            r["query-class"] = rr.cls;
-            r["ttl"] = rr.ttl;
-            r["data-size"] = rr.dlen;
-            if (rr.type == 1) {  // A
-                r["data"] = reinterpret_cast<const ip4*>(rr.data.data())->to_str();
-            } else if (rr.type == 5) {  // CNAME
-                r["data"] = rr.data;
-            }
-            res.push_back(r);
+
+    if (rrn_ > 0) {
+        Json reply;
+        for (auto const& r: reply_) {
+            reply.push_back(toJsonResource(r));
         }
-        return res;
-    };
-    if (d.rrn > 0) j["reply"] = jsonify_res(extra.reply);
-    if (d.arn > 0) j["author"] = jsonify_res(extra.auth);
-    if (d.ern > 0) j["extra"] = jsonify_res(extra.extra);
+        j["reply"] = reply;
+    }
+
+    if (arn_ > 0) {
+        Json auth;
+        for (auto const& a: auth_) {
+            auth.push_back(toJsonResource(a));
+        }
+        j["auth"] = auth;
+    }
+
+    if (ern_ > 0) {
+        Json extra;
+        for (auto const& e: extra_) {
+            extra.push_back(toJsonResource(e));
+        }
+        j["auth"] = extra;
+    }
+
     return j;
 }
 
-std::string dns::type() const { return Protocol_Type_DNS; }
-
-std::string dns::succ_type() const { return Protocol_Type_Void; }
-
-bool dns::link_to(protocol const& rhs) const
+Json Dns::toJsonQuery(Query const& query)
 {
-    if (type() == rhs.type()) {
-        auto p = dynamic_cast<dns const&>(rhs);
-        return d.id == p.d.id;
+    Json q;
+    q["domain"] = query.domain;
+    q["query-type"] = query.type;
+    q["query-class"] = query.cls;
+    return q;
+}
+
+Json Dns::toJsonResource(Resource const& res)
+{
+    Json r;
+    r["domain"] = res.domain;
+    r["query-type"] = res.type;
+    r["query-class"] = res.cls;
+    r["ttl"] = res.ttl;
+    r["data-size"] = res.data.size();
+    if (res.type == 1) {  // A
+        r["data"] = reinterpret_cast<Ip4 const*>(res.data.data())->toStr();
+    } else if (res.type == 5) {  // CNAME
+        r["data"] = std::string(res.data.begin(), res.data.end());
+    }
+    return r;
+}
+
+Protocol::Type Dns::type() const { return kDNS; }
+
+bool Dns::correlated(Protocol const& resp) const
+{
+    if (type() == resp.type()) {
+        auto p = dynamic_cast<Dns const&>(resp);
+        return id_ == p.id_;
     }
     return false;
 }
 
-dns::detail const& dns::get_detail() const { return d; }
-
-dns::extra_detail const& dns::get_extra() const { return extra; }
-
-std::string dns::encode_domain(std::string const& domain)
+void Dns::encodeQuery(BytesBuilder& builder, Query const& query)
 {
-    std::string bytes;
+    encodeDomain(builder, query.domain);
+    builder.write16u(query.type);
+    builder.write16u(query.cls);
+}
+
+Dns::Query Dns::decodeQuery(BytesReader& reader)
+{
+    Query query;
+    query.domain = decodeDomain(reader);
+    query.type = reader.read16u();
+    query.cls = reader.read16u();
+    return query;
+}
+
+void Dns::encodeResource(BytesBuilder& builder, Resource const& res)
+{
+    encodeDomain(builder, res.domain);
+    builder.write16u(res.type);
+    builder.write16u(res.cls);
+    builder.write32u(res.ttl);
+    builder.write16u(res.data.size());
+    builder.writeBytes(res.data);
+}
+
+Dns::Resource Dns::decodeResource(BytesReader& reader)
+{
+    Resource res;
+    res.domain = decodeDomain(reader);
+    res.type = reader.read16u();
+    res.cls = reader.read16u();
+    res.ttl = reader.read32u();
+    uint16_t dsize = reader.read16u();
+    res.data = reader.readBytes(dsize);
+    return res;
+}
+
+void Dns::encodeDomain(BytesBuilder& builder, std::string const& domain)
+{
     std::vector<std::string> svec;
     boost::split(svec, domain, boost::is_any_of("."));
     for (auto const& s: svec) {
-        if (s.size() > 63) {
-            MY_THROW("segment of domain exceed 63: {}", s);
+        builder.write8u(s.size());
+        for (char c: s) {
+            builder.write8u(c);
         }
-        bytes.push_back(static_cast<u_char>(s.size()));
-        bytes.insert(bytes.end(), s.cbegin(), s.cend());
     }
-    bytes.push_back(0);
-    return bytes;
+    builder.write8u(0);
 }
 
-std::string dns::decode_domain(u_char const* const pstart, u_char const* const pend,
-                               u_char const*& it)
+static std::pair<std::string, size_t> iterDecodeDomain(uint8_t const* const pstart,
+                                                       uint8_t const* const pend)
 {
-    std::vector<std::string> domain_vec;
+    std::vector<std::string> svec;
+    uint8_t const* it = pstart;
     bool compressed = false;
     for (; it < pend && *it != 0;) {
         size_t cnt = *it;
         if ((cnt & 0xc0) != 0xc0) {
-            domain_vec.push_back(std::string(it + 1, it + cnt + 1));
+            svec.emplace_back(it + 1, it + cnt + 1);
             it += cnt + 1;
         } else {
             compressed = true;
-            u_short index = ((cnt & 0x3f) << 8) | it[1];
-            auto new_it = pstart + index;
-            domain_vec.push_back(decode_domain(pstart, pend, new_it));
+            uint16_t index = ((cnt & 0x3f) << 8) | it[1];
+            auto new_start = pstart + index;
+            svec.push_back(iterDecodeDomain(new_start, pend).first);
             it += 2;
             break;
         }
@@ -203,19 +246,14 @@ std::string dns::decode_domain(u_char const* const pstart, u_char const* const p
     if (!compressed) {
         ++it;
     }
-    return boost::join(domain_vec, ".");
+    return std::make_pair(boost::join(svec, "."), std::distance(pstart, it));
 }
 
-dns::detail dns::ntoh(detail const& d, bool reverse)
+std::string Dns::decodeDomain(BytesReader& reader)
 {
-    detail dt = d;
-    ntohx(dt.id, !reverse, s);
-    ntohx(dt.flags, !reverse, s);
-    ntohx(dt.qrn, !reverse, s);
-    ntohx(dt.rrn, !reverse, s);
-    ntohx(dt.arn, !reverse, s);
-    ntohx(dt.ern, !reverse, s);
-    return dt;
+    auto [domain, offset] = iterDecodeDomain(reader.data(), reader.data() + reader.size());
+    reader.readBytes(offset);
+    return domain;
 }
 
-dns::detail dns::hton(detail const& d) { return ntoh(d, true); }
+}  // namespace net

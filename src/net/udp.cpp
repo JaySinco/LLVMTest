@@ -1,11 +1,15 @@
 #include "udp.h"
 #include "ipv4.h"
+#include "dns.h"
 
 namespace net
 {
 
 std::map<uint16_t, Protocol::Type> Udp::table = {
+    {22, kSSH},
+    {23, kTelnet},
     {53, kDNS},
+    {80, kHTTP},
 };
 
 Udp::Udp(BytesReader& reader)
@@ -23,6 +27,8 @@ void Udp::decode(BytesReader& reader, ProtocolStack& stack)
 
     switch (p->udpType()) {
         case kDNS:
+            Dns::decode(reader, stack);
+            break;
         default:
             Unimplemented::decode(reader, stack);
             break;
