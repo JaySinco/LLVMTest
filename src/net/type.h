@@ -62,8 +62,8 @@ template <typename T>
 struct Tagged
 {
     T v;
-    size_t beg = -1;
-    size_t end = -1;
+    int16_t beg = -1;
+    int16_t end = -1;
 
     Json toJson() const;
 };

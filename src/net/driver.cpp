@@ -120,6 +120,7 @@ Expected<ProtocolStack> Driver::request(ProtocolStack const& req, int to_ms, boo
             }
         }
         auto reply = ProtocolStack::decode(*pac);
+        // VLOG(reply.toJson().dump(3));
         if (req.correlated(reply)) {
             return reply;
         }

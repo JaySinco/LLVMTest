@@ -1,10 +1,10 @@
 #pragma once
 #include "type.h"
-#define DEFINE_PROP(t, n, d)  \
-    struct: Tagged<t>         \
-    {                         \
-        char const* k = #n;   \
-        char const* desc = d; \
+#define DEFINE_PROP(t, n, d)                \
+    struct n##_t: Tagged<t>                 \
+    {                                       \
+        static inline char const* k = #n;   \
+        static inline char const* desc = d; \
     } n##_;
 
 #define JSON_PROP(j, p)         \
