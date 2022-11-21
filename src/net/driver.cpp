@@ -60,6 +60,7 @@ Driver::Driver(Adaptor const& apt, int to_ms): apt_(apt)
 Driver::~Driver()
 {
     auto p = reinterpret_cast<pcap_t*>(p_);
+    VLOG("close pcap");
     pcap_close(p);
 }
 
@@ -104,7 +105,9 @@ Expected<ProtocolStack> Driver::request(ProtocolStack const& req, int to_ms, boo
             auto timeout = std::chrono::milliseconds(to_ms);
             auto elasped = now - start;
             if (elasped >= timeout) {
-                return Error::timeout(LOG_FSTR("timeout after {}", elasped));
+                return Error::timeout(
+                    LOG_FSTR("timeout after {}",
+                             std::chrono::duration_cast<std::chrono::milliseconds>(elasped)));
             }
         }
         Expected<Packet> pac = recv();
@@ -168,10 +171,10 @@ Expected<Mac> Driver::getMac(Ip4 ip, bool use_cache, int to_ms) const
     return mac;
 }
 
-ProtocolStack broadcastedARP(Mac smac, Ip4 sip, Mac dmac, Ip4 dip, bool reply)
+ProtocolStack Driver::broadcastedARP(Mac smac, Ip4 sip, Mac dmac, Ip4 dip, bool reply) const
 {
     ProtocolStack stack;
-    stack.push(std::make_shared<Ethernet>(smac, Mac::kBroadcast, Protocol::kARP));
+    stack.push(std::make_shared<Ethernet>(apt_.mac, Mac::kBroadcast, Protocol::kARP));
     stack.push(std::make_shared<Arp>(smac, sip, dmac, dip, reply, false));
     return stack;
 }

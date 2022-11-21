@@ -4,8 +4,6 @@
 namespace net
 {
 
-static ProtocolStack broadcastedARP(Mac smac, Ip4 sip, Mac dmac, Ip4 dip, bool reply = false);
-
 class Error;
 template <typename T>
 using Expected = nonstd::expected<T, Error>;
@@ -17,6 +15,8 @@ public:
     explicit Driver(Adaptor const& apt, int to_ms);
     ~Driver();
 
+    ProtocolStack broadcastedARP(Mac smac, Ip4 sip, Mac dmac, Ip4 dip, bool reply = false) const;
+
     Expected<Mac> getMac(Ip4 ip, bool use_cache = false, int to_ms = 3000) const;
 
     Expected<ProtocolStack> request(ProtocolStack const& req, int to_ms = -1,
@@ -25,6 +25,8 @@ public:
     Expected<Packet> recv() const;
     void send(ProtocolStack const& stack) const;
     void send(Packet const& pac) const;
+
+    Adaptor const& getAdaptor() const { return apt_; }
 
 private:
     Adaptor apt_;

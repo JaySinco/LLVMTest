@@ -310,8 +310,74 @@ template <>
 Json Tagged<uint8_t>::toJson() const
 {
     Json j;
-    j["type"] = "uint8";
+    j["type"] = "uint";
     j["value"] = v;
+    j["begin"] = beg;
+    j["end"] = end;
+    return j;
+}
+
+template <>
+Json Tagged<uint16_t>::toJson() const
+{
+    Json j;
+    j["type"] = "uint";
+    j["value"] = v;
+    j["begin"] = beg;
+    j["end"] = end;
+    return j;
+}
+
+template <>
+Json Tagged<uint32_t>::toJson() const
+{
+    Json j;
+    j["type"] = "uint";
+    j["value"] = v;
+    j["begin"] = beg;
+    j["end"] = end;
+    return j;
+}
+
+template <>
+Json Tagged<Ip4>::toJson() const
+{
+    Json j;
+    j["type"] = "ip4";
+    j["value"] = v.toStr();
+    j["begin"] = beg;
+    j["end"] = end;
+    return j;
+}
+
+template <>
+Json Tagged<Mac>::toJson() const
+{
+    Json j;
+    j["type"] = "mac";
+    j["value"] = v.toStr();
+    j["begin"] = beg;
+    j["end"] = end;
+    return j;
+}
+
+template <>
+Json Tagged<std::string>::toJson() const
+{
+    Json j;
+    j["type"] = "str";
+    j["value"] = v;
+    j["begin"] = beg;
+    j["end"] = end;
+    return j;
+}
+
+template <>
+Json Tagged<std::vector<uint8_t>>::toJson() const
+{
+    Json j;
+    j["type"] = "svec";
+    j["size"] = v.size();
     j["begin"] = beg;
     j["end"] = end;
     return j;
