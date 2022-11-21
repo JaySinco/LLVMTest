@@ -17,30 +17,31 @@ public:
     void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
+    Type typeNext() const override;
     bool correlated(Protocol const& resp) const override;
 
 private:
-    uint8_t type_;          // Type
-    uint8_t code_;          // Code
-    mutable uint16_t crc_;  // Checksum as a whole
-    uint16_t id_;           // Identification
-    uint16_t sn_;           // Serial number
-    std::vector<uint8_t> buf_;
+    DEFINE_PROP(uint8_t, icmp_type, "icmp type");
+    DEFINE_PROP(uint8_t, code, "icmp code");
+    mutable DEFINE_PROP(uint16_t, crc, "checksum as a whole");
+    DEFINE_PROP(uint16_t, id, "identification");
+    DEFINE_PROP(uint16_t, sn, "serial number");
 
     // Netmask: 17,18
-    Ip4 mask_;  // Subnet mask
+    DEFINE_PROP(Ip4, mask, "subnet mask");
 
     // Timestamp: 13,14
-    uint32_t init_;  // Initiate timestamp
-    uint32_t recv_;  // Receive timestamp
-    uint32_t send_;  // Send timestamp
+    DEFINE_PROP(uint32_t, init, "initiate timestamp");
+    DEFINE_PROP(uint32_t, recv, "receive timestamp");
+    DEFINE_PROP(uint32_t, send, "send timestamp");
 
     // Unreachable: 3
-    Ipv4 eip_;  // Error ip header
-    ;           // At least 8 bytes behind ip header
+    DEFINE_PROP(uint32_t, unused, "unused");
+    Ipv4 eip_;  // error ip header
+    DEFINE_PROP(std::vector<uint8_t>, aft_ip, "at least 8 bytes behind ip header");
 
     // Ping: 0,8
-    ;  // Echo data
+    DEFINE_PROP(std::string, echo, "echo data");
 
     std::string icmpDesc() const;
     void encodeOverall(BytesBuilder& builder) const;

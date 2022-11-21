@@ -6,11 +6,13 @@
 namespace net
 {
 
-std::string Protocol::descType(Type type)
+std::string Protocol::typeDesc(Type type)
 {
     switch (type) {
+        case kNull:
+            MY_THROW("<null> should not be described");
         case kUnknown:
-            MY_THROW("unknown type should be detailed");
+            MY_THROW("<unknown> should be described");
         case kEthernet:
             return "ethernet";
         case kIPv4:
@@ -122,7 +124,7 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
     auto it = std::find_if(stack_.begin(), stack_.end(),
                            [&](ProtocolPtr p) { return p->type() == type; });
     if (it == stack_.end()) {
-        MY_THROW("protocol stack don't have {}", Protocol::descType(type));
+        MY_THROW("protocol stack don't have {}", Protocol::typeDesc(type));
     }
     return std::distance(stack_.begin(), it);
 }
@@ -136,7 +138,7 @@ bool ProtocolStack::has(Protocol::Type type) const
 void Unimplemented::decode(BytesReader& reader, ProtocolStack& stack)
 {
     auto p = std::make_shared<Unimplemented>();
-    p->buf_ = reader.readAll();
+    reader.readAll(p->buf_);
     stack.push(p);
 }
 
@@ -149,11 +151,13 @@ Json Unimplemented::toJson() const
 {
     Json j;
     j["type"] = "unimplemented";
-    j["total-size"] = buf_.size();
+    JSON_PROP(j, buf_);
     return j;
 }
 
 Protocol::Type Unimplemented::type() const { return kUnknown; };
+
+Protocol::Type Unimplemented::typeNext() const { return kNull; };
 
 bool Unimplemented::correlated(Protocol const& resp) const { return false; };
 

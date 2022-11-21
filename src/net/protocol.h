@@ -1,5 +1,18 @@
 #pragma once
 #include "type.h"
+#define DEFINE_PROP(t, n, d)  \
+    struct: Tagged<t>         \
+    {                         \
+        char const* k = #n;   \
+        char const* desc = d; \
+    } n##_;
+
+#define JSON_PROP(j, p)         \
+    {                           \
+        Json ob = p.toJson();   \
+        ob["desc"] = p.desc;    \
+        j[p.k] = std::move(ob); \
+    }
 
 namespace net
 {
@@ -11,6 +24,7 @@ class Protocol
 public:
     enum Type
     {
+        kNull,
         kUnknown,
         kEthernet,
         kIPv4,
@@ -33,9 +47,10 @@ public:
     virtual void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const = 0;
     virtual Json toJson() const = 0;
     virtual Type type() const = 0;
+    virtual Type typeNext() const = 0;
     virtual bool correlated(Protocol const& resp) const = 0;
 
-    static std::string descType(Type type);
+    static std::string typeDesc(Type type);
 
 protected:
     static uint16_t checksum(void const* data, size_t size);
@@ -76,10 +91,11 @@ public:
     void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
+    Type typeNext() const override;
     bool correlated(Protocol const& resp) const override;
 
 private:
-    std::vector<uint8_t> buf_;  // leftover data
+    DEFINE_PROP(std::vector<uint8_t>, buf, "data left over");
 };
 
 }  // namespace net

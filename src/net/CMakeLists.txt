@@ -21,5 +21,5 @@ elseif (UNIX)
     target_link_libraries(${MAIN} shlwapi ws2_32 iphlpapi libpcap::libpcap)
 endif()
 
-single_file_executable(tools-lsdev ${MAIN})
-single_file_executable(tools-arp ${MAIN} argparse::argparse)
+single_file_executable(tools/lsdev ${MAIN})
+single_file_executable(tools/arp ${MAIN} argparse::argparse)

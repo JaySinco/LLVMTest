@@ -15,9 +15,9 @@ std::map<uint16_t, Protocol::Type> Ethernet::table = {
 
 Ethernet::Ethernet(BytesReader& reader)
 {
-    dmac_ = reader.readMac();
-    smac_ = reader.readMac();
-    type_ = reader.read16u();
+    reader.readMac(dmac_);
+    reader.readMac(smac_);
+    reader.read16u(eth_type_);
 }
 
 void Ethernet::decode(BytesReader& reader, ProtocolStack& stack)
@@ -25,7 +25,7 @@ void Ethernet::decode(BytesReader& reader, ProtocolStack& stack)
     auto p = std::make_shared<Ethernet>(reader);
     stack.push(p);
 
-    switch (p->ethernetType()) {
+    switch (p->typeNext()) {
         case kIPv4:
             Ipv4::decode(reader, stack);
             break;
@@ -46,34 +46,33 @@ Ethernet::Ethernet(Mac smac, Mac dmac, Type eth_type)
     for (auto [k, v]: table) {
         if (v == eth_type) {
             found = true;
-            type_ = k;
+            eth_type_.v = k;
             break;
         }
     }
     if (!found) {
-        MY_THROW("invalid ethernet type: {}", descType(eth_type));
+        MY_THROW("invalid ethernet type: {}", typeDesc(eth_type));
     }
-    dmac_ = dmac;
-    smac_ = smac;
+    dmac_.v = dmac;
+    smac_.v = smac;
 }
 
 void Ethernet::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
     BytesBuilder builder;
-    builder.writeMac(dmac_);
-    builder.writeMac(smac_);
-    builder.write16u(type_);
+    builder.writeMac(dmac_.v);
+    builder.writeMac(smac_.v);
+    builder.write16u(eth_type_.v);
     builder.prependTo(bytes);
 }
 
 Json Ethernet::toJson() const
 {
     Json j;
-    j["type"] = descType(type());
-    Type eth_type = ethernetType();
-    j["ethernet-type"] = eth_type == kUnknown ? FSTR("unknown(0x{:x})", type_) : descType(eth_type);
-    j["source-mac"] = smac_.toStr();
-    j["dest-mac"] = dmac_.toStr();
+    j["type"] = typeDesc(type());
+    JSON_PROP(j, dmac_);
+    JSON_PROP(j, smac_);
+    JSON_PROP(j, eth_type_);
     return j;
 }
 
@@ -83,15 +82,15 @@ bool Ethernet::correlated(Protocol const& resp) const
 {
     if (type() == resp.type()) {
         auto p = dynamic_cast<Ethernet const&>(resp);
-        return p.dmac_ == Mac::kBroadcast || smac_ == p.dmac_;
+        return p.dmac_.v == Mac::kBroadcast || smac_.v == p.dmac_.v;
     }
     return false;
 }
 
-Protocol::Type Ethernet::ethernetType() const
+Protocol::Type Ethernet::typeNext() const
 {
-    if (table.count(type_) != 0) {
-        return table.at(type_);
+    if (table.count(eth_type_.v) != 0) {
+        return table.at(eth_type_.v);
     }
     return kUnknown;
 }

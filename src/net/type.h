@@ -58,6 +58,16 @@ struct Packet
     std::vector<uint8_t> bytes;
 };
 
+template <typename T>
+struct Tagged
+{
+    T v;
+    size_t beg = -1;
+    size_t end = -1;
+
+    Json toJson() const;
+};
+
 class BytesReader
 {
 public:
@@ -69,16 +79,18 @@ public:
 
     bool empty() const { return size_ == 0; }
 
-    uint8_t read8u();
-    uint16_t read16u(bool ntoh = true);
-    uint32_t read32u(bool ntoh = true);
-    Ip4 readIp4();
-    Mac readMac();
-
-    std::vector<uint8_t> readBytes(size_t n);
-    std::vector<uint8_t> readAll();
+    void read8u(Tagged<uint8_t>& b);
+    void read16u(Tagged<uint16_t>& b, bool ntoh = true);
+    void read32u(Tagged<uint32_t>& b, bool ntoh = true);
+    void readIp4(Tagged<Ip4>& b);
+    void readMac(Tagged<Mac>& b);
+    void readDomain(Tagged<std::string>& b);
+    void readBytes(Tagged<std::vector<uint8_t>>& b, size_t n);
+    void readAll(Tagged<std::vector<uint8_t>>& b);
+    void readAll(Tagged<std::string>& b);
 
 private:
+    const size_t total_size_;
     uint8_t const* data_;
     size_t size_;
 };
@@ -99,7 +111,9 @@ public:
     void write32u(uint32_t b, bool hton = true);
     void writeIp4(Ip4 b);
     void writeMac(Mac b);
+    void writeDomain(std::string const& b);
     void writeBytes(uint8_t const* b, size_t size);
+    void writeBytes(std::string const& b);
     void writeBytes(std::vector<uint8_t> const& b);
 
 private:

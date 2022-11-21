@@ -43,35 +43,35 @@ std::map<std::pair<uint8_t, uint8_t>, std::string> Icmp::table = {
 
 Icmp::Icmp(BytesReader& reader)
 {
-    type_ = reader.read8u();
-    code_ = reader.read8u();
-    crc_ = reader.read16u(false);
+    reader.read8u(icmp_type_);
+    reader.read8u(code_);
+    reader.read16u(crc_, false);
 
     // Netmask: 17,18
-    if (type_ == 17 || type_ == 18) {
-        id_ = reader.read16u();
-        sn_ = reader.read16u();
-        mask_ = reader.readIp4();
+    if (icmp_type_.v == 17 || icmp_type_.v == 18) {
+        reader.read16u(id_);
+        reader.read16u(sn_);
+        reader.readIp4(mask_);
     }
     // Timestamp: 13,14
-    else if (type_ == 13 || type_ == 14) {
-        id_ = reader.read16u();
-        sn_ = reader.read16u();
-        init_ = reader.read32u();
-        recv_ = reader.read32u();
-        send_ = reader.read32u();
+    else if (icmp_type_.v == 13 || icmp_type_.v == 14) {
+        reader.read16u(id_);
+        reader.read16u(sn_);
+        reader.read32u(init_);
+        reader.read32u(recv_);
+        reader.read32u(send_);
     }
     // Unreachable: 3
-    else if (type_ == 3) {
-        uint32_t unused = reader.read32u();
+    else if (icmp_type_.v == 3) {
+        reader.read32u(unused_);
         eip_ = Ipv4(reader);
-        buf_ = reader.readAll();
+        reader.readAll(aft_ip_);
     }
     // Ping: 0,8
-    else if (type_ == 0 || type_ == 8) {
-        id_ = reader.read16u();
-        sn_ = reader.read16u();
-        buf_ = reader.readAll();
+    else if (icmp_type_.v == 0 || icmp_type_.v == 8) {
+        reader.read16u(id_);
+        reader.read16u(sn_);
+        reader.readAll(echo_);
     } else {
     }
 }
@@ -79,13 +79,13 @@ Icmp::Icmp(BytesReader& reader)
 Icmp Icmp::pingAsk(std::string const& echo)
 {
     Icmp p;
-    p.type_ = 8;
-    p.code_ = 0;
-    p.crc_ = 0;
-    p.id_ = rand16u();
-    p.sn_ = rand16u();
-    p.buf_ = std::vector<uint8_t>(echo.begin(), echo.end());
-    p.crc_ = p.overallChecksum();
+    p.icmp_type_.v = 8;
+    p.code_.v = 0;
+    p.crc_.v = 0;
+    p.id_.v = rand16u();
+    p.sn_.v = rand16u();
+    p.echo_.v = echo;
+    p.crc_.v = p.overallChecksum();
     return p;
 }
 
@@ -105,33 +105,36 @@ void Icmp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 Json Icmp::toJson() const
 {
     Json j;
-    j["type"] = descType(type());
-    j["desc"] = icmpDesc();
-    j["checksum"] = overallChecksum();
+    j["type"] = typeDesc(type());
+    JSON_PROP(j, icmp_type_);
+    j[icmp_type_.k]["hint"] = FSTR("desc:{};", icmpDesc());
+    JSON_PROP(j, code_);
+    JSON_PROP(j, crc_);
+    j[crc_.k]["hint"] = FSTR("checked:{};", overallChecksum());
 
     // Netmask: 17,18
-    if (type_ == 17 || type_ == 18) {
-        j["id"] = id_;
-        j["serial-no"] = sn_;
-        j["netmask"] = mask_.toStr();
+    if (icmp_type_.v == 17 || icmp_type_.v == 18) {
+        JSON_PROP(j, id_);
+        JSON_PROP(j, sn_);
+        JSON_PROP(j, mask_);
     }
     // Timestamp: 13,14
-    else if (type_ == 13 || type_ == 14) {
-        j["id"] = id_;
-        j["serial-no"] = sn_;
-        j["initiate-timestamp"] = init_;
-        j["receive-timestamp"] = recv_;
-        j["send-timestamp"] = send_;
+    else if (icmp_type_.v == 13 || icmp_type_.v == 14) {
+        JSON_PROP(j, id_);
+        JSON_PROP(j, sn_);
+        JSON_PROP(j, init_);
+        JSON_PROP(j, recv_);
+        JSON_PROP(j, send_);
     }
     // Unreachable: 3
-    else if (type_ == 3) {
-        j["ipv4"] = eip_.toJson();
+    else if (icmp_type_.v == 3) {
+        j["eip"] = eip_.toJson();
     }
     // Ping: 0,8
-    else if (type_ == 0 || type_ == 8) {
-        j["id"] = id_;
-        j["serial-no"] = sn_;
-        j["echo"] = std::string(buf_.begin(), buf_.end());
+    else if (icmp_type_.v == 0 || icmp_type_.v == 8) {
+        JSON_PROP(j, id_);
+        JSON_PROP(j, sn_);
+        JSON_PROP(j, echo_);
     } else {
     }
     return j;
@@ -139,26 +142,28 @@ Json Icmp::toJson() const
 
 Protocol::Type Icmp::type() const { return kICMP; }
 
+Protocol::Type Icmp::typeNext() const { return kNull; }
+
 bool Icmp::correlated(Protocol const& resp) const
 {
     if (type() == resp.type()) {
         auto p = dynamic_cast<Icmp const&>(resp);
 
         // Netmask: 17,18
-        if (type_ == 17 && p.type_ == 18) {
-            return id_ == p.id_ && sn_ == p.sn_;
+        if (icmp_type_.v == 17 && p.icmp_type_.v == 18) {
+            return id_.v == p.id_.v && sn_.v == p.sn_.v;
         }
         // Timestamp: 13,14
-        else if (type_ == 13 && p.type_ == 14) {
-            return id_ == p.id_ && sn_ == p.sn_;
+        else if (icmp_type_.v == 13 && p.icmp_type_.v == 14) {
+            return id_.v == p.id_.v && sn_.v == p.sn_.v;
         }
         // Unreachable: 3
-        else if (type_ == 3) {
+        else if (icmp_type_.v == 3) {
             return false;
         }
         // Ping: 0,8
-        else if (type_ == 8 && p.type_ == 0) {
-            return id_ == p.id_ && sn_ == p.sn_;
+        else if (icmp_type_.v == 8 && p.icmp_type_.v == 0) {
+            return id_.v == p.id_.v && sn_.v == p.sn_.v;
         } else {
         }
     }
@@ -167,35 +172,35 @@ bool Icmp::correlated(Protocol const& resp) const
 
 void Icmp::encodeOverall(BytesBuilder& builder) const
 {
-    builder.write8u(type_);
-    builder.write8u(code_);
-    builder.write16u(crc_, false);
+    builder.write8u(icmp_type_.v);
+    builder.write8u(code_.v);
+    builder.write16u(crc_.v, false);
 
     // Netmask: 17,18
-    if (type_ == 17 || type_ == 18) {
-        builder.write16u(id_);
-        builder.write16u(sn_);
-        builder.writeIp4(mask_);
+    if (icmp_type_.v == 17 || icmp_type_.v == 18) {
+        builder.write16u(id_.v);
+        builder.write16u(sn_.v);
+        builder.writeIp4(mask_.v);
     }
     // Timestamp: 13,14
-    else if (type_ == 13 || type_ == 14) {
-        builder.write16u(id_);
-        builder.write16u(sn_);
-        builder.write32u(init_);
-        builder.write32u(recv_);
-        builder.write32u(send_);
+    else if (icmp_type_.v == 13 || icmp_type_.v == 14) {
+        builder.write16u(id_.v);
+        builder.write16u(sn_.v);
+        builder.write32u(init_.v);
+        builder.write32u(recv_.v);
+        builder.write32u(send_.v);
     }
     // Unreachable: 3
-    else if (type_ == 3) {
+    else if (icmp_type_.v == 3) {
         builder.write32u(0);
         eip_.encodeHeader(builder);
-        builder.writeBytes(buf_);
+        builder.writeBytes(aft_ip_.v);
     }
     // Ping: 0,8
-    else if (type_ == 0 || type_ == 8) {
-        builder.write16u(id_);
-        builder.write16u(sn_);
-        builder.writeBytes(buf_);
+    else if (icmp_type_.v == 0 || icmp_type_.v == 8) {
+        builder.write16u(id_.v);
+        builder.write16u(sn_.v);
+        builder.writeBytes(echo_.v);
     } else {
     }
 }
@@ -209,8 +214,8 @@ uint16_t Icmp::overallChecksum() const
 
 std::string Icmp::icmpDesc() const
 {
-    auto key = std::make_pair(type_, code_);
-    return table.count(key) > 0 ? table.at(key) : FSTR("unknown({}, {}})", type_, code_);
+    auto key = std::make_pair(icmp_type_.v, code_.v);
+    return table.count(key) > 0 ? table.at(key) : FSTR("unknown({}, {}})", icmp_type_.v, code_.v);
 }
 
 }  // namespace net

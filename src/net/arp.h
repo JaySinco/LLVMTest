@@ -16,22 +16,24 @@ public:
     void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
+    Type typeNext() const override;
     bool correlated(Protocol const& resp) const override;
 
-    Mac smac() const { return smac_; };
+    Mac smac() const { return smac_.v; };
 
-    Mac dmac() const { return dmac_; };
+    Mac dmac() const { return dmac_.v; };
 
 private:
-    uint16_t hw_type_;    // Hardware type
-    uint16_t prot_type_;  // Protocol type
-    uint8_t hw_len_;      // Hardware address length
-    uint8_t prot_len_;    // Protocol address length
-    uint16_t op_;         // Operation code
-    Mac smac_;            // Source ethernet address
-    Ip4 sip_;             // Source ip address
-    Mac dmac_;            // Destination ethernet address
-    Ip4 dip_;             // Destination ip address
+    DEFINE_PROP(uint16_t, hw_type, "hardware type");
+    DEFINE_PROP(uint16_t, prot_type, "protocol type");
+    DEFINE_PROP(uint8_t, hw_len, "hardware address length");
+    DEFINE_PROP(uint8_t, prot_len, "protocol address length");
+    DEFINE_PROP(uint16_t, op, "operation code");
+    DEFINE_PROP(Mac, smac, "source ethernet address");
+    DEFINE_PROP(Ip4, sip, "source ip address");
+    DEFINE_PROP(Mac, dmac, "destination ethernet address");
+    DEFINE_PROP(Ip4, dip, "destination ip address");
+    DEFINE_PROP(std::vector<uint8_t>, pad, "ethernet padding");
 };
 
 }  // namespace net

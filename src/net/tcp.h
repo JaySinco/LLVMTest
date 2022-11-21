@@ -15,21 +15,21 @@ public:
     void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
+    Type typeNext() const override;
     bool correlated(Protocol const& resp) const override;
 
-    Type tcpType() const;
     uint16_t headerSize() const;
 
 private:
-    uint16_t sport_;             // Source port
-    uint16_t dport_;             // Destination port
-    uint32_t sn_;                // Sequence number
-    uint32_t an_;                // Acknowledgment number
-    uint16_t hl_flags_;          // Header length (4 bits) + Reserved (3 bits) + Flags (9 bits)
-    uint16_t wlen_;              // Window Size
-    mutable uint16_t crc_;       // Checksum
-    uint16_t urp_;               // Urgent pointer
-    std::vector<uint8_t> opts_;  // Variable length options
+    DEFINE_PROP(uint16_t, sport, "source port");
+    DEFINE_PROP(uint16_t, dport, "destination port");
+    DEFINE_PROP(uint32_t, sn, "sequence number");
+    DEFINE_PROP(uint32_t, an, "acknowledgment number");
+    DEFINE_PROP(uint16_t, hl_flags, "header length (4 bits) + reserved (3 bits) + flags (9 bits)");
+    DEFINE_PROP(uint16_t, wlen, "window size");
+    mutable DEFINE_PROP(uint16_t, crc, "checksum");
+    DEFINE_PROP(uint16_t, urp, "urgent pointer");
+    DEFINE_PROP(std::vector<uint8_t>, opts, "variable length options");
 
     static constexpr size_t kFixedBytes = 20;
     void encodeHeader(BytesBuilder& builder) const;

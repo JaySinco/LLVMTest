@@ -16,30 +16,32 @@ public:
     void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
+    Type typeNext() const override;
     bool correlated(Protocol const& resp) const override;
 
 private:
-    uint16_t id_;     // Identification
-    uint16_t flags_;  // Flags
-    uint16_t qrn_;    // Query number
-    uint16_t rrn_;    // Reply resource record number
-    uint16_t arn_;    // Auth resource record number
-    uint16_t ern_;    // Extra resource record number
+    DEFINE_PROP(uint16_t, id, "identification");
+    DEFINE_PROP(uint16_t, flags, "flags");
+    DEFINE_PROP(uint16_t, qrn, "query number");
+    DEFINE_PROP(uint16_t, rrn, "reply resource record number");
+    DEFINE_PROP(uint16_t, arn, "auth resource record number");
+    DEFINE_PROP(uint16_t, ern, "extra resource record number");
 
     struct Query
     {
-        std::string domain;  // Query domain
-        uint16_t type;       // Query type
-        uint16_t cls;        // Query class
+        DEFINE_PROP(std::string, domain, "domain");
+        DEFINE_PROP(uint16_t, dm_type, "domain type");
+        DEFINE_PROP(uint16_t, cls, "domain class");
     };
 
     struct Resource
     {
-        std::string domain;         // Domain
-        uint16_t type;              // Query type
-        uint16_t cls;               // Query class
-        uint32_t ttl;               // Time to live
-        std::vector<uint8_t> data;  // Resource data
+        DEFINE_PROP(std::string, domain, "domain");
+        DEFINE_PROP(uint16_t, dm_type, "domain type");
+        DEFINE_PROP(uint16_t, cls, "domain class");
+        DEFINE_PROP(uint32_t, ttl, "time to live");
+        DEFINE_PROP(uint16_t, dlen, "resource data size");
+        DEFINE_PROP(std::vector<uint8_t>, data, "resource data");
     };
 
     std::vector<Query> query_;     // Query
@@ -57,9 +59,6 @@ private:
 
     static void encodeResource(BytesBuilder& builder, Resource const& res);
     static Resource decodeResource(BytesReader& reader);
-
-    static void encodeDomain(BytesBuilder& builder, std::string const& domain);
-    static std::string decodeDomain(BytesReader& reader);
 };
 
 }  // namespace net

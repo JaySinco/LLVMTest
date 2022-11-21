@@ -106,7 +106,7 @@ Json Adaptor::toJson() const
 }
 
 BytesReader::BytesReader(std::vector<uint8_t> const& bytes)
-    : data_(bytes.data()), size_(bytes.size())
+    : total_size_(bytes.size()), data_(bytes.data()), size_(bytes.size())
 {
 }
 
@@ -115,66 +115,135 @@ BytesReader::BytesReader(std::vector<uint8_t> const& bytes)
         MY_THROW("inadequate bytes: {} expected, only {} left", n, size_); \
     }
 
-uint8_t BytesReader::read8u()
+void BytesReader::read8u(Tagged<uint8_t>& b)
 {
     CHECK_SIZE(sizeof(uint8_t));
-    uint8_t b = *reinterpret_cast<uint8_t const*>(data_);
+
+    b.v = *reinterpret_cast<uint8_t const*>(data_);
+    b.beg = total_size_ - size_;
+    b.end = b.beg + sizeof(uint8_t) - 1;
+
     data_ += sizeof(uint8_t);
     size_ -= sizeof(uint8_t);
-    return b;
 }
 
-uint16_t BytesReader::read16u(bool ntoh)
+void BytesReader::read16u(Tagged<uint16_t>& b, bool ntoh)
 {
     CHECK_SIZE(sizeof(uint16_t));
-    uint16_t b = *reinterpret_cast<uint16_t const*>(data_);
+
+    uint16_t temp = *reinterpret_cast<uint16_t const*>(data_);
+    b.v = ntoh ? ntohs(temp) : temp;
+    b.beg = total_size_ - size_;
+    b.end = b.beg + sizeof(uint16_t) - 1;
+
     data_ += sizeof(uint16_t);
     size_ -= sizeof(uint16_t);
-    return ntoh ? ntohs(b) : b;
 }
 
-uint32_t BytesReader::read32u(bool ntoh)
+void BytesReader::read32u(Tagged<uint32_t>& b, bool ntoh)
 {
     CHECK_SIZE(sizeof(uint32_t));
-    uint32_t b = *reinterpret_cast<uint32_t const*>(data_);
+
+    uint32_t temp = *reinterpret_cast<uint32_t const*>(data_);
+    b.v = ntoh ? ntohs(temp) : temp;
+    b.beg = total_size_ - size_;
+    b.end = b.beg + sizeof(uint32_t) - 1;
+
     data_ += sizeof(uint32_t);
     size_ -= sizeof(uint32_t);
-    return ntoh ? ntohl(b) : b;
 }
 
-Ip4 BytesReader::readIp4()
+void BytesReader::readIp4(Tagged<Ip4>& b)
 {
     CHECK_SIZE(sizeof(Ip4));
-    Ip4 b = *reinterpret_cast<Ip4 const*>(data_);
+
+    b.v = *reinterpret_cast<Ip4 const*>(data_);
+    b.beg = total_size_ - size_;
+    b.end = b.beg + sizeof(Ip4) - 1;
+
     data_ += sizeof(Ip4);
     size_ -= sizeof(Ip4);
-    return b;
 }
 
-Mac BytesReader::readMac()
+void BytesReader::readMac(Tagged<Mac>& b)
 {
     CHECK_SIZE(sizeof(Mac));
-    Mac b = *reinterpret_cast<Mac const*>(data_);
+
+    b.v = *reinterpret_cast<Mac const*>(data_);
+    b.beg = total_size_ - size_;
+    b.end = b.beg + sizeof(Mac) - 1;
+
     data_ += sizeof(Mac);
     size_ -= sizeof(Mac);
-    return b;
 }
 
-std::vector<uint8_t> BytesReader::readBytes(size_t n)
+static std::pair<std::string, size_t> decodeDomain(uint8_t const* const pbeg,
+                                                   uint8_t const* const pend)
+{
+    std::vector<std::string> svec;
+    uint8_t const* it = pbeg;
+    bool compressed = false;
+    for (; it < pend && *it != 0;) {
+        size_t cnt = *it;
+        if ((cnt & 0xc0) != 0xc0) {
+            svec.emplace_back(it + 1, it + cnt + 1);
+            it += cnt + 1;
+        } else {
+            compressed = true;
+            uint16_t index = ((cnt & 0x3f) << 8) | it[1];
+            auto new_start = pbeg + index;
+            svec.push_back(decodeDomain(new_start, pend).first);
+            it += 2;
+            break;
+        }
+    }
+    if (!compressed) {
+        ++it;
+    }
+    return std::make_pair(boost::join(svec, "."), std::distance(pbeg, it));
+}
+
+void BytesReader::readDomain(Tagged<std::string>& b)
+{
+    auto&& [domain, tlen] = decodeDomain(data_, data_ + size_);
+    b.v = domain;
+    b.beg = total_size_ - size_;
+    b.end = b.beg + tlen - 1;
+
+    data_ += tlen;
+    size_ -= tlen;
+}
+
+void BytesReader::readBytes(Tagged<std::vector<uint8_t>>& b, size_t n)
 {
     CHECK_SIZE(n);
-    std::vector<uint8_t> b(data_, data_ + n);
+
+    b.v = std::vector<uint8_t>(data_, data_ + n);
+    b.beg = total_size_ - size_;
+    b.end = b.beg + n - 1;
+
     data_ += n;
     size_ -= n;
-    return b;
 }
 
-std::vector<uint8_t> BytesReader::readAll()
+void BytesReader::readAll(Tagged<std::vector<uint8_t>>& b)
 {
-    std::vector<uint8_t> b(data_, data_ + size_);
+    b.v = std::vector<uint8_t>(data_, data_ + size_);
+    b.beg = total_size_ - size_;
+    b.end = b.beg + size_ - 1;
+
     data_ += size_;
     size_ = 0;
-    return b;
+}
+
+void BytesReader::readAll(Tagged<std::string>& b)
+{
+    b.v = std::string(data_, data_ + size_);
+    b.beg = total_size_ - size_;
+    b.end = b.beg + size_ - 1;
+
+    data_ += size_;
+    size_ = 0;
 }
 
 void BytesBuilder::prependTo(std::vector<uint8_t>& bytes)
@@ -214,11 +283,38 @@ void BytesBuilder::writeMac(Mac b)
     data_.insert(data_.end(), d, d + sizeof(Mac));
 }
 
+void BytesBuilder::writeDomain(std::string const& b)
+{
+    std::vector<std::string> svec;
+    boost::split(svec, b, boost::is_any_of("."));
+    for (auto const& s: svec) {
+        write8u(s.size());
+        writeBytes(s);
+    }
+    write8u(0);
+}
+
 void BytesBuilder::writeBytes(uint8_t const* b, size_t size)
 {
     data_.insert(data_.end(), b, b + size);
 }
 
+void BytesBuilder::writeBytes(std::string const& b)
+{
+    writeBytes(reinterpret_cast<uint8_t const*>(b.data()), b.size());
+}
+
 void BytesBuilder::writeBytes(std::vector<uint8_t> const& b) { writeBytes(b.data(), b.size()); }
+
+template <>
+Json Tagged<uint8_t>::toJson() const
+{
+    Json j;
+    j["type"] = "uint8";
+    j["value"] = v;
+    j["begin"] = beg;
+    j["end"] = end;
+    return j;
+}
 
 }  // namespace net

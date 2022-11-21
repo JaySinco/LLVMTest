@@ -15,15 +15,14 @@ public:
     void encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const override;
     Json toJson() const override;
     Type type() const override;
+    Type typeNext() const override;
     bool correlated(Protocol const& resp) const override;
 
-    Type udpType() const;
-
 private:
-    uint16_t sport_;         // Source port
-    uint16_t dport_;         // Destination port
-    mutable uint16_t tlen_;  // Datagram length, >= 8
-    mutable uint16_t crc_;   // Checksum
+    DEFINE_PROP(uint16_t, sport, "source port");
+    DEFINE_PROP(uint16_t, dport, "destination port");
+    mutable DEFINE_PROP(uint16_t, tlen, "datagram length, >= 8");
+    mutable DEFINE_PROP(uint16_t, crc, "checksum");
 
     static constexpr size_t kFixedBytes = 8;
     void encodeHeader(BytesBuilder& builder) const;

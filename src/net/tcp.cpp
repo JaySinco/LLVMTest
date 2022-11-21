@@ -11,15 +11,15 @@ std::map<uint16_t, Protocol::Type> Tcp::table = {
 
 Tcp::Tcp(BytesReader& reader)
 {
-    sport_ = reader.read16u();
-    dport_ = reader.read16u();
-    sn_ = reader.read32u();
-    an_ = reader.read32u();
-    hl_flags_ = reader.read16u();
-    wlen_ = reader.read16u();
-    crc_ = reader.read16u(false);
-    urp_ = reader.read16u();
-    opts_ = reader.readBytes(headerSize() - kFixedBytes);
+    reader.read16u(sport_);
+    reader.read16u(dport_);
+    reader.read32u(sn_);
+    reader.read32u(an_);
+    reader.read16u(hl_flags_);
+    reader.read16u(wlen_);
+    reader.read16u(crc_, false);
+    reader.read16u(urp_);
+    reader.readBytes(opts_, headerSize() - kFixedBytes);
 }
 
 void Tcp::decode(BytesReader& reader, ProtocolStack& stack)
@@ -27,7 +27,7 @@ void Tcp::decode(BytesReader& reader, ProtocolStack& stack)
     auto p = std::make_shared<Tcp>(reader);
     stack.push(p);
 
-    switch (p->tcpType()) {
+    switch (p->typeNext()) {
         default:
             Unimplemented::decode(reader, stack);
             break;
@@ -37,7 +37,7 @@ void Tcp::decode(BytesReader& reader, ProtocolStack& stack)
 void Tcp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
     auto ipv4 = std::dynamic_pointer_cast<Ipv4>(stack.get(kIPv4));
-    crc_ = overallChecksum(ipv4->sip(), ipv4->dip(), bytes.data(), bytes.size());
+    crc_.v = overallChecksum(ipv4->sip(), ipv4->dip(), bytes.data(), bytes.size());
     BytesBuilder builder;
     encodeHeader(builder);
     builder.prependTo(bytes);
@@ -46,58 +46,60 @@ void Tcp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 Json Tcp::toJson() const
 {
     Json j;
-    j["type"] = descType(type());
-    Type tcp_type = tcpType();
-    j["tcp-type"] = tcp_type == kUnknown ? "unknown" : descType(tcp_type);
-    j["source-port"] = sport_;
-    j["dest-port"] = dport_;
-    j["header-size"] = headerSize();
-    j["sequence-no"] = sn_;
-    j["acknowledge-no"] = an_;
+    j["type"] = typeDesc(type());
+    JSON_PROP(j, sport_);
+    JSON_PROP(j, dport_);
+    JSON_PROP(j, sn_);
+    JSON_PROP(j, an_);
+    JSON_PROP(j, hl_flags_);
+
     std::vector<std::string> flags;
-    if (hl_flags_ >> 8 & 0x1) {
+    if (hl_flags_.v >> 8 & 0x1) {
         flags.push_back("ns");
     }
-    if (hl_flags_ >> 7 & 0x1) {
+    if (hl_flags_.v >> 7 & 0x1) {
         flags.push_back("cwr");
     }
-    if (hl_flags_ >> 6 & 0x1) {
+    if (hl_flags_.v >> 6 & 0x1) {
         flags.push_back("ece");
     }
-    if (hl_flags_ >> 5 & 0x1) {
+    if (hl_flags_.v >> 5 & 0x1) {
         flags.push_back("urg");
     }
-    if (hl_flags_ >> 4 & 0x1) {
+    if (hl_flags_.v >> 4 & 0x1) {
         flags.push_back("ack");
     }
-    if (hl_flags_ >> 3 & 0x1) {
+    if (hl_flags_.v >> 3 & 0x1) {
         flags.push_back("psh");
     }
-    if (hl_flags_ >> 2 & 0x1) {
+    if (hl_flags_.v >> 2 & 0x1) {
         flags.push_back("rst");
     }
-    if (hl_flags_ >> 1 & 0x1) {
+    if (hl_flags_.v >> 1 & 0x1) {
         flags.push_back("syn");
     }
-    if (hl_flags_ & 0x1) {
+    if (hl_flags_.v & 0x1) {
         flags.push_back("fin");
     }
-    j["flags"] = boost::algorithm::join(flags, ";");
-    j["window-size"] = wlen_;
-    j["checksum"] = crc_;
-    j["urgent-pointer"] = urp_;
+    j[hl_flags_.k]["hint"] =
+        FSTR("header-size:{};{};", headerSize(), boost::algorithm::join(flags, ";"));
+
+    JSON_PROP(j, wlen_);
+    JSON_PROP(j, crc_);
+    JSON_PROP(j, urp_);
+    JSON_PROP(j, opts_);
     return j;
 }
 
 Protocol::Type Tcp::type() const { return kTCP; }
 
-Protocol::Type Tcp::tcpType() const
+Protocol::Type Tcp::typeNext() const
 {
-    if (table.count(dport_) != 0) {
-        return table.at(dport_);
+    if (table.count(dport_.v) != 0) {
+        return table.at(dport_.v);
     }
-    if (table.count(sport_) != 0) {
-        return table.at(sport_);
+    if (table.count(sport_.v) != 0) {
+        return table.at(sport_.v);
     }
     return kUnknown;
 }
@@ -106,24 +108,24 @@ bool Tcp::correlated(Protocol const& resp) const
 {
     if (type() == resp.type()) {
         auto p = dynamic_cast<Tcp const&>(resp);
-        return sport_ == p.dport_ && dport_ == p.sport_;
+        return sport_.v == p.dport_.v && dport_.v == p.sport_.v;
     }
     return false;
 }
 
-uint16_t Tcp::headerSize() const { return 4 * (hl_flags_ >> 12 & 0xf); }
+uint16_t Tcp::headerSize() const { return 4 * (hl_flags_.v >> 12 & 0xf); }
 
 void Tcp::encodeHeader(BytesBuilder& builder) const
 {
-    builder.write16u(sport_);
-    builder.write16u(dport_);
-    builder.write32u(sn_);
-    builder.write32u(an_);
-    builder.write16u(hl_flags_);
-    builder.write16u(wlen_);
-    builder.write16u(crc_, false);
-    builder.write16u(urp_);
-    builder.writeBytes(opts_);
+    builder.write16u(sport_.v);
+    builder.write16u(dport_.v);
+    builder.write32u(sn_.v);
+    builder.write32u(an_.v);
+    builder.write16u(hl_flags_.v);
+    builder.write16u(wlen_.v);
+    builder.write16u(crc_.v, false);
+    builder.write16u(urp_.v);
+    builder.writeBytes(opts_.v);
 }
 
 uint16_t Tcp::overallChecksum(Ip4 sip, Ip4 dip, uint8_t const* payload, size_t size) const
