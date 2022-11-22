@@ -1,6 +1,6 @@
 #include "../driver.h"
 #include <signal.h>
-#include <argparse/argparse.hpp>
+#include <boost/program_options.hpp>
 
 std::atomic<bool> end_attack = false;
 
@@ -8,26 +8,44 @@ void onInterrupt(int) { end_attack = true; }
 
 int main(int argc, char** argv)
 {
-    argparse::ArgumentParser prog("net-tools-arp");
-    prog.add_argument("ip").required().help("ip4 address");
-    prog.add_argument("-a", "--attack")
-        .default_value(false)
-        .implicit_value(true)
-        .help("mobilize arp attack");
+    MY_TRY;
+    namespace po = boost::program_options;
+    boost::program_options::options_description opt_args("Optional arguments");
+    auto opts = opt_args.add_options();
+    opts("ip4", po::value<std::string>()->default_value("0.0.0.0"), "ip4 address");
+    opts("attack,a", po::bool_switch(), "mobilize arp attack");
+    opts("help,h", po::bool_switch(), "shows help message and exits");
 
-    try {
-        prog.parse_args(argc, argv);
-    } catch (std::exception const& err) {
-        ELOG("{}\n", err.what());
-        std::cerr << prog;
-        std::exit(1);
+    po::positional_options_description pos_args;
+    pos_args.add("ip4", 1);
+
+    po::variables_map vm;
+    po::command_line_parser parser(argc, argv);
+    po::store(parser.options(opt_args).positional(pos_args).run(), vm);
+
+    if (vm["help"].as<bool>()) {
+        std::cerr << "Usage: " << std::filesystem::path(argv[0]).filename().string();
+        std::cerr << " [options]";
+        std::string last = "";
+        for (int i = 0; i < pos_args.max_total_count(); ++i) {
+            auto& name = pos_args.name_for_position(i);
+            if (name == last) {
+                std::cerr << " ...";
+                break;
+            }
+            last = name;
+            std::cerr << " " << name;
+        }
+        std::cerr << std::endl << std::endl;
+        std::cerr << opt_args << std::endl;
+        return 1;
     }
 
-    MY_TRY;
     utils::initLogger(argv[0]);
-    auto ip = net::Ip4::fromDottedDec(prog.get<std::string>("ip"));
+    auto ip = net::Ip4::fromDottedDec(vm["ip4"].as<std::string>());
+    ILOG("ip4: {}", ip.toStr());
     net::Driver driver(ip);
-    if (!prog.get<bool>("--attack")) {
+    if (!vm["attack"].as<bool>()) {
         auto mac = driver.getMac(ip);
         if (!mac) {
             if (mac.error().timeout()) {

@@ -1,26 +1,46 @@
 #include "uber-shader.h"
 #include "pixel-shader.h"
-#include <argparse/argparse.hpp>
+#include <boost/program_options.hpp>
 
 int main(int argc, char** argv)
 {
-    argparse::ArgumentParser prog("shaders");
-    prog.add_argument("manifest").default_value("").help("manifest name to render");
+    MY_TRY;
+    namespace po = boost::program_options;
+    boost::program_options::options_description opt_args("Optional arguments");
+    auto opts = opt_args.add_options();
+    opts("manifest", po::value<std::string>(), "manifest name to render");
+    opts("help,h", po::bool_switch(), "shows help message and exits");
 
-    try {
-        prog.parse_args(argc, argv);
-    } catch (std::exception const& err) {
-        ELOG("{}\n", err.what());
-        std::cerr << prog;
-        std::exit(1);
+    po::positional_options_description pos_args;
+    pos_args.add("manifest", 1);
+
+    po::variables_map vm;
+    po::command_line_parser parser(argc, argv);
+    po::store(parser.options(opt_args).positional(pos_args).run(), vm);
+
+    if (vm["help"].as<bool>()) {
+        std::cerr << "Usage: " << std::filesystem::path(argv[0]).filename().string();
+        std::cerr << " [options]";
+        std::string last = "";
+        for (int i = 0; i < pos_args.max_total_count(); ++i) {
+            auto& name = pos_args.name_for_position(i);
+            if (name == last) {
+                std::cerr << " ...";
+                break;
+            }
+            last = name;
+            std::cerr << " " << name;
+        }
+        std::cerr << std::endl << std::endl;
+        std::cerr << opt_args << std::endl;
+        return 1;
     }
 
-    MY_TRY;
     utils::initLogger(argv[0]);
     auto raw = utils::readFile((CURR_RESDIR / "manifests.json").wstring());
     auto manifests = nlohmann::json::parse(raw.value());
-    if (prog.is_used("manifest")) {
-        auto m = prog.get<std::string>("manifest");
+    if (vm.count("manifest")) {
+        auto m = vm["manifest"].as<std::string>();
         int idx = -1;
         for (int i = 0; i < manifests.size(); ++i) {
             if (manifests[i]["name"] == m) {

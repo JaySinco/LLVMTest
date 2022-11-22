@@ -9,7 +9,7 @@ add_executable(${MAIN}
 )
 
 target_link_libraries(${MAIN} utils
+    Boost::program_options
     nlohmann-json
-    argparse::argparse
     raylib
 )

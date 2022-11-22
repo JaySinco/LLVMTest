@@ -310,7 +310,7 @@ template <>
 Json Tagged<uint8_t>::toJson() const
 {
     Json j;
-    j["type"] = "uint";
+    j["type"] = "uint8";
     j["value"] = v;
     j["begin"] = beg;
     j["end"] = end;
@@ -321,7 +321,7 @@ template <>
 Json Tagged<uint16_t>::toJson() const
 {
     Json j;
-    j["type"] = "uint";
+    j["type"] = "uint16";
     j["value"] = v;
     j["begin"] = beg;
     j["end"] = end;
@@ -332,7 +332,7 @@ template <>
 Json Tagged<uint32_t>::toJson() const
 {
     Json j;
-    j["type"] = "uint";
+    j["type"] = "uint32";
     j["value"] = v;
     j["begin"] = beg;
     j["end"] = end;
@@ -377,7 +377,7 @@ Json Tagged<std::vector<uint8_t>>::toJson() const
 {
     Json j;
     j["type"] = "svec";
-    j["size"] = v.size();
+    j["tlen"] = v.size();
     j["begin"] = beg;
     j["end"] = end;
     return j;

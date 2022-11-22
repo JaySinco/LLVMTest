@@ -22,4 +22,4 @@ elseif (UNIX)
 endif()
 
 single_file_executable(tools/lsdev ${MAIN})
-single_file_executable(tools/arp ${MAIN} argparse::argparse)
+single_file_executable(tools/arp ${MAIN} Boost::program_options)
