@@ -1,5 +1,5 @@
 #pragma once
-#include "utils/base.h"
+#include "utils/logging.h"
 #include <torch/types.h>
 #include <mujoco/mujoco.h>
 #include <GLFW/glfw3.h>

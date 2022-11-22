@@ -1,4 +1,5 @@
-#include "utils/base.h"
+#include "utils/logging.h"
+#include <iostream>
 #include <range/v3/all.hpp>
 
 int main(int argc, char** argv)

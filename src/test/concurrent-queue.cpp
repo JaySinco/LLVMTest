@@ -1,4 +1,4 @@
-#include "utils/base.h"
+#include "utils/logging.h"
 #include <moodycamel/concurrentqueue.h>
 
 int main(int argc, char** argv)

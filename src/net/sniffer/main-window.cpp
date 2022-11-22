@@ -1,4 +1,4 @@
-#include "sniffer-main-window.h"
+#include "main-window.h"
 #include <QtWidgets/QFileSystemModel>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QListView>

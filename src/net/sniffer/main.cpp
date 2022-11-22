@@ -1,5 +1,5 @@
-#include "utils/base.h"
-#include "sniffer-main-window.h"
+#include "utils/logging.h"
+#include "main-window.h"
 #include <QtWidgets/QApplication>
 
 int main(int argc, char** argv)

@@ -1,5 +1,5 @@
 #pragma once
-#include "utils/base.h"
+#include "utils/logging.h"
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>

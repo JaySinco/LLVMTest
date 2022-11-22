@@ -1,6 +1,6 @@
-#include "../driver.h"
+#include "utils/args.h"
+#include "driver.h"
 #include <signal.h>
-#include <boost/program_options.hpp>
 
 std::atomic<bool> end_attack = false;
 
@@ -24,20 +24,7 @@ int main(int argc, char** argv)
     po::store(parser.options(opt_args).positional(pos_args).run(), vm);
 
     if (vm["help"].as<bool>()) {
-        std::cerr << "Usage: " << std::filesystem::path(argv[0]).filename().string();
-        std::cerr << " [options]";
-        std::string last = "";
-        for (int i = 0; i < pos_args.max_total_count(); ++i) {
-            auto& name = pos_args.name_for_position(i);
-            if (name == last) {
-                std::cerr << " ...";
-                break;
-            }
-            last = name;
-            std::cerr << " " << name;
-        }
-        std::cerr << std::endl << std::endl;
-        std::cerr << opt_args << std::endl;
+        utils::printUsage(argv[0], &opt_args, &pos_args);
         return 1;
     }
 

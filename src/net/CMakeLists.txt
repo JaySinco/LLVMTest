@@ -21,12 +21,12 @@ elseif (UNIX)
     target_link_libraries(${MAIN} shlwapi ws2_32 iphlpapi libpcap::libpcap)
 endif()
 
-single_file_executable(tools/lsdev ${MAIN})
-single_file_executable(tools/arp ${MAIN} Boost::program_options)
+single_file_executable(tools-lsdev ${MAIN})
+single_file_executable(tools-arp ${MAIN})
 
-add_executable(${MAIN}-tools-sniffer
-    tools/sniffer-main-window.cpp
-    tools/sniffer.cpp
+add_executable(${MAIN}-sniffer
+    sniffer/main-window.cpp
+    sniffer/main.cpp
 )
-set_target_properties(${MAIN}-tools-sniffer PROPERTIES AUTOMOC ON AUTORCC ON AUTOUIC ON)
-target_link_libraries(${MAIN}-tools-sniffer utils Qt5::Widgets)
+set_target_properties(${MAIN}-sniffer PROPERTIES AUTOMOC ON AUTORCC ON AUTOUIC ON)
+target_link_libraries(${MAIN}-sniffer utils Qt5::Widgets)

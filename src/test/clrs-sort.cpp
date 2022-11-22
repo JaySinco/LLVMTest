@@ -1,4 +1,4 @@
-#include "utils/base.h"
+#include "utils/logging.h"
 #include <fmt/ranges.h>
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
