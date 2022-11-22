@@ -81,7 +81,7 @@ Json Tcp::toJson() const
     if (hl_flags_.v & 0x1) {
         flags.push_back("fin");
     }
-    j[hl_flags_.k]["hint"] =
+    j[hl_flags_t::k]["hint"] =
         FSTR("header-size:{};{};", headerSize(), boost::algorithm::join(flags, ";"));
 
     JSON_PROP(j, wlen_);

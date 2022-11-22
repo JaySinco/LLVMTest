@@ -61,9 +61,9 @@ Json Arp::toJson() const
     JSON_PROP(j, hw_len_);
     JSON_PROP(j, prot_len_);
     JSON_PROP(j, op_);
-    j[op_.k]["hint"] = (op_.v == 1 || op_.v == 3)   ? "request;"
-                       : (op_.v == 2 || op_.v == 4) ? "reply;"
-                                                    : FSTR("invalid(0x{:x});", op_.v);
+    j[op_t::k]["hint"] = (op_.v == 1 || op_.v == 3)   ? "request;"
+                         : (op_.v == 2 || op_.v == 4) ? "reply;"
+                                                      : FSTR("invalid(0x{:x});", op_.v);
     JSON_PROP(j, smac_);
     JSON_PROP(j, sip_);
     JSON_PROP(j, dmac_);

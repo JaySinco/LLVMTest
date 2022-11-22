@@ -89,18 +89,18 @@ Json Ipv4::toJson() const
     j["type"] = typeDesc(type());
 
     JSON_PROP(j, ver_hl_);
-    j[ver_hl_.k]["hint"] = FSTR("version:{};header-size:{};", ver_hl_.v >> 4, headerSize());
+    j[ver_hl_t::k]["hint"] = FSTR("version:{};header-size:{};", ver_hl_.v >> 4, headerSize());
     JSON_PROP(j, tos_);
     JSON_PROP(j, tlen_);
     JSON_PROP(j, id_);
     JSON_PROP(j, flags_fo_);
-    j[flags_fo_.k]["hint"] =
+    j[flags_fo_t::k]["hint"] =
         FSTR("{}{}fragment-offset:{};", flags_fo_.v & 0x2000 ? "more-fragment;" : "",
              flags_fo_.v & 0x4000 ? "forbid-slice;" : "", (flags_fo_.v & 0x1fff) * 8);
     JSON_PROP(j, ttl_);
     JSON_PROP(j, ipv4_type_);
     JSON_PROP(j, crc_);
-    j[crc_.k]["hint"] = FSTR("checked:{};", headerChecksum());
+    j[crc_t::k]["hint"] = FSTR("checked:{};", headerChecksum());
     JSON_PROP(j, sip_);
     JSON_PROP(j, dip_);
     JSON_PROP(j, opts_);

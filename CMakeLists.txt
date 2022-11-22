@@ -33,6 +33,7 @@ find_package(nlohmann-json REQUIRED CONFIG)
 find_package(uWebSockets REQUIRED CONFIG)
 find_package(concurrentqueue REQUIRED CONFIG)
 find_package(threadpool REQUIRED CONFIG)
+find_package(Qt5Widgets REQUIRED CONFIG)
 
 if(UNIX)
     find_package(libpcap REQUIRED CONFIG)

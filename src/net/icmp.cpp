@@ -107,10 +107,10 @@ Json Icmp::toJson() const
     Json j;
     j["type"] = typeDesc(type());
     JSON_PROP(j, icmp_type_);
-    j[icmp_type_.k]["hint"] = FSTR("desc:{};", icmpDesc());
+    j[icmp_type_t::k]["hint"] = FSTR("desc:{};", icmpDesc());
     JSON_PROP(j, code_);
     JSON_PROP(j, crc_);
-    j[crc_.k]["hint"] = FSTR("checked:{};", overallChecksum());
+    j[crc_t::k]["hint"] = FSTR("checked:{};", overallChecksum());
 
     // Netmask: 17,18
     if (icmp_type_.v == 17 || icmp_type_.v == 18) {

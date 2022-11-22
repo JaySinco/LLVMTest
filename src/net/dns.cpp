@@ -104,7 +104,7 @@ Json Dns::toJson() const
     if (flags_.v & 0x80) {
         flags.push_back("recursion-available");
     }
-    j[flags_.k]["hint"] =
+    j[flags_t::k]["hint"] =
         FSTR("{};op:{};code:{};{};", flags_.v & 0x8000 ? "reply" : "query", (flags_.v >> 11) & 0xf,
              flags_.v & 0xf, boost::algorithm::join(flags, ";"));
 
@@ -168,9 +168,9 @@ Json Dns::toJsonResource(Resource const& res)
     JSON_PROP(r, res.ttl_);
     JSON_PROP(r, res.data_);
     if (res.dm_type_.v == 1) {  // A
-        r[res.data_.k]["hint"] = reinterpret_cast<Ip4 const*>(res.data_.v.data())->toStr();
+        r[Resource::data_t::k]["hint"] = reinterpret_cast<Ip4 const*>(res.data_.v.data())->toStr();
     } else if (res.dm_type_.v == 1) {  // CNAME
-        r[res.data_.k]["hint"] = std::string(res.data_.v.begin(), res.data_.v.end());
+        r[Resource::data_t::k]["hint"] = std::string(res.data_.v.begin(), res.data_.v.end());
     }
     return r;
 }

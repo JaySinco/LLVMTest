@@ -23,3 +23,10 @@ endif()
 
 single_file_executable(tools/lsdev ${MAIN})
 single_file_executable(tools/arp ${MAIN} Boost::program_options)
+
+add_executable(${MAIN}-tools-sniffer
+    tools/sniffer-main-window.cpp
+    tools/sniffer.cpp
+)
+set_target_properties(${MAIN}-tools-sniffer PROPERTIES AUTOMOC ON AUTORCC ON AUTOUIC ON)
+target_link_libraries(${MAIN}-tools-sniffer utils Qt5::Widgets)
