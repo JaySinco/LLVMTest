@@ -22,7 +22,19 @@
 namespace utils
 {
 
-void initLogger(std::string const& program,
-                std::string const& log_dir = ws2s(getExeDir() + L"/logs"));
+enum LogLevel
+{
+    kTRACE = 0,
+    kDEBUG = 1,
+    kINFO = 2,
+    kWARN = 3,
+    kERROR = 4,
+    kCRITICAL = 5,
+    kOFF = 6,
+};
+
+void initLogger(std::string const& program, std::string const& logdir, bool logtostderr,
+                LogLevel minloglevel, LogLevel stderrlevel, LogLevel logbuflevel, int logbufsecs,
+                int maxlogsize);
 
 }  // namespace utils
