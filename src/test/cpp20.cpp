@@ -1,10 +1,10 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 #include <iostream>
 #include <range/v3/all.hpp>
 
 int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     auto const ints = {0, 1, 2, 3, 4, 5};
     auto even = [](int i) { return 0 == i % 2; };
     auto square = [](int i) { return i * i; };

@@ -1,8 +1,8 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 
 int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     std::string world = "world";
     ILOG("hello, {}", world);
 }

@@ -10,6 +10,7 @@ namespace utils
 
 std::filesystem::path sourceRepo();
 std::wstring getExeDir();
+std::wstring defaultLoggingDir();
 Expected<std::string> readFile(std::wstring_view path);
 
 }  // namespace utils

@@ -29,6 +29,12 @@ std::wstring getExeDir()
 #endif
 }
 
+std::wstring defaultLoggingDir()
+{
+    auto path = std::filesystem::path(getExeDir()) / "logs";
+    return path.generic_wstring();
+}
+
 Expected<std::string> readFile(std::wstring_view path)
 {
 #ifdef __linux__

@@ -5,29 +5,14 @@
 int main(int argc, char** argv)
 {
     MY_TRY;
-    namespace po = boost::program_options;
-    boost::program_options::options_description opt_args("Optional arguments");
-    auto opts = opt_args.add_options();
-    opts("manifest", po::value<std::string>(), "manifest name to render");
-    opts("help,h", po::bool_switch(), "shows help message and exits");
+    utils::Args args(argc, argv);
+    args.positional("manifest", utils::value<std::string>(), "manifest name to render", 1);
+    args.parse();
 
-    po::positional_options_description pos_args;
-    pos_args.add("manifest", 1);
-
-    po::variables_map vm;
-    po::command_line_parser parser(argc, argv);
-    po::store(parser.options(opt_args).positional(pos_args).run(), vm);
-
-    if (vm["help"].as<bool>()) {
-        utils::printUsage(argv[0], &opt_args, &pos_args);
-        return 1;
-    }
-
-    utils::initLogger(argv[0]);
     auto raw = utils::readFile((CURR_RESDIR / "manifests.json").wstring());
     auto manifests = nlohmann::json::parse(raw.value());
-    if (vm.count("manifest")) {
-        auto m = vm["manifest"].as<std::string>();
+    if (args.has("manifest")) {
+        auto m = args.get<std::string>("manifest");
         int idx = -1;
         for (int i = 0; i < manifests.size(); ++i) {
             if (manifests[i]["name"] == m) {

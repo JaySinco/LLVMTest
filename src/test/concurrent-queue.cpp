@@ -1,9 +1,9 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 #include <moodycamel/concurrentqueue.h>
 
 int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     moodycamel::ConcurrentQueue<int> q;
     int dequeued[100] = {0};
     std::thread threads[20];

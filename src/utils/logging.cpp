@@ -9,6 +9,9 @@ namespace utils
 
 static spdlog::level::level_enum level(LogLevel level)
 {
+    if (level < 0 || level >= kTOTAL) {
+        MY_THROW("invalid log level: {}", level);
+    }
     return static_cast<spdlog::level::level_enum>(level);
 }
 

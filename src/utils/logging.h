@@ -22,7 +22,7 @@
 namespace utils
 {
 
-enum LogLevel
+enum LogLevel : int
 {
     kTRACE = 0,
     kDEBUG = 1,
@@ -31,6 +31,7 @@ enum LogLevel
     kERROR = 4,
     kCRITICAL = 5,
     kOFF = 6,
+    kTOTAL,
 };
 
 void initLogger(std::string const& program, std::string const& logdir, bool logtostderr,

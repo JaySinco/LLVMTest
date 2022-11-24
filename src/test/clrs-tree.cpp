@@ -1,4 +1,4 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 #include <fmt/ranges.h>
 #include <functional>
 #include <stack>
@@ -481,9 +481,9 @@ TEST_CASE("binary_search_tree")
     }
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     Catch::Session session;
     auto& config = session.configData();
     config.shouldDebugBreak = true;

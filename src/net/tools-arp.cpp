@@ -9,30 +9,15 @@ void onInterrupt(int) { end_attack = true; }
 int main(int argc, char** argv)
 {
     MY_TRY;
-    namespace po = boost::program_options;
-    boost::program_options::options_description opt_args("Optional arguments");
-    auto opts = opt_args.add_options();
-    opts("ip4", po::value<std::string>()->default_value("0.0.0.0"), "ip4 address");
-    opts("attack,a", po::bool_switch(), "mobilize arp attack");
-    opts("help,h", po::bool_switch(), "shows help message and exits");
+    utils::Args args(argc, argv);
+    args.positional("ip4", utils::value<std::string>()->default_value("0.0.0.0"), "ip4 address", 1);
+    args.optional("attack,a", utils::bool_switch(), "mobilize arp attack");
+    args.parse();
 
-    po::positional_options_description pos_args;
-    pos_args.add("ip4", 1);
-
-    po::variables_map vm;
-    po::command_line_parser parser(argc, argv);
-    po::store(parser.options(opt_args).positional(pos_args).run(), vm);
-
-    if (vm["help"].as<bool>()) {
-        utils::printUsage(argv[0], &opt_args, &pos_args);
-        return 1;
-    }
-
-    utils::initLogger(argv[0]);
-    auto ip = net::Ip4::fromDottedDec(vm["ip4"].as<std::string>());
+    auto ip = net::Ip4::fromDottedDec(args.get<std::string>("ip4"));
     ILOG("ip4: {}", ip.toStr());
     net::Driver driver(ip);
-    if (!vm["attack"].as<bool>()) {
+    if (!args.get<bool>("attack")) {
         auto mac = driver.getMac(ip);
         if (!mac) {
             if (mac.error().timeout()) {

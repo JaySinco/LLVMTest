@@ -1,4 +1,4 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 #include <fmt/ranges.h>
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
@@ -468,9 +468,9 @@ TEST_CASE("sort_benchmark", "[benchmark]")
     SORT_BENCHMARK(countSort);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     Catch::Session session;
     auto& config = session.configData();
     config.benchmarkSamples = 10;

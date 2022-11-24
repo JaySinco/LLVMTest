@@ -1,4 +1,4 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 #include <boost/phoenix/phoenix.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -91,6 +91,6 @@ void parsing(std::filesystem::path const& source_file)
 
 int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     parsing(CURR_RESDIR / "input.txt");
 }

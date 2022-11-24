@@ -40,7 +40,7 @@ void runCmdBenchmark(int64_t verno1, int64_t verno2, int itermax)
     benchmark(p1, p2, 10, false);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
     MY_TRY;
     argparse::ArgumentParser prog("gomoku");

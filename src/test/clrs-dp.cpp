@@ -1,4 +1,4 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 #include <fmt/ranges.h>
 #include <range/v3/all.hpp>
 #include <functional>
@@ -284,9 +284,9 @@ TEST_CASE("dynamic_programming")
     }
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     Catch::Session session;
     auto& config = session.configData();
     config.shouldDebugBreak = true;

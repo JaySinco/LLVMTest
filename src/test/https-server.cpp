@@ -1,10 +1,10 @@
-#include "utils/logging.h"
+#include "utils/args.h"
 #include <uWebSockets/App.h>
 #include <fmt/ostream.h>
 
 int main(int argc, char** argv)
 {
-    utils::initLogger(argv[0]);
+    INIT_LOG(argc, argv);
     auto key_file = (CURR_RESDIR / "key.pem").generic_string();
     auto cert_file = (CURR_RESDIR / "cert.pem").generic_string();
 
