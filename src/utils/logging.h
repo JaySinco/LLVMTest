@@ -11,10 +11,10 @@
     }                                       \
     catch (const std::exception& err)       \
     {                                       \
-        ELOG("[Exception] {}", err.what()); \
+        ELOG("[exception] {}", err.what()); \
     }
 #define LOG_FUNC(level, ...) SPDLOG_LOGGER_CALL(spdlog::default_logger_raw(), level, __VA_ARGS__)
-#define VLOG(...) (LOG_FUNC(spdlog::level::debug, __VA_ARGS__))
+#define DLOG(...) (LOG_FUNC(spdlog::level::debug, __VA_ARGS__))
 #define ILOG(...) (LOG_FUNC(spdlog::level::info, __VA_ARGS__))
 #define WLOG(...) (LOG_FUNC(spdlog::level::warn, __VA_ARGS__))
 #define ELOG(...) (LOG_FUNC(spdlog::level::err, __VA_ARGS__))

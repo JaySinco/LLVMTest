@@ -60,7 +60,7 @@ Driver::Driver(Adaptor const& apt, int to_ms): apt_(apt)
 Driver::~Driver()
 {
     auto p = reinterpret_cast<pcap_t*>(p_);
-    VLOG("close pcap");
+    DLOG("close pcap");
     pcap_close(p);
 }
 
@@ -120,7 +120,6 @@ Expected<ProtocolStack> Driver::request(ProtocolStack const& req, int to_ms, boo
             }
         }
         auto reply = ProtocolStack::decode(*pac);
-        // VLOG(reply.toJson().dump(3));
         if (req.correlated(reply)) {
             return reply;
         }

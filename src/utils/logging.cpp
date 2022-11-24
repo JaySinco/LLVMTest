@@ -53,9 +53,9 @@ void initLogger(std::string const& program, std::string const& logdir, bool logt
     spdlog::set_default_logger(logger);
     spdlog::flush_every(std::chrono::seconds(logbufsecs));
 
-    VLOG("### GIT HASH: {} ###", _GIT_HASH);
-    VLOG("### GIT BRANCH: {} ###", _GIT_BRANCH);
-    VLOG("### BUILD AT: {} {} ###", __DATE__, __TIME__);
+    DLOG("### GIT HASH: {} ###", _GIT_HASH);
+    DLOG("### GIT BRANCH: {} ###", _GIT_BRANCH);
+    DLOG("### BUILD AT: {} {} ###", __DATE__, __TIME__);
 }
 
 }  // namespace utils

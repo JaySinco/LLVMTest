@@ -20,10 +20,8 @@ public:
                     int max_count);
     void parse();
     bool has(std::string const& name) const;
-
     Args& addSub(std::string const& name, std::string const& desc);
     bool hasSub(std::string const& name) const;
-    Args const& getSub(std::string const& name) const;
 
     template <typename T>
     T const& get(std::string const& name) const

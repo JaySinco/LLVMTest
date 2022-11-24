@@ -141,8 +141,6 @@ bool Args::hasSub(std::string const& name) const
     return subs_.count(name) > 0 && subs_.at(name).show;
 }
 
-Args const& Args::getSub(std::string const& name) const { return *subs_.at(name).args; }
-
 bool Args::containOptional() const { return !opt_args_.options().empty(); }
 
 bool Args::containPositional() const { return pos_args_.max_total_count() > 0; }

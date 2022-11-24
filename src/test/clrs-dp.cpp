@@ -76,7 +76,7 @@ cpp_int matrixChainMulti(int const* dims, int n)
         };
         return la(i, j, la);
     };
-    VLOG("ans={}", ans(1, n));
+    DLOG("ans={}", ans(1, n));
     return dp[1][n].v;
 }
 
