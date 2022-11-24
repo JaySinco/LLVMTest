@@ -49,7 +49,6 @@ class PrototypingConan(ConanFile):
         self.requires(self._ref_pkg("uwebsockets/20.14.0"))
         self.requires(self._ref_pkg("concurrentqueue/1.0.3"))
         self.requires(self._ref_pkg("threadpool/3.3.0"))
-        self.requires(self._ref_pkg("threadpool/3.3.0"))
 
         if platform.system() == "Linux":
             self.requires(self._ref_pkg("libpcap/1.10.1"))
