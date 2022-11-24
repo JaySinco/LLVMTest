@@ -20,7 +20,7 @@ int main(int argc, char** argv)
     if (!args.get<bool>("attack")) {
         auto mac = driver.getMac(ip);
         if (!mac) {
-            if (mac.error().timeout()) {
+            if (mac.error().typeof(net::Error::kTimeout)) {
                 ILOG("{} is offline", ip.toStr());
             } else {
                 ELOG(mac.error().what());

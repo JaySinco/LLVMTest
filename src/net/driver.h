@@ -36,20 +36,6 @@ private:
 class Error
 {
 public:
-    static nonstd::unexpected_type<Error> unexpected(Error const& err);
-    static nonstd::unexpected_type<Error> catchAll(std::string const& msg);
-    static nonstd::unexpected_type<Error> timeout(std::string const& msg);
-    static nonstd::unexpected_type<Error> packetExpired(std::string const& msg);
-
-    bool catchAll() const { return flags_ & kCatchAll; }
-
-    bool timeout() const { return flags_ & kTimeout; }
-
-    bool packetExpired() const { return flags_ & kPacketExpired; }
-
-    std::string const& what() const { return msg_; };
-
-private:
     enum Type
     {
         kCatchAll = 1,
@@ -57,6 +43,17 @@ private:
         kPacketExpired = 1 << 2,
     };
 
+    static nonstd::unexpected_type<Error> unexpected(Error const& err);
+
+    static nonstd::unexpected_type<Error> catchAll(std::string const& msg);
+    static nonstd::unexpected_type<Error> timeout(std::string const& msg);
+    static nonstd::unexpected_type<Error> packetExpired(std::string const& msg);
+
+    bool typeof(Type type) const { return flags_ & type; }
+
+    std::string const& what() const { return msg_; };
+
+private:
     uint32_t flags_;
     std::string msg_;
 };

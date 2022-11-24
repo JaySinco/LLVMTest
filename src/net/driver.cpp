@@ -112,7 +112,7 @@ Expected<ProtocolStack> Driver::request(ProtocolStack const& req, int to_ms, boo
         }
         Expected<Packet> pac = recv();
         if (!pac) {
-            if (pac.error().packetExpired()) {
+            if (pac.error().typeof(Error::kPacketExpired)) {
                 WLOG("skip expired packet");
                 continue;
             } else {
