@@ -34,7 +34,6 @@ class PrototypingConan(ConanFile):
 
     def requirements(self):
         self.requires(self._ref_pkg("spdlog/1.10.0"))
-        self.requires(self._ref_pkg("argparse/2.9"))
         self.requires(self._ref_pkg("boost/1.79.0"))
         self.requires(self._ref_pkg("glfw/3.3.7"))
         self.requires(self._ref_pkg("implot/0.13"))

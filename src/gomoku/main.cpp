@@ -1,6 +1,6 @@
+#include "utils/args.h"
 #include "mcts.h"
 #include "train.h"
-#include <argparse/argparse.hpp>
 #include <iostream>
 
 std::random_device g_random_device;
@@ -43,78 +43,42 @@ void runCmdBenchmark(int64_t verno1, int64_t verno2, int itermax)
 int main(int argc, char** argv)
 {
     MY_TRY;
-    argparse::ArgumentParser prog("gomoku");
+    utils::Args args(argc, argv);
 
-    // gomoku train
-    argparse::ArgumentParser train_cmd("train");
-    train_cmd.add_description("train model from scatch or checkpoint");
-    train_cmd.add_argument("verno")
-        .help("verno of checkpoint; 0 to train from scratch")
-        .scan<'i', int64_t>();
-    prog.add_subparser(train_cmd);
+    auto& train_args = args.addSub("train", "train model from scatch or checkpoint");
+    train_args.positional("verno", utils::value<int64_t>(),
+                          "verno of checkpoint; 0 to train from scratch", 1);
 
-    // gomoku play
-    argparse::ArgumentParser play_cmd("play");
-    play_cmd.add_description("play with trained model");
-    play_cmd.add_argument("color")
-        .help("first hand color; human(0), computer(1), selfplay(-1)")
-        .scan<'i', int>();
-    play_cmd.add_argument("verno").help("verno of checkpoint").scan<'i', int64_t>();
-    play_cmd.add_argument("itermax")
-        .help("itermax for mcts deep player")
-        .scan<'i', int>()
-        .default_value(kTrainDeepItermax);
-    prog.add_subparser(play_cmd);
+    auto& play_args = args.addSub("play", "play with trained model");
+    play_args.positional("color", utils::value<int>(),
+                         "first hand color; human(0), computer(1), selfplay(-1)", 1);
+    play_args.positional("verno", utils::value<int64_t>(), "verno of checkpoint", 1);
+    play_args.positional("itermax", utils::value<int>()->default_value(kTrainDeepItermax),
+                         "itermax for mcts deep player", 1);
 
-    // gomoku benchmark
-    argparse::ArgumentParser benchmark_cmd("benchmark");
-    benchmark_cmd.add_description("benchmark between two mcts deep players");
-    benchmark_cmd.add_argument("verno1")
-        .help("verno of checkpoint to compare")
-        .scan<'i', int64_t>();
-    benchmark_cmd.add_argument("verno2").help("see above").scan<'i', int64_t>();
-    benchmark_cmd.add_argument("itermax")
-        .help("itermax for mcts deep player")
-        .scan<'i', int>()
-        .default_value(kTrainDeepItermax);
-    prog.add_subparser(benchmark_cmd);
+    auto& benchmark_args = args.addSub("benchmark", "benchmark between two mcts deep players");
+    benchmark_args.positional("verno1", utils::value<int64_t>(), "verno of checkpoint to compare",
+                              1);
+    benchmark_args.positional("verno2", utils::value<int64_t>(), "see above", 1);
+    benchmark_args.positional("itermax", utils::value<int>()->default_value(kTrainDeepItermax),
+                              "itermax for mcts deep player", 1);
 
-    // parse args
-    try {
-        prog.parse_args(argc, argv);
-    } catch (std::exception const& err) {
-        ELOG("{}\n", err.what());
-        if (prog.is_subcommand_used("train")) {
-            std::cerr << train_cmd;
-        } else if (prog.is_subcommand_used("play")) {
-            std::cerr << play_cmd;
-        } else if (prog.is_subcommand_used("benchmark")) {
-            std::cerr << benchmark_cmd;
-        } else {
-            std::cerr << prog;
-        }
-        std::exit(1);
-    }
-
-    utils::initLogger(argv[0]);
+    args.parse();
 
     // run cmd
-    if (prog.is_subcommand_used("train")) {
-        auto verno = train_cmd.get<int64_t>("verno");
+    if (args.hasSub("train")) {
+        auto verno = train_args.get<int64_t>("verno");
         runCmdTrain(verno);
-    } else if (prog.is_subcommand_used("play")) {
-        auto color = play_cmd.get<int>("color");
-        auto verno = play_cmd.get<int64_t>("verno");
-        auto itermax = play_cmd.get<int>("itermax");
+    } else if (args.hasSub("play")) {
+        auto color = play_args.get<int>("color");
+        auto verno = play_args.get<int64_t>("verno");
+        auto itermax = play_args.get<int>("itermax");
         runCmdPlay(color, verno, itermax);
-    } else if (prog.is_subcommand_used("benchmark")) {
-        auto verno1 = benchmark_cmd.get<int64_t>("verno1");
-        auto verno2 = benchmark_cmd.get<int64_t>("verno2");
-        auto itermax = benchmark_cmd.get<int>("itermax");
+    } else if (args.hasSub("benchmark")) {
+        auto verno1 = benchmark_args.get<int64_t>("verno1");
+        auto verno2 = benchmark_args.get<int64_t>("verno2");
+        auto itermax = benchmark_args.get<int>("itermax");
         runCmdBenchmark(verno1, verno2, itermax);
-    } else {
-        std::cerr << prog;
-        std::exit(0);
     }
     MY_CATCH;
 }

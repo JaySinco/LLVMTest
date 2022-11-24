@@ -20,13 +20,17 @@ public:
                     int max_count);
     void parse();
     bool has(std::string const& name) const;
-    bool hasSub(std::string const& name) const;
+
     Args& addSub(std::string const& name, std::string const& desc);
+    bool hasSub(std::string const& name) const;
     Args const& getSub(std::string const& name) const;
 
     template <typename T>
     T const& get(std::string const& name) const
     {
+        if (!has(name)) {
+            MY_THROW("flags not exist: {}", name);
+        }
         return vars_[name].as<T>();
     }
 
@@ -53,7 +57,6 @@ private:
     char** argv_;
     std::string program_;
     po::options_description opt_args_;
-    po::options_description_easy_init opt_args_init_;
     po::positional_options_description pos_args_;
     po::variables_map vars_;
     std::map<std::string, SubCmd> subs_;

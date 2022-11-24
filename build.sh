@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
         -l) build_release=1 && shift ;;
         -p) do_preprocess=1 && shift ;;
         -f) do_rm_cmake_cache=1 && shift ;;
-        -*) echo "Unknown option: $1" && exit 1 ;;
+         *) echo "Unknown option: $1" && exit 1 ;;
     esac
 done
 

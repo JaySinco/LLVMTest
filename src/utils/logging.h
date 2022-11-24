@@ -7,11 +7,11 @@
 #define LOG_FSTR(f, ...) (FSTR("[{}:{}] " f, CURR_FILENAME, __LINE__, __VA_ARGS__))
 #define MY_THROW(f, ...) throw utils::Error(LOG_FSTR(f, __VA_ARGS__))
 #define MY_TRY try {
-#define MY_CATCH                      \
-    }                                 \
-    catch (const std::exception& err) \
-    {                                 \
-        ELOG(err.what());             \
+#define MY_CATCH                            \
+    }                                       \
+    catch (const std::exception& err)       \
+    {                                       \
+        ELOG("[Exception] {}", err.what()); \
     }
 #define LOG_FUNC(level, ...) SPDLOG_LOGGER_CALL(spdlog::default_logger_raw(), level, __VA_ARGS__)
 #define VLOG(...) (LOG_FUNC(spdlog::level::debug, __VA_ARGS__))

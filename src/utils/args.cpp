@@ -1,11 +1,10 @@
 #include "args.h"
-
 #define HELP_MESSAGE "shows help message and exits"
 
 namespace utils
 {
 
-Args::Args(): opt_args_("Optional arguments"), opt_args_init_(opt_args_.add_options()) {}
+Args::Args(): opt_args_("Optional arguments", 70) {}
 
 Args::Args(int argc, char** argv): Args()
 {
@@ -16,7 +15,7 @@ Args::Args(int argc, char** argv): Args()
 
 void Args::optional(char const* name, po::value_semantic const* s, char const* description)
 {
-    opt_args_init_(name, s, description);
+    opt_args_.add_options()(name, s, description);
 }
 
 void Args::positional(char const* name, po::value_semantic const* s, char const* description,
@@ -80,7 +79,7 @@ void Args::parse(po::command_line_parser& parser, bool init_logger)
             std::exit(1);
         } else {
             auto args = po::collect_unrecognized(parsed_result.options, po::include_positional);
-            // args.erase(opts.begin());
+            args.erase(args.begin());
             it->second.args->parse(args);
         }
     } else {
@@ -117,18 +116,22 @@ void Args::printUsage(std::ostream& os)
             os << " " << name;
         }
     }
-    if (containOptional()) {
-        os << std::endl << std::endl;
-        os << opt_args_ << std::endl;
-    }
+    os << std::endl;
     if (containSub()) {
-        os << std::endl << std::endl;
-        os << "Sub commands:" << std::endl;
+        os << std::endl;
+        os << "Subcommands:" << std::endl;
+        size_t wmax = 0;
         for (auto& [k, v]: subs_) {
-            os << "  " << k << "    " << v.desc;
+            wmax = std::max(wmax, k.size());
+        }
+        for (auto& [k, v]: subs_) {
+            os << "  " << k << std::string(wmax - k.size() + 2, ' ') << v.desc << std::endl;
         }
     }
-    os << std::endl;
+    if (containOptional()) {
+        os << std::endl;
+        os << opt_args_;
+    }
 }
 
 bool Args::has(std::string const& name) const { return vars_.count(name) != 0; }
@@ -152,8 +155,8 @@ void Args::addLoggingFlags()
 {
     po::options_description log_args("Logging arguments");
     auto args_init = log_args.add_options();
-    args_init("logdir", po::value<std::string>()->default_value(ws2s(defaultLoggingDir())),
-              "log files directory");
+    args_init("logdir", po::value<std::string>()->default_value("?"),
+              FSTR("log files directory, default to {}", ws2s(defaultLoggingDir())).c_str());
     args_init("minloglevel", po::value<int>()->default_value(kDEBUG), "log level (0-6)");
     args_init("stderrlevel", po::value<int>()->default_value(kINFO), "stderr log level");
     args_init("logbuflevel", po::value<int>()->default_value(kERROR), "log buffered level");

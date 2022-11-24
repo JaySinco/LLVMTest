@@ -23,8 +23,12 @@ void initLogger(std::string const& program, std::string const& logdir, bool logt
         return;
     }
     std::vector<spdlog::sink_ptr> sinks;
-    if (!logdir.empty()) {
-        std::filesystem::path fpath(logdir);
+    std::string log_dir = logdir;
+    if (log_dir == "?") {
+        log_dir = ws2s(defaultLoggingDir());
+    }
+    if (!log_dir.empty()) {
+        std::filesystem::path fpath(log_dir);
         std::string fname =
             FSTR("{}_{:%Y%m%d.%H%M%S}_{}.log", std::filesystem::path(program).stem().string(),
                  spdlog::details::os::localtime(), spdlog::details::os::pid());
