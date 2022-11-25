@@ -1,9 +1,19 @@
 #include "packets-view.h"
 #include "type.h"
+#include <QHeaderView>
 
 PacketsView::PacketsView(QWidget* parent): QTableView(parent)
 {
     setShowGrid(true);
+
+    auto hh = horizontalHeader();
+    hh->setVisible(true);
+    hh->setSectionResizeMode(QHeaderView::ResizeMode::Stretch);
+
+    auto vh = verticalHeader();
+    vh->setSectionResizeMode(QHeaderView::Fixed);
+    vh->setDefaultSectionSize(10);
+
     retranslateUi();
 
     model_ = new PacketsModel(this);

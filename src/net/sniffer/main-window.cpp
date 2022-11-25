@@ -1,5 +1,7 @@
 #include "main-window.h"
 #include <QHBoxLayout>
+#include <QScreen>
+#include <QGuiApplication>
 
 MainWindow::MainWindow(QWidget* parent): QWidget(parent)
 {
@@ -32,6 +34,9 @@ MainWindow::MainWindow(QWidget* parent): QWidget(parent)
         splitter_v2_sp.setHorizontalStretch(1);
         splitter_v2_->setSizePolicy(splitter_v2_sp);
         splitter_h1_->addWidget(splitter_v2_);
+
+        int large = QGuiApplication::primaryScreen()->virtualSize().width();
+        splitter_h1_->setSizes(QList<int>({large, large}));
     }
     {
         splitter_v1_ = new QSplitter(Qt::Vertical, this);
@@ -45,7 +50,6 @@ MainWindow::MainWindow(QWidget* parent): QWidget(parent)
         QSizePolicy splitter_h1_sp(QSizePolicy::Expanding, QSizePolicy::Expanding);
         splitter_h1_sp.setVerticalStretch(5);
         splitter_h1_->setSizePolicy(splitter_h1_sp);
-
         splitter_v1_->addWidget(splitter_h1_);
     }
 

@@ -1,27 +1,14 @@
 #include "packets-model.h"
 #include "ethernet.h"
 #include <QFont>
-#include <fmt/chrono.h>
 
 PacketsModel::PacketsModel(QObject* parent): QAbstractTableModel(parent) {}
 
 PacketsModel::~PacketsModel() = default;
 
-int PacketsModel::rowCount(QModelIndex const& parent) const
-{
-    if (parent.isValid()) {
-        return 0;
-    }
-    return data_.size();
-}
+int PacketsModel::rowCount(QModelIndex const& parent) const { return data_.size(); }
 
-int PacketsModel::columnCount(QModelIndex const& parent) const
-{
-    if (parent.isValid()) {
-        return 0;
-    }
-    return 3;
-}
+int PacketsModel::columnCount(QModelIndex const& parent) const { return 3; }
 
 void PacketsModel::receivePacket(net::Packet const& pac)
 {
@@ -32,6 +19,12 @@ void PacketsModel::receivePacket(net::Packet const& pac)
 
 QVariant PacketsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if (orientation != Qt::Horizontal) {
+        return {};
+    }
+    if (role != Qt::DisplayRole) {
+        return {};
+    }
     switch (section) {
         case 0:
             return tr("time");
@@ -40,30 +33,26 @@ QVariant PacketsModel::headerData(int section, Qt::Orientation orientation, int 
         case 2:
             return tr("smac");
     }
-    return QVariant();
+    return {};
 }
 
 QVariant PacketsModel::data(QModelIndex const& index, int role) const
 {
-    if (!index.isValid()) {
-        return QVariant();
-    }
     switch (index.column()) {
         case 0:
             switch (role) {
                 case Qt::DisplayRole:
                 case Qt::EditRole:
-                    return QString::fromStdString(
-                        FSTR("{:%Y-%m-%d %H:%M:%S}", data_.at(index.row()).getTime()));
+                    return QString::fromStdString(data_.at(index.row()).getTimeStr());
                 case Qt::TextAlignmentRole:
                     return Qt::AlignLeft;
                 case Qt::FontRole: {
                     QFont fnt;
-                    fnt.setPointSize(11);
+                    fnt.setPointSize(9);
                     return fnt;
                 }
                 case Qt::ToolTipRole:
-                    return QVariant();
+                    return {};
             }
 
         case 1:
@@ -78,7 +67,7 @@ QVariant PacketsModel::data(QModelIndex const& index, int role) const
                     return Qt::AlignLeft;
                 case Qt::FontRole: {
                     QFont fnt;
-                    fnt.setPointSize(11);
+                    fnt.setPointSize(9);
                     return fnt;
                 }
             }
@@ -95,10 +84,10 @@ QVariant PacketsModel::data(QModelIndex const& index, int role) const
                     return Qt::AlignLeft;
                 case Qt::FontRole: {
                     QFont fnt;
-                    fnt.setPointSize(11);
+                    fnt.setPointSize(9);
                     return fnt;
                 }
             }
     }
-    return QVariant();
+    return {};
 }

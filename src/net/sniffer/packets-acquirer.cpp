@@ -29,7 +29,7 @@ void PacketsAcquirer::run()
         }
         emit packetReceived(*pac);
     }
-    DLOG("packets acquirer stopped!");
+    ILOG("packets acquirer stopped!");
     emit stopped();
 }
 

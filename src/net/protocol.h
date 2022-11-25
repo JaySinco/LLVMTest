@@ -84,6 +84,7 @@ public:
     }
 
     std::chrono::system_clock::time_point getTime() const;
+    std::string getTimeStr() const;
 
     bool has(Protocol::Type type) const;
 

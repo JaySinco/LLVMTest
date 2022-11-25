@@ -2,6 +2,7 @@
 #include "ethernet.h"
 #include <random>
 #include <chrono>
+#include <fmt/chrono.h>
 
 namespace net
 {
@@ -131,6 +132,12 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
 std::chrono::system_clock::time_point ProtocolStack::getTime() const
 {
     return std::chrono::system_clock::time_point(std::chrono::milliseconds(t_ms_));
+}
+
+std::string ProtocolStack::getTimeStr() const
+{
+    auto tm = getTime();
+    return FSTR("{:%Y-%m-%d %H:%M:%S}.{:03d}", tm, t_ms_ % 1000);
 }
 
 bool ProtocolStack::has(Protocol::Type type) const

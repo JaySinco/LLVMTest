@@ -60,7 +60,7 @@ Driver::Driver(Adaptor const& apt, int to_ms): apt_(apt)
 Driver::~Driver()
 {
     auto p = reinterpret_cast<pcap_t*>(p_);
-    DLOG("close pcap");
+    ILOG("close pcap");
     pcap_close(p);
 }
 
@@ -88,7 +88,7 @@ Expected<Packet> Driver::recv() const
         return Error::catchAll(LOG_FSTR("failed to recv packet: {}", ec));
     }
     Packet pac;
-    pac.t_ms = info->ts.tv_sec * 1000 + info->ts.tv_usec / 1000;
+    pac.t_ms = static_cast<int64_t>(info->ts.tv_sec) * 1000 + info->ts.tv_usec / 1000;
     pac.bytes.insert(pac.bytes.begin(), data, data + info->len);
     return pac;
 }
