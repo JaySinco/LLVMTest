@@ -25,8 +25,15 @@ single_file_executable(tools-lsdev ${MAIN})
 single_file_executable(tools-arp ${MAIN})
 
 add_executable(${MAIN}-sniffer
+    sniffer/hex-view.cpp
+    sniffer/packets-acquirer.cpp
+    sniffer/packets-model.cpp
+    sniffer/packets-view.cpp
+    sniffer/protocol-prop-view.cpp
+    sniffer/top-panel.cpp
     sniffer/main-window.cpp
     sniffer/main.cpp
 )
+target_include_directories(${MAIN}-sniffer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${MAIN}-sniffer PROPERTIES AUTOMOC ON AUTORCC ON AUTOUIC ON)
-target_link_libraries(${MAIN}-sniffer utils Qt5::Widgets)
+target_link_libraries(${MAIN}-sniffer ${MAIN} Qt5::Widgets)

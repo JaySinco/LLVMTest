@@ -166,7 +166,7 @@ Expected<Mac> Driver::getMac(Ip4 ip, bool use_cache, int to_ms) const
     if (!reply) {
         return Error::unexpected(reply.error());
     }
-    Mac mac = std::dynamic_pointer_cast<Arp>((*reply).get(Protocol::kARP))->smac();
+    Mac mac = reply->get<Arp>(Protocol::kARP).smac();
     cached[ip] = std::make_pair(mac, now);
     return mac;
 }

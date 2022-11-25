@@ -80,6 +80,7 @@ ProtocolStack ProtocolStack::decode(Packet const& pac)
     if (!reader.empty()) {
         MY_THROW("{} bytes not consumed, current stack: {}", reader.size(), stack.toJson().dump(3));
     }
+    stack.t_ms_ = pac.t_ms;
     return stack;
 }
 
@@ -117,8 +118,6 @@ bool ProtocolStack::correlated(ProtocolStack const& resp) const
     return true;
 }
 
-ProtocolPtr ProtocolStack::get(Protocol::Type type) const { return get(getIdx(type)); }
-
 size_t ProtocolStack::getIdx(Protocol::Type type) const
 {
     auto it = std::find_if(stack_.begin(), stack_.end(),
@@ -127,6 +126,11 @@ size_t ProtocolStack::getIdx(Protocol::Type type) const
         MY_THROW("protocol stack don't have {}", Protocol::typeDesc(type));
     }
     return std::distance(stack_.begin(), it);
+}
+
+std::chrono::system_clock::time_point ProtocolStack::getTime() const
+{
+    return std::chrono::system_clock::time_point(std::chrono::milliseconds(t_ms_));
 }
 
 bool ProtocolStack::has(Protocol::Type type) const

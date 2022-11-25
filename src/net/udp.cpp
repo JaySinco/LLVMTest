@@ -38,8 +38,8 @@ void Udp::decode(BytesReader& reader, ProtocolStack& stack)
 void Udp::encode(std::vector<uint8_t>& bytes, ProtocolStack const& stack) const
 {
     tlen_.v = kFixedBytes + bytes.size();
-    auto ipv4 = std::dynamic_pointer_cast<Ipv4>(stack.get(kIPv4));
-    crc_.v = overallChecksum(ipv4->sip(), ipv4->dip(), bytes.data(), bytes.size());
+    auto& ipv4 = stack.get<Ipv4>(kIPv4);
+    crc_.v = overallChecksum(ipv4.sip(), ipv4.dip(), bytes.data(), bytes.size());
     BytesBuilder builder;
     encodeHeader(builder);
     builder.prependTo(bytes);

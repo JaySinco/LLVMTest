@@ -1,10 +1,10 @@
 #pragma once
-#include <QtWidgets/QWidget>
-
-class QHBoxLayout;
-class QSplitter;
-class QTreeView;
-class QListView;
+#include "top-panel.h"
+#include "packets-view.h"
+#include "protocol-prop-view.h"
+#include "hex-view.h"
+#include <QWidget>
+#include <QSplitter>
 
 class MainWindow: public QWidget
 {
@@ -17,8 +17,11 @@ public:
     void retranslateUi();
 
 private:
-    QHBoxLayout* hor_layout_;
-    QSplitter* splitter_;
-    QTreeView* tree_view_;
-    QListView* list_view_;
+    QSplitter* splitter_v1_;
+    QSplitter* splitter_v2_;
+    QSplitter* splitter_h1_;
+    TopPanel* top_panel_;
+    PacketsView* packets_view_;
+    ProtocolPropView* property_view_;
+    HexView* hex_view_;
 };

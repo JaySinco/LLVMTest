@@ -19,6 +19,10 @@ public:
     Type typeNext() const override;
     bool correlated(Protocol const& resp) const override;
 
+    Mac dmac() const { return dmac_.v; };
+
+    Mac smac() const { return smac_.v; };
+
 private:
     DEFINE_PROP(Mac, dmac, "destination address");
     DEFINE_PROP(Mac, smac, "source address");

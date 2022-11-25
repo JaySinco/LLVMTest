@@ -67,10 +67,23 @@ public:
     Json toJson() const;
     bool correlated(ProtocolStack const& resp) const;
 
+    size_t getIdx(Protocol::Type type) const;
+
     ProtocolPtr get(size_t idx) const { return stack_.at(idx); }
 
-    ProtocolPtr get(Protocol::Type type) const;
-    size_t getIdx(Protocol::Type type) const;
+    template <typename T>
+    T const& get(size_t idx) const
+    {
+        return *std::dynamic_pointer_cast<T>(get(idx));
+    }
+
+    template <typename T>
+    T const& get(Protocol::Type type) const
+    {
+        return get<T>(getIdx(type));
+    }
+
+    std::chrono::system_clock::time_point getTime() const;
 
     bool has(Protocol::Type type) const;
 
@@ -80,6 +93,7 @@ public:
 
 private:
     std::vector<ProtocolPtr> stack_;
+    int64_t t_ms_ = -1;
 };
 
 class Unimplemented: public Protocol
