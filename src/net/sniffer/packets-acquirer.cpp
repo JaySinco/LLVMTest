@@ -2,9 +2,12 @@
 #include "driver.h"
 #include <QMetaType>
 
-PacketsAcquirer::PacketsAcquirer(net::Ip4 hint, QObject* parent): QThread(parent), hint_(hint)
+Q_DECLARE_METATYPE(net::Packet);
+
+PacketsAcquirer::PacketsAcquirer(net::Ip4 hint, int bufmsec, QObject* parent)
+    : QThread(parent), hint_(hint), last_(std::chrono::system_clock::now()), bufmsec_(bufmsec)
 {
-    qRegisterMetaType<net::Packet>("net::Packet");
+    qRegisterMetaType<std::vector<net::Packet>>("vector<Packet>");
 }
 
 PacketsAcquirer::~PacketsAcquirer()
@@ -16,18 +19,24 @@ PacketsAcquirer::~PacketsAcquirer()
 void PacketsAcquirer::run()
 {
     should_stop_ = false;
-    net::Driver driver(hint_);
+    net::Driver driver(hint_, 10000);
     while (!should_stop_) {
         auto pac = driver.recv();
         if (!pac) {
             if (pac.error().typeof(net::Error::kPacketExpired)) {
-                WLOG("skip expired packet");
+                DLOG("skip expired packet");
             } else {
                 ELOG(pac.error().what());
             }
             continue;
         }
-        emit packetReceived(*pac);
+        buf_.push_back(std::move(*pac));
+        auto now = std::chrono::system_clock::now();
+        if (now - last_ > bufmsec_) {
+            emit packetReceived(buf_);
+            buf_.clear();
+            last_ = now;
+        }
     }
     ILOG("packets acquirer stopped!");
     emit stopped();

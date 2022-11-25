@@ -85,6 +85,7 @@ public:
 
     std::chrono::system_clock::time_point getTime() const;
     std::string getTimeStr() const;
+    Protocol::Type innerMost() const;
 
     bool has(Protocol::Type type) const;
 

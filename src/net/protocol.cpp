@@ -137,7 +137,22 @@ std::chrono::system_clock::time_point ProtocolStack::getTime() const
 std::string ProtocolStack::getTimeStr() const
 {
     auto tm = getTime();
-    return FSTR("{:%Y-%m-%d %H:%M:%S}.{:03d}", tm, t_ms_ % 1000);
+    return FSTR("{:%H:%M:%S}.{:03d}", tm, t_ms_ % 1000);
+}
+
+Protocol::Type ProtocolStack::innerMost() const
+{
+    for (auto it = stack_.rbegin(); it != stack_.rend(); ++it) {
+        auto next = (*it)->typeNext();
+        if (next != Protocol::kUnknown && next != Protocol::kNull) {
+            return next;
+        }
+        auto type = (*it)->type();
+        if (type != Protocol::kUnknown) {
+            return type;
+        }
+    }
+    return Protocol::kUnknown;
 }
 
 bool ProtocolStack::has(Protocol::Type type) const

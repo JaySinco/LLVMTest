@@ -1,5 +1,7 @@
 #include "packets-model.h"
 #include "ethernet.h"
+#include "ipv4.h"
+#include "arp.h"
 #include <QFont>
 
 PacketsModel::PacketsModel(QObject* parent): QAbstractTableModel(parent) {}
@@ -8,12 +10,14 @@ PacketsModel::~PacketsModel() = default;
 
 int PacketsModel::rowCount(QModelIndex const& parent) const { return data_.size(); }
 
-int PacketsModel::columnCount(QModelIndex const& parent) const { return 3; }
+int PacketsModel::columnCount(QModelIndex const& parent) const { return kTOTAL; }
 
-void PacketsModel::receivePacket(net::Packet const& pac)
+void PacketsModel::receivePacket(std::vector<net::Packet> const& pacs)
 {
-    beginInsertRows(QModelIndex(), data_.size(), data_.size());
-    data_.push_back(net::ProtocolStack::decode(pac));
+    beginInsertRows(QModelIndex(), data_.size(), data_.size() + pacs.size() - 1);
+    for (auto& pac: pacs) {
+        data_.push_back(ModelData{pac, net::ProtocolStack::decode(pac)});
+    }
     endInsertRows();
 }
 
@@ -26,68 +30,66 @@ QVariant PacketsModel::headerData(int section, Qt::Orientation orientation, int 
         return {};
     }
     switch (section) {
-        case 0:
+        case kTIME:
             return tr("time");
-        case 1:
-            return tr("dmac");
-        case 2:
-            return tr("smac");
+        case kDIP:
+            return tr("dip");
+        case kSIP:
+            return tr("sip");
+        case kTYPE:
+            return tr("type");
     }
     return {};
 }
 
+Qt::ItemFlags PacketsModel::flags(QModelIndex const& index) const { return Qt::ItemIsEnabled; }
+
 QVariant PacketsModel::data(QModelIndex const& index, int role) const
 {
-    switch (index.column()) {
-        case 0:
-            switch (role) {
-                case Qt::DisplayRole:
-                case Qt::EditRole:
-                    return QString::fromStdString(data_.at(index.row()).getTimeStr());
-                case Qt::TextAlignmentRole:
-                    return Qt::AlignLeft;
-                case Qt::FontRole: {
-                    QFont fnt;
-                    fnt.setPointSize(9);
-                    return fnt;
-                }
-                case Qt::ToolTipRole:
-                    return {};
+    if (role == Qt::FontRole) {
+        QFont font;
+        font.setPointSize(9);
+        return font;
+    }
+    if (role == Qt::TextAlignmentRole) {
+        return Qt::AlignLeft;
+    }
+    if (role == Qt::DisplayRole) {
+        auto& stack = data_.at(index.row()).stack;
+        int col = index.column();
+        if (col == kTIME) {
+            return QString::fromStdString(stack.getTimeStr());
+        }
+        if (col == kTYPE) {
+            return QString::fromStdString(net::Protocol::typeDesc(stack.innerMost()));
+        }
+        if (stack.has(net::Protocol::kIPv4)) {
+            auto& ip4 = stack.get<net::Ipv4>(net::Protocol::kIPv4);
+            if (col == kDIP) {
+                return QString::fromStdString(ip4.dip().toStr());
             }
-
-        case 1:
-            switch (role) {
-                case Qt::DisplayRole:
-                case Qt::EditRole:
-                    return QString::fromStdString(data_.at(index.row())
-                                                      .get<net::Ethernet>(net::Protocol::kEthernet)
-                                                      .dmac()
-                                                      .toStr());
-                case Qt::TextAlignmentRole:
-                    return Qt::AlignLeft;
-                case Qt::FontRole: {
-                    QFont fnt;
-                    fnt.setPointSize(9);
-                    return fnt;
-                }
+            if (col == kSIP) {
+                return QString::fromStdString(ip4.sip().toStr());
             }
-
-        case 2:
-            switch (role) {
-                case Qt::DisplayRole:
-                case Qt::EditRole:
-                    return QString::fromStdString(data_.at(index.row())
-                                                      .get<net::Ethernet>(net::Protocol::kEthernet)
-                                                      .smac()
-                                                      .toStr());
-                case Qt::TextAlignmentRole:
-                    return Qt::AlignLeft;
-                case Qt::FontRole: {
-                    QFont fnt;
-                    fnt.setPointSize(9);
-                    return fnt;
-                }
+        }
+        if (stack.has(net::Protocol::kARP)) {
+            auto& arp = stack.get<net::Arp>(net::Protocol::kARP);
+            if (col == kDIP) {
+                return QString::fromStdString(arp.dip().toStr());
             }
+            if (col == kSIP) {
+                return QString::fromStdString(arp.sip().toStr());
+            }
+        }
+        if (stack.has(net::Protocol::kRARP)) {
+            auto& rarp = stack.get<net::Arp>(net::Protocol::kRARP);
+            if (col == kDIP) {
+                return QString::fromStdString(rarp.dip().toStr());
+            }
+            if (col == kSIP) {
+                return QString::fromStdString(rarp.sip().toStr());
+            }
+        }
     }
     return {};
 }

@@ -15,9 +15,25 @@ public:
     int columnCount(QModelIndex const& parent) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     QVariant data(QModelIndex const& index, int role) const override;
+    Qt::ItemFlags flags(QModelIndex const& index) const override;
 
-    void receivePacket(net::Packet const& pac);
+    void receivePacket(std::vector<net::Packet> const& pacs);
 
 private:
-    std::vector<net::ProtocolStack> data_;
+    enum ColType : int
+    {
+        kTIME,
+        kTYPE,
+        kDIP,
+        kSIP,
+        kTOTAL,
+    };
+
+    struct ModelData
+    {
+        net::Packet pac;
+        net::ProtocolStack stack;
+    };
+
+    std::vector<ModelData> data_;
 };

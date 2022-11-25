@@ -23,6 +23,10 @@ public:
 
     Mac dmac() const { return dmac_.v; };
 
+    Ip4 sip() const { return sip_.v; };
+
+    Ip4 dip() const { return dip_.v; };
+
 private:
     DEFINE_PROP(uint16_t, hw_type, "hardware type");
     DEFINE_PROP(uint16_t, prot_type, "protocol type");

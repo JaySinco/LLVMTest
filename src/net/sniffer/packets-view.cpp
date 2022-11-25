@@ -18,7 +18,7 @@ PacketsView::PacketsView(QWidget* parent): QTableView(parent)
 
     model_ = new PacketsModel(this);
     setModel(model_);
-    acquirer_ = new PacketsAcquirer(net::Ip4::kNull, this);
+    acquirer_ = new PacketsAcquirer(net::Ip4::kNull, 500, this);
     connect(acquirer_, &PacketsAcquirer::packetReceived, model_, &PacketsModel::receivePacket);
     acquirer_->start();
 }
