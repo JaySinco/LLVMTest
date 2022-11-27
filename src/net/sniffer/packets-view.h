@@ -13,7 +13,16 @@ public:
 
     void retranslateUi();
 
+public slots:
+    void start(net::Ip4 hint);
+    void stop();
+    void clear();
+
+signals:
+    void stopped();
+    void packetSizeChanged(size_t n);
+
 private:
     PacketsModel* model_;
-    PacketsAcquirer* acquirer_;
+    PacketsAcquirer* acquirer_ = nullptr;
 };

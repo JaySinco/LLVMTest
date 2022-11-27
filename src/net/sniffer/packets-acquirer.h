@@ -11,7 +11,6 @@ public:
     explicit PacketsAcquirer(net::Ip4 hint, int bufmsec, QObject* parent);
     ~PacketsAcquirer() override;
     void run() override;
-    void stop();
 
 signals:
     void packetReceived(std::vector<net::Packet> const&);

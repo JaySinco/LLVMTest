@@ -19,6 +19,15 @@ void PacketsModel::receivePacket(std::vector<net::Packet> const& pacs)
         data_.push_back(ModelData{pac, net::ProtocolStack::decode(pac)});
     }
     endInsertRows();
+    emit packetSizeChanged(data_.size());
+}
+
+void PacketsModel::clear()
+{
+    beginResetModel();
+    data_.clear();
+    endResetModel();
+    emit packetSizeChanged(data_.size());
 }
 
 QVariant PacketsModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -42,7 +51,10 @@ QVariant PacketsModel::headerData(int section, Qt::Orientation orientation, int 
     return {};
 }
 
-Qt::ItemFlags PacketsModel::flags(QModelIndex const& index) const { return Qt::ItemIsEnabled; }
+Qt::ItemFlags PacketsModel::flags(QModelIndex const& index) const
+{
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+}
 
 QVariant PacketsModel::data(QModelIndex const& index, int role) const
 {

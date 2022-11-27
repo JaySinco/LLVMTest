@@ -17,7 +17,12 @@ public:
     QVariant data(QModelIndex const& index, int role) const override;
     Qt::ItemFlags flags(QModelIndex const& index) const override;
 
+public slots:
     void receivePacket(std::vector<net::Packet> const& pacs);
+    void clear();
+
+signals:
+    void packetSizeChanged(size_t n);
 
 private:
     enum ColType : int

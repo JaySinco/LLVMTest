@@ -10,7 +10,7 @@ namespace net
 
 static char errbuf[PCAP_ERRBUF_SIZE];
 
-static Adaptor const& selectAdaptor(Ip4 hint)
+size_t Driver::selectAdaptorIndex(Ip4 hint)
 {
     auto& apts = allAdaptors();
     auto it = std::find_if(apts.begin(), apts.end(), [&](Adaptor const& apt) {
@@ -20,8 +20,13 @@ static Adaptor const& selectAdaptor(Ip4 hint)
     if (it == apts.end()) {
         MY_THROW("no adapter on same LAN as {}", hint.toStr());
     }
-    ILOG("{} ({})", it->desc, it->ip.toStr());
-    return *it;
+    DLOG("select {} ({})", it->desc, it->ip.toStr());
+    return std::distance(apts.begin(), it);
+}
+
+Adaptor const& Driver::selectAdaptor(Ip4 hint)
+{
+    return allAdaptors().at(selectAdaptorIndex(hint));
 }
 
 Driver::Driver(Ip4 hint): Driver(selectAdaptor(hint)) {}
@@ -63,7 +68,7 @@ Driver::Driver(Adaptor const& apt): apt_(apt)
 Driver::~Driver()
 {
     auto p = reinterpret_cast<pcap_t*>(p_);
-    ILOG("close pcap");
+    DLOG("close pcap");
     pcap_close(p);
 }
 

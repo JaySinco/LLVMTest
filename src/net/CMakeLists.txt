@@ -31,6 +31,7 @@ add_executable(${MAIN}-sniffer
     sniffer/packets-view.cpp
     sniffer/protocol-prop-view.cpp
     sniffer/top-panel.cpp
+    sniffer/bottom-panel.cpp
     sniffer/main-window.cpp
     sniffer/main.cpp
 )

@@ -12,7 +12,7 @@ PacketsAcquirer::PacketsAcquirer(net::Ip4 hint, int bufmsec, QObject* parent)
 
 PacketsAcquirer::~PacketsAcquirer()
 {
-    stop();
+    should_stop_ = true;
     wait();
 };
 
@@ -39,9 +39,7 @@ void PacketsAcquirer::run()
             last_ = now;
         }
     }
-    ILOG("packets acquirer stopped!");
+    DLOG("packets acquirer stopped!");
     emit stopped();
     MY_CATCH;
 }
-
-void PacketsAcquirer::stop() { should_stop_ = true; }

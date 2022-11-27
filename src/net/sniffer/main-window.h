@@ -1,12 +1,13 @@
 #pragma once
 #include "top-panel.h"
+#include "bottom-panel.h"
 #include "packets-view.h"
 #include "protocol-prop-view.h"
 #include "hex-view.h"
-#include <QWidget>
+#include <QMainWindow>
 #include <QSplitter>
 
-class MainWindow: public QWidget
+class MainWindow: public QMainWindow
 {
     Q_OBJECT
 
@@ -18,9 +19,9 @@ public:
 
 private:
     QSplitter* splitter_v1_;
-    QSplitter* splitter_v2_;
     QSplitter* splitter_h1_;
     TopPanel* top_panel_;
+    BottomPanel* bottom_panel_;
     PacketsView* packets_view_;
     ProtocolPropView* property_view_;
     HexView* hex_view_;

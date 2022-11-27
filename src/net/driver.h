@@ -28,6 +28,9 @@ public:
 
     Adaptor const& getAdaptor() const { return apt_; }
 
+    static Adaptor const& selectAdaptor(Ip4 hint);
+    static size_t selectAdaptorIndex(Ip4 hint);
+
 private:
     Adaptor apt_;
     void* p_;
