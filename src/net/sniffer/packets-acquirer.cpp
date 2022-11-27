@@ -18,13 +18,14 @@ PacketsAcquirer::~PacketsAcquirer()
 
 void PacketsAcquirer::run()
 {
+    MY_TRY;
     should_stop_ = false;
-    net::Driver driver(hint_, 10000);
+    net::Driver driver(hint_);
     while (!should_stop_) {
         auto pac = driver.recv();
         if (!pac) {
-            if (pac.error().typeof(net::Error::kPacketExpired)) {
-                DLOG("skip expired packet");
+            if (pac.error().typeof(net::Error::kPacketUnavailable)) {
+                // pass
             } else {
                 ELOG(pac.error().what());
             }
@@ -40,6 +41,7 @@ void PacketsAcquirer::run()
     }
     ILOG("packets acquirer stopped!");
     emit stopped();
+    MY_CATCH;
 }
 
 void PacketsAcquirer::stop() { should_stop_ = true; }

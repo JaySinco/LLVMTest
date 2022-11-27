@@ -15,20 +15,15 @@ static spdlog::level::level_enum level(LogLevel level)
     return static_cast<spdlog::level::level_enum>(level);
 }
 
-void initLogger(std::string const& program, std::string const& logdir, bool logtostderr,
-                LogLevel minloglevel, LogLevel stderrlevel, LogLevel logbuflevel, int logbufsecs,
-                int maxlogsize)
+void initLogger(std::string const& program, bool logtostderr, bool logtofile, LogLevel minloglevel,
+                LogLevel logbuflevel, int logbufsecs, std::string const& logdir, int maxlogsize)
 {
     if (spdlog::get(program)) {
         return;
     }
     std::vector<spdlog::sink_ptr> sinks;
-    std::string log_dir = logdir;
-    if (log_dir == "?") {
-        log_dir = ws2s(defaultLoggingDir());
-    }
-    if (!log_dir.empty()) {
-        std::filesystem::path fpath(log_dir);
+    if (logtofile) {
+        std::filesystem::path fpath(logdir);
         std::string fname =
             FSTR("{}_{:%Y%m%d.%H%M%S}_{}.log", std::filesystem::path(program).stem().string(),
                  spdlog::details::os::localtime(), spdlog::details::os::pid());
@@ -42,7 +37,7 @@ void initLogger(std::string const& program, std::string const& logdir, bool logt
     }
     if (logtostderr) {
         auto console_sink = std::make_shared<spdlog::sinks::stderr_color_sink_mt>();
-        console_sink->set_level(level(stderrlevel));  //
+        console_sink->set_level(spdlog::level::trace);  //
         console_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [%s:%#] %v");
         sinks.push_back(console_sink);
     }

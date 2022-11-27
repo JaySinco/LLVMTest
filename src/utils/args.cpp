@@ -90,11 +90,10 @@ void Args::parse(po::command_line_parser& parser, bool init_logger)
     }
 
     if (init_logger) {
-        initLogger(program_, get<std::string>("logdir"), get<bool>("logtostderr"),
+        initLogger(program_, get<bool>("logtostderr"), get<bool>("logtofile"),
                    static_cast<LogLevel>(get<int>("minloglevel")),
-                   static_cast<LogLevel>(get<int>("stderrlevel")),
                    static_cast<LogLevel>(get<int>("logbuflevel")), get<int>("logbufsecs"),
-                   get<int>("maxlogsize"));
+                   ws2s(defaultLoggingDir()), get<int>("maxlogsize"));
     }
 }
 
@@ -153,13 +152,11 @@ void Args::addLoggingFlags()
 {
     po::options_description log_args("Logging arguments");
     auto args_init = log_args.add_options();
-    args_init("logdir", po::value<std::string>()->default_value("?"),
-              FSTR("log files directory, default to {}", ws2s(defaultLoggingDir())).c_str());
-    args_init("minloglevel", po::value<int>()->default_value(kDEBUG), "log level (0-6)");
-    args_init("stderrlevel", po::value<int>()->default_value(kINFO), "stderr log level");
+    args_init("minloglevel", po::value<int>()->default_value(kINFO), "log level (0-6)");
     args_init("logbuflevel", po::value<int>()->default_value(kERROR), "log buffered level");
     args_init("logbufsecs", po::value<int>()->default_value(30), "max secs logs may be buffered");
-    args_init("logtostderr", po::value<bool>()->default_value(true), "log messages go to stderr");
+    args_init("logtostderr", po::value<bool>()->default_value(true), "log to stderr");
+    args_init("logtofile", po::value<bool>()->default_value(false), "log to file");
     args_init("maxlogsize", po::value<int>()->default_value(100), "max log file size (MB)");
     opt_args_.add(log_args);
 }

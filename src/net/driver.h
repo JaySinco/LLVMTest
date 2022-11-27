@@ -11,8 +11,8 @@ using Expected = nonstd::expected<T, Error>;
 class Driver
 {
 public:
-    explicit Driver(Ip4 hint = Ip4::kNull, int to_ms = 1000);
-    explicit Driver(Adaptor const& apt, int to_ms);
+    explicit Driver(Ip4 hint = Ip4::kNull);
+    explicit Driver(Adaptor const& apt);
     ~Driver();
 
     ProtocolStack broadcastedARP(Mac smac, Ip4 sip, Mac dmac, Ip4 dip, bool reply = false) const;
@@ -22,7 +22,7 @@ public:
     Expected<ProtocolStack> request(ProtocolStack const& req, int to_ms = -1,
                                     bool recv_only = false) const;
 
-    Expected<Packet> recv() const;
+    Expected<Packet> recv(int wait_ms = 50) const;
     void send(ProtocolStack const& stack) const;
     void send(Packet const& pac) const;
 
@@ -40,14 +40,14 @@ public:
     {
         kCatchAll = 1,
         kTimeout = 1 << 1,
-        kPacketExpired = 1 << 2,
+        kPacketUnavailable = 1 << 2,
     };
 
     static nonstd::unexpected_type<Error> unexpected(Error const& err);
 
     static nonstd::unexpected_type<Error> catchAll(std::string const& msg);
     static nonstd::unexpected_type<Error> timeout(std::string const& msg);
-    static nonstd::unexpected_type<Error> packetExpired(std::string const& msg);
+    static nonstd::unexpected_type<Error> packetUnavailable();
 
     bool typeof(Type type) const { return flags_ & type; }
 

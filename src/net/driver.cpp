@@ -24,9 +24,9 @@ static Adaptor const& selectAdaptor(Ip4 hint)
     return *it;
 }
 
-Driver::Driver(Ip4 hint, int to_ms): Driver(selectAdaptor(hint), to_ms) {}
+Driver::Driver(Ip4 hint): Driver(selectAdaptor(hint)) {}
 
-Driver::Driver(Adaptor const& apt, int to_ms): apt_(apt)
+Driver::Driver(Adaptor const& apt): apt_(apt)
 {
     if (pcap_init(PCAP_CHAR_ENC_UTF_8, errbuf) != 0) {
         MY_THROW("failed to init pcap: {}", errbuf);
@@ -35,9 +35,12 @@ Driver::Driver(Adaptor const& apt, int to_ms): apt_(apt)
     if (p == nullptr) {
         MY_THROW("failed to create pcap: {}", errbuf);
     }
+    if (pcap_setnonblock(p, 1, errbuf) != 0) {
+        MY_THROW("failed to set nonblock: {}", errbuf);
+    }
+    pcap_set_timeout(p, 500);
     pcap_set_snaplen(p, 65535);
     pcap_set_promisc(p, 1);
-    pcap_set_timeout(p, to_ms);
     if (pcap_can_set_rfmon(p)) {
         ILOG("pcap set radio frequency monitor mode");
         pcap_set_rfmon(p, 1);
@@ -74,14 +77,16 @@ void Driver::send(Packet const& pac) const
 
 void Driver::send(ProtocolStack const& stack) const { send(stack.encode()); }
 
-Expected<Packet> Driver::recv() const
+Expected<Packet> Driver::recv(int wait_ms) const
 {
     auto p = reinterpret_cast<pcap_t*>(p_);
     pcap_pkthdr* info;
     uint8_t const* data;
     int ec = pcap_next_ex(p, &info, &data);
     if (ec == 0) {
-        return Error::packetExpired(LOG_FSTR("packet expired"));
+        TLOG("no packets are currently available to be read");
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
+        return Error::packetUnavailable();
     } else if (ec == PCAP_ERROR) {
         return Error::catchAll(LOG_FSTR("{}", pcap_geterr(p)));
     } else if (ec != 1) {
@@ -112,8 +117,7 @@ Expected<ProtocolStack> Driver::request(ProtocolStack const& req, int to_ms, boo
         }
         Expected<Packet> pac = recv();
         if (!pac) {
-            if (pac.error().typeof(Error::kPacketExpired)) {
-                DLOG("skip expired packet");
+            if (pac.error().typeof(Error::kPacketUnavailable)) {
                 continue;
             } else {
                 return Error::unexpected(pac.error());
@@ -200,11 +204,10 @@ nonstd::unexpected_type<Error> Error::timeout(std::string const& msg)
     return unexpected(err);
 }
 
-nonstd::unexpected_type<Error> Error::packetExpired(std::string const& msg)
+nonstd::unexpected_type<Error> Error::packetUnavailable()
 {
     Error err;
-    err.flags_ |= kPacketExpired;
-    err.msg_ = msg;
+    err.flags_ |= kPacketUnavailable;
     return unexpected(err);
 }
 

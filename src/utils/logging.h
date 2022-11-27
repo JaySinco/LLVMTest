@@ -14,6 +14,7 @@
         ELOG("[exception] {}", err.what()); \
     }
 #define LOG_FUNC(level, ...) SPDLOG_LOGGER_CALL(spdlog::default_logger_raw(), level, __VA_ARGS__)
+#define TLOG(...) (LOG_FUNC(spdlog::level::trace, __VA_ARGS__))
 #define DLOG(...) (LOG_FUNC(spdlog::level::debug, __VA_ARGS__))
 #define ILOG(...) (LOG_FUNC(spdlog::level::info, __VA_ARGS__))
 #define WLOG(...) (LOG_FUNC(spdlog::level::warn, __VA_ARGS__))
@@ -34,8 +35,7 @@ enum LogLevel : int
     kTOTAL,
 };
 
-void initLogger(std::string const& program, std::string const& logdir, bool logtostderr,
-                LogLevel minloglevel, LogLevel stderrlevel, LogLevel logbuflevel, int logbufsecs,
-                int maxlogsize);
+void initLogger(std::string const& program, bool logtostderr, bool logtofile, LogLevel minloglevel,
+                LogLevel logbuflevel, int logbufsecs, std::string const& logdir, int maxlogsize);
 
 }  // namespace utils
