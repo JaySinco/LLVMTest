@@ -1,4 +1,5 @@
 #include "fs.h"
+#include "encoding.h"
 #ifdef __linux__
 #include <unistd.h>
 #include <limits.h>

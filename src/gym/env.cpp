@@ -193,7 +193,7 @@ void Env::render()
     window_ = glfwCreateWindow(800, 500, "gym", nullptr, nullptr);
     if (!window_) {
         glfwTerminate();
-        MY_THROW("failed to create window");
+        MY_THROW("{}", "failed to create window");
     }
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(1);
@@ -241,9 +241,8 @@ void Env::render()
             ImGui::SetNextWindowPos(ImVec2(0, viewport.height / 3 * 1.92));
             ImGui::Begin("plot", nullptr,
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
-            ImPlot::BeginPlot("progress", nullptr, nullptr,
-                              ImVec2(viewport.width / 3, viewport.height / 3), ImPlotFlags_NoTitle,
-                              ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+            ImPlot::BeginPlot("progress", ImVec2(viewport.width / 3, viewport.height / 3),
+                              ImPlotFlags_NoTitle | ImPlotAxisFlags_AutoFit);
 
             lock.lock();
             auto tries_cb = [](void* data, int idx) {

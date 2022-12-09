@@ -256,7 +256,7 @@ public:
         if (!vec_.empty()) {
             return vec_[0];
         }
-        MY_THROW("queue is empty!");
+        MY_THROW("{}", "queue is empty!");
     }
 
     void popTop()
