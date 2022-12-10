@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Vscode Win32",
+            "name": "Win32 (vscode)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/net-sniffer",
@@ -16,10 +16,10 @@
             }
         },
         {
-            "name": "Nvim Linux",
+            "name": "Linux (nvim)",
             "type": "lldb",
             "request": "launch",
-            "program":  "${workspaceFolder}/bin/test",
+            "program": "${workspaceFolder}/bin/test",
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
             "args": []
