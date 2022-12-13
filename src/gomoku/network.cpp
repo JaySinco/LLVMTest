@@ -282,7 +282,7 @@ std::string FIRNet::makeParamFileName() const
 {
     std::ostringstream filename;
     filename << "FIR-" << kBoardMaxRow << "x" << kBoardMaxCol << "@" << impl_->update_cnt << ".pt";
-    return utils::ws2s(utils::getExeDir()) + "\\" + filename.str();
+    return utils::ws2s(utils::getExeDir()) + "/" + filename.str();
 }
 
 void FIRNet::loadParam()

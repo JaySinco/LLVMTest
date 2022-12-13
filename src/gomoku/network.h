@@ -1,11 +1,11 @@
 #pragma once
 #include "game.h"
 
-constexpr int kResidualLayers = 9;
+constexpr int kResidualLayers = 5;
 constexpr int kResidualFilters = 64;
 constexpr int kBatchSize = 512;
 constexpr int kBufferSize = 10000;
-constexpr float kInitLearningRate = 1e-2;
+constexpr float kInitLearningRate = 1e-3;
 constexpr float kWeightDecay = 1e-4;
 constexpr int kDropStepLR1 = 2000;
 constexpr int kDropStepLR2 = 8000;
