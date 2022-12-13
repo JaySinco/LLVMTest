@@ -131,47 +131,87 @@ std::ostream& operator<<(std::ostream& out, DataSet const& set)
     return out;
 }
 
-class FIRNetModule: public torch::nn::Module
+class ResidualBlock: public torch::nn::Module
 {
 public:
-    FIRNetModule();
-    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor input);
+    explicit ResidualBlock(int channel_n);
+    torch::Tensor forward(torch::Tensor input);
 
 private:
-    torch::nn::Conv2d conv1_;
-    torch::nn::Conv2d conv2_;
-    torch::nn::Conv2d conv3_;
-    torch::nn::Conv2d act_conv1_;
-    torch::nn::Linear act_fc1_;
-    torch::nn::Conv2d val_conv1_;
-    torch::nn::Linear val_fc1_;
-    torch::nn::Linear val_fc2_;
+    torch::nn::Sequential conv1_;
+    torch::nn::Sequential conv2_;
 };
 
-FIRNetModule::FIRNetModule()
-    : conv1_(torch::nn::Conv2dOptions(kInputFeatureNum, 32, 3).padding(1)),
-      conv2_(torch::nn::Conv2dOptions(32, 64, 3).padding(1)),
-      conv3_(torch::nn::Conv2dOptions(64, 128, 3).padding(1)),
-      act_conv1_(128, kInputFeatureNum, 1),
-      act_fc1_(kInputFeatureNum * kBoardMaxRow * kBoardMaxCol, kBoardMaxRow * kBoardMaxCol),
-      val_conv1_(128, 2, 1),
-      val_fc1_(2 * kBoardMaxRow * kBoardMaxCol, 64),
-      val_fc2_(64, 1)
-
+ResidualBlock::ResidualBlock(int channel_n)
+    : conv1_(torch::nn::Conv2d(torch::nn::Conv2dOptions(channel_n, channel_n, 3).padding(1)),
+             torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(channel_n)), torch::nn::ReLU()),
+      conv2_(torch::nn::Conv2d(torch::nn::Conv2dOptions(channel_n, channel_n, 3).padding(1)),
+             torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(channel_n)))
 {
     register_module("conv1", conv1_);
     register_module("conv2", conv2_);
-    register_module("conv3", conv3_);
-    register_module("act_conv1", act_conv1_);
-    register_module("act_fc1", act_fc1_);
-    register_module("val_conv1", val_conv1_);
-    register_module("val_fc1", val_fc1_);
-    register_module("val_fc2", val_fc2_);
+}
+
+torch::Tensor ResidualBlock::forward(torch::Tensor input)
+{
+    auto x = conv1_->forward(input);
+    x = conv2_->forward(x);
+    x = x + input;
+    return torch::relu(x);
+}
+
+class FIRNetModule: public torch::nn::Module
+{
+public:
+    explicit FIRNetModule(int res_layers, int res_filters);
+    std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor input);
+
+private:
+    torch::nn::Conv2d mid_conv_;
+    torch::nn::ModuleList mid_res_blks_;
+    torch::nn::Sequential act_;
+    torch::nn::Sequential val_;
+};
+
+FIRNetModule::FIRNetModule(int res_layers, int res_filters)
+    : mid_conv_(torch::nn::Conv2dOptions(kInputFeatureNum, res_filters, 3).padding(1)),
+      act_(torch::nn::Conv2d(torch::nn::Conv2dOptions(res_filters, 2, 1)),
+           torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(2)), torch::nn::ReLU(),
+           torch::nn::Flatten(), torch::nn::Linear(2 * kBoardSize, kBoardSize)),
+      val_(torch::nn::Conv2d(torch::nn::Conv2dOptions(res_filters, 1, 1)),
+           torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(1)), torch::nn::ReLU(),
+           torch::nn::Flatten(), torch::nn::Linear(1 * kBoardSize, res_filters), torch::nn::ReLU(),
+           torch::nn::Linear(res_filters, 1), torch::nn::Tanh())
+{
+    for (int i = 0; i < res_layers; ++i) {
+        mid_res_blks_->push_back(ResidualBlock(res_filters));
+    }
+    register_module("mid_conv", mid_conv_);
+    register_module("mid_res_blks", mid_res_blks_);
+    register_module("act", act_);
+    register_module("val", val_);
+}
+
+std::pair<torch::Tensor, torch::Tensor> FIRNetModule::forward(torch::Tensor input)
+{
+    auto x = torch::relu(mid_conv_->forward(input));
+    for (auto& r: *mid_res_blks_) {
+        x = r->as<ResidualBlock>()->forward(x);
+    }
+    auto x_act = act_->forward(x);
+    x_act = torch::softmax(x_act, 1);
+    auto x_val = val_->forward(x);
+    return {x_act, x_val};
 }
 
 struct FIRNet::Impl
 {
-    explicit Impl(int64_t verno): update_cnt(verno), optimizer(module.parameters(), kWeightDecay) {}
+    explicit Impl(int64_t verno)
+        : module(kResidualLayers, kResidualFilters),
+          update_cnt(verno),
+          optimizer(module.parameters(), kWeightDecay)
+    {
+    }
 
     FIRNetModule module;
     int64_t update_cnt;
@@ -325,24 +365,6 @@ static Move mappingMove(int id, Move mv)
         ++n;
     }
     return mv;
-}
-
-std::pair<torch::Tensor, torch::Tensor> FIRNetModule::forward(torch::Tensor input)
-{
-    // common layers
-    auto x = torch::relu(conv1_->forward(input));
-    x = torch::relu(conv2_->forward(x));
-    x = torch::relu(conv3_->forward(x));
-    // action policy layers
-    auto x_act = torch::relu(act_conv1_(x));
-    x_act = x_act.view({-1, kInputFeatureNum * kBoardMaxRow * kBoardMaxCol});
-    x_act = torch::softmax(act_fc1_(x_act), 1);
-    // state value layers
-    auto x_val = torch::relu(val_conv1_->forward(x));
-    x_val = x_val.view({-1, 2 * kBoardMaxRow * kBoardMaxCol});
-    x_val = torch::relu(val_fc1_(x_val));
-    x_val = torch::tanh(val_fc2_(x_val));
-    return {x_act, x_val};
 }
 
 void FIRNet::evalState(State const& state, float value[1],

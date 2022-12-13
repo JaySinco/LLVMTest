@@ -5,8 +5,11 @@
             "name": "Win32 (vscode)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/net-sniffer",
-            "args": [],
+            "program": "${workspaceFolder}/bin/gomoku",
+            "args": [
+                "train",
+                "0"
+            ],
             "environment": [],
             "cwd": "${workspaceFolder}/bin",
             "stopAtEntry": false,
