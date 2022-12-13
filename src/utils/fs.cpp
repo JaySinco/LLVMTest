@@ -20,7 +20,7 @@ std::wstring getExeDir()
 {
 #ifdef __linux__
     char cep[PATH_MAX] = {0};
-    readlink("/proc/self/exe", cep, PATH_MAX);
+    int n = readlink("/proc/self/exe", cep, PATH_MAX);
     return s2ws(dirname(cep));
 #elif _WIN32
     wchar_t buf[MAX_PATH + 1] = {0};

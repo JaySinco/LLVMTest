@@ -28,3 +28,9 @@ add_custom_command(TARGET ${MAIN} POST_BUILD
     ${torch_ROOT}/bin/$<IF:$<BOOL:${UNIX}>,,libiomp5md.dll>
     $<TARGET_FILE_DIR:${MAIN}>
 )
+
+if(UNIX)
+    set_target_properties(${MAIN} PROPERTIES
+        INSTALL_RPATH "${torch_ROOT}/lib:${CMAKE_INSTALL_RPATH}"
+    )
+endif()

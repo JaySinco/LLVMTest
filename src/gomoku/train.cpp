@@ -67,7 +67,7 @@ void train(std::shared_ptr<FIRNet> net)
     auto last_benchmark = std::chrono::system_clock::now();
 
     int64_t game_cnt = 0;
-    float avg_turn = 0.0f;
+    std::vector<int> steps_buf;
     DataSet dataset;
 
     int test_itermax = kTestPureItermax;
@@ -77,13 +77,17 @@ void train(std::shared_ptr<FIRNet> net)
     for (;;) {
         ++game_cnt;
         int step = selfplay(net, dataset, kTrainDeepItermax);
-        avg_turn += (step - avg_turn) / static_cast<float>(game_cnt > 10 ? 10 : game_cnt);
+        steps_buf.push_back(step);
         if (dataset.total() > kBatchSize) {
             for (int epoch = 0; epoch < kEpochPerGame; ++epoch) {
                 auto batch = new MiniBatch();
                 dataset.makeMiniBatch(batch);
                 float loss = net->trainStep(batch);
                 if (triggerTimer(last_log, kMinutePerLog)) {
+                    int avg_turn =
+                        std::round(std::accumulate(steps_buf.begin(), steps_buf.end(), 0) /
+                                   static_cast<float>(steps_buf.size()));
+                    steps_buf.clear();
                     ILOG("loss={}, dataset_total={}, update_cnt={}, avg_turn={}, game_cnt={}", loss,
                          dataset.total(), net->verno(), avg_turn, game_cnt);
                 }
