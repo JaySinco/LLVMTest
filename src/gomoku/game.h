@@ -18,7 +18,7 @@ Row  => move z(5) = (x(1), y(2))
 */
 
 constexpr int kFiveInRow = 5;
-constexpr int kBoardMaxCol = 10;
+constexpr int kBoardMaxCol = 15;
 constexpr int kBoardMaxRow = kBoardMaxCol;
 constexpr int kBoardSize = kBoardMaxRow * kBoardMaxCol;
 constexpr int kInputFeatureNum = 4;  // self, opponent[[, lastmove], color]

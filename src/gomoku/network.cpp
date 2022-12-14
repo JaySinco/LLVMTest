@@ -281,7 +281,8 @@ FIRNet::~FIRNet() { delete impl_; };
 std::string FIRNet::makeParamFileName() const
 {
     std::ostringstream filename;
-    filename << "FIR-" << kBoardMaxRow << "x" << kBoardMaxCol << "@" << impl_->update_cnt << ".pt";
+    filename << "FIR-" << kBoardMaxRow << "x" << kBoardMaxCol << "-r" << kResidualLayers << "c"
+             << kResidualFilters << "@" << impl_->update_cnt << ".pt";
     return utils::ws2s(utils::getExeDir()) + "/" + filename.str();
 }
 

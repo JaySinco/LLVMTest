@@ -1,7 +1,7 @@
 #pragma once
 #include "game.h"
 
-constexpr int kResidualLayers = 5;
+constexpr int kResidualLayers = 7;
 constexpr int kResidualFilters = 64;
 constexpr int kBatchSize = 512;
 constexpr int kBufferSize = 10000;
