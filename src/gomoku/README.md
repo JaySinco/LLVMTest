@@ -13,4 +13,5 @@ These are Gomoku subcommands:
 
 ## Demo
 Below shows a 8x8 game played between human (first hand, represented by `x`) and AI (represented by `o`). The model used has 64 filters, 3 residual blocks.    
+<br/>
 ![image](/src/gomoku/res/play_against_ai.gif)  
