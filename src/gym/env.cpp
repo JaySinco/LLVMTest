@@ -241,8 +241,9 @@ void Env::render()
             ImGui::SetNextWindowPos(ImVec2(0, viewport.height / 3 * 1.92));
             ImGui::Begin("plot", nullptr,
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
-            ImPlot::BeginPlot("progress", ImVec2(viewport.width / 3, viewport.height / 3),
-                              ImPlotFlags_NoTitle | ImPlotAxisFlags_AutoFit);
+            ImPlot::BeginPlot("progress", nullptr, nullptr,
+                              ImVec2(viewport.width / 3, viewport.height / 3), ImPlotFlags_NoTitle,
+                              ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
 
             lock.lock();
             auto tries_cb = [](void* data, int idx) {
