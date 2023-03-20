@@ -1,7 +1,5 @@
-*.swp
-.cache
-
 /bin
 /out
-/compile_commands.json
 /CMakeUserPresets.json
+/deps/*/out
+/deps/*/src

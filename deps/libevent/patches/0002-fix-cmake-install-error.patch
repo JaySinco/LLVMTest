@@ -1,0 +1,43 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b827e9f..460001a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1500,18 +1500,18 @@ install(FILES ${HDR_PUBLIC}
+         COMPONENT dev)
+ 
+ # Install the configs.
+-install(FILES
+-        ${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/LibeventConfig.cmake
+-        ${PROJECT_BINARY_DIR}/LibeventConfigVersion.cmake
+-        DESTINATION "${EVENT_INSTALL_CMAKE_DIR}"
+-        COMPONENT dev)
++# install(FILES
++#         ${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/LibeventConfig.cmake
++#         ${PROJECT_BINARY_DIR}/LibeventConfigVersion.cmake
++#         DESTINATION "${EVENT_INSTALL_CMAKE_DIR}"
++#         COMPONENT dev)
+ 
+ # Install exports for the install-tree.
+ macro(install_export type)
+-    install(EXPORT LibeventTargets-${type}
+-        NAMESPACE ${PROJECT_NAME}::
+-        DESTINATION "${EVENT_INSTALL_CMAKE_DIR}"
+-        COMPONENT dev)
++    # install(EXPORT LibeventTargets-${type}
++    #     NAMESPACE ${PROJECT_NAME}::
++    #     DESTINATION "${EVENT_INSTALL_CMAKE_DIR}"
++    #     COMPONENT dev)
+ endmacro()
+ 
+ if (${EVENT_LIBRARY_STATIC})
+diff --git a/cmake/AddEventLibrary.cmake b/cmake/AddEventLibrary.cmake
+index 04f5837..f9f08c9 100644
+--- a/cmake/AddEventLibrary.cmake
++++ b/cmake/AddEventLibrary.cmake
+@@ -189,5 +189,5 @@ macro(add_event_library LIB_NAME)
+     add_library(${LIB_NAME} INTERFACE)
+     target_link_libraries(${LIB_NAME} INTERFACE ${ADD_EVENT_LIBRARY_INTERFACE})
+ 
+-    generate_pkgconfig("${LIB_NAME}")
++    # generate_pkgconfig("${LIB_NAME}")
+ endmacro()

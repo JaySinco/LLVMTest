@@ -1,0 +1,39 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 676727f..b827e9f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -845,14 +845,14 @@ if (NOT EVENT__DISABLE_OPENSSL)
+ 
+     set(EVENT__HAVE_OPENSSL 1)
+ 
+-    message(STATUS "OpenSSL include: ${OPENSSL_INCLUDE_DIR}")
+-    message(STATUS "OpenSSL lib: ${OPENSSL_LIBRARIES}")
++    message(STATUS "OpenSSL include: ${OpenSSL_INCLUDE_DIR}")
++    message(STATUS "OpenSSL lib: ${OpenSSL_LIBRARIES}")
+ 
+-    include_directories(${OPENSSL_INCLUDE_DIR})
++    include_directories(${OpenSSL_INCLUDE_DIR})
+ 
+     list(APPEND SRC_OPENSSL bufferevent_openssl.c)
+     list(APPEND HDR_PUBLIC include/event2/bufferevent_ssl.h)
+-    list(APPEND LIB_APPS ${OPENSSL_LIBRARIES})
++    list(APPEND LIB_APPS ${OpenSSL_LIBRARIES})
+ endif()
+ 
+ if (NOT EVENT__DISABLE_THREAD_SUPPORT)
+@@ -955,8 +955,8 @@ add_event_library(event_extra
+ if (NOT EVENT__DISABLE_OPENSSL)
+     add_event_library(event_openssl
+         INNER_LIBRARIES event_core
+-        OUTER_INCLUDES ${OPENSSL_INCLUDE_DIR}
+-        LIBRARIES ${OPENSSL_LIBRARIES}
++        OUTER_INCLUDES ${OpenSSL_INCLUDE_DIR}
++        LIBRARIES ${OpenSSL_LIBRARIES}
+         SOURCES ${SRC_OPENSSL})
+ endif()
+ 
+@@ -1572,4 +1572,3 @@ message(STATUS "CMAKE_C_COMPILER:         ${CMAKE_C_COMPILER} (id ${CMAKE_C_COMP
+ message(STATUS "CMAKE_AR:                 ${CMAKE_AR}")
+ message(STATUS "CMAKE_RANLIB:             ${CMAKE_RANLIB}")
+ message(STATUS "")
+-

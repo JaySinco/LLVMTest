@@ -1,0 +1,32 @@
+diff --git a/sample/cmake/SampleDependencies.cmake b/sample/cmake/SampleDependencies.cmake
+index 3534929..f4625b1 100644
+--- a/sample/cmake/SampleDependencies.cmake
++++ b/sample/cmake/SampleDependencies.cmake
+@@ -76,9 +76,9 @@ set(GLFW_INSTALL OFF)
+ 
+ findorfetch(
+   USE_SYSTEM_PACKAGE
+-  MUJOCO_SAMPLES_USE_SYSTEM_GLFW
++  ON
+   PACKAGE_NAME
+-  glfw
++  glfw3
+   LIBRARY_NAME
+   glfw
+   GIT_REPO
+diff --git a/simulate/cmake/SimulateDependencies.cmake b/simulate/cmake/SimulateDependencies.cmake
+index 9fba6a2..01686bb 100644
+--- a/simulate/cmake/SimulateDependencies.cmake
++++ b/simulate/cmake/SimulateDependencies.cmake
+@@ -76,9 +76,9 @@ set(GLFW_INSTALL OFF)
+ 
+ findorfetch(
+   USE_SYSTEM_PACKAGE
+-  MUJOCO_SIMULATE_USE_SYSTEM_GLFW
++  ON
+   PACKAGE_NAME
+-  glfw
++  glfw3
+   LIBRARY_NAME
+   glfw
+   GIT_REPO

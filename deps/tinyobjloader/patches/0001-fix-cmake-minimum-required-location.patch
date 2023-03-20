@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index acfcd3a..91f52c4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,8 +1,8 @@
+ #Tiny Object Loader Cmake configuration file.
+ #This configures the Cmake system with multiple properties, depending
+ #on the platform and configuration it is set to build in.
+-project(tinyobjloader)
+ cmake_minimum_required(VERSION 2.8.11)
++project(tinyobjloader)
+ set(TINYOBJLOADER_SOVERSION 1)
+ set(TINYOBJLOADER_VERSION 1.0.4)
+ 
