@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# apt mirror
+# --------------
+# cp /etc/apt/sources.list /etc/apt/sources.list.bak
+# printf 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\n' > /etc/apt/sources.list
+# apt-get update -y
+
+# ssh key
+# -----------------
+# chmod 700 .ssh
+# chmod 600 .ssh/id_rsa
+# chmod 644 .ssh/id_rsa.pub
+# ssh-add
+
 set -e
 
 git_root="$(git rev-parse --show-toplevel)"
@@ -14,32 +27,38 @@ git config --global core.quotepath false
 git config --global pull.rebase false
 git config --global fetch.prune true
 
-if [ ! -f ~/.ssh/id_rsa ]; then
-    echo "copy ssh key"
-    mkdir -p ~/.ssh
-    cp $source_repo/res/id_rsa ~/.ssh
-    cp $source_repo/res/id_rsa.pub ~/.ssh
-    chmod 700 ~/.ssh
-    chmod 600 ~/.ssh/id_rsa
-    chmod 644 ~/.ssh/id_rsa.pub
-fi
+function clone_repo() {
+    mkdir -p "$1"
+    cd "$1"
+    if [ ! -d "$1/.git" ]; then
+        echo "git clone $2 -b $3" \
+        && git init \
+        && git remote add origin git@gitee.com:$2 \
+        && git fetch \
+        && git checkout origin/$3 -b $3
+    fi
+    if [ `git remote|wc --lines` -lt 2 ]; then
+        echo "git remote add backup git@github.com:$2"
+        git remote add backup git@github.com:$2
+    fi
+    git config user.name jaysinco
+    git config user.email jaysinco@163.com
+}
 
-if [ ! -f ~/.local/share/fonts/'Hack Regular Nerd Font Complete.ttf' ]; then
-    echo "copy fonts"
-    mkdir -p ~/.local/share/fonts
-    unzip $source_repo/font-hack.zip -d ~/.local/share/fonts/
-fi
-
-if [ ! -f "/etc/profile.d/git-prompt.sh" ]; then
-    echo "copy git-prompt.sh"
-    cp $script_dir/git-prompt.sh /etc/profile.d/
-fi
-
-if ! grep -q "mirrors.tuna.tsinghua.edu.cn" /etc/apt/sources.list; then
-    echo "change apt sources list"
-    sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
-    sudo -- printf 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\ndeb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\ndeb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse\n' > /etc/apt/sources.list
-    sudo apt-get update -y
-fi
+clone_repo $git_root jaysinco/Prototyping.git master
+clone_repo $HOME/.config/nvim jaysinco/nvim.git master
 
 if [ ! -f "/usr/bin/ninja" ]; then sudo apt-get install ninja-build; fi
+if [ ! -f "/usr/bin/unzip" ]; then sudo apt-get install unzip; fi
+
+if [ ! -f "/usr/bin/nvim" ]; then
+    echo "install nvim"
+    sudo tar zxf $source_repo/nvim-v0.7.2-linux-x86_64.tar.gz --directory=/usr --strip-components=1
+fi
+
+nvim_data_dir=$HOME/.local/share/nvim
+if [ ! -d "$nvim_data_dir/site" ]; then
+    echo "copy nvim data"
+    mkdir -p $nvim_data_dir
+    unzip -q $source_repo/nvim-data-site-v0.7.2-linux-x86_64.zip -d $nvim_data_dir
+fi
