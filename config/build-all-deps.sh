@@ -8,9 +8,9 @@ git_root="$(git rev-parse --show-toplevel)"
 function package() {
     local build_debug=$1
     local name=$2
-    $git_root/deps/build.sh $name -r && \
+    $git_root/recipes/build.sh $name -r && \
     if [ $build_debug -eq 1 ]; then
-        $git_root/deps/build.sh $name -r -d
+        $git_root/recipes/build.sh $name -r -d
     fi
 }
 

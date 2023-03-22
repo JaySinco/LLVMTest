@@ -51,7 +51,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 git_root="$(git rev-parse --show-toplevel)"
 
 export JAYSINCO_SOURCE_REPO=/mnt/c/Users/jaysinco/OneDrive/src
-export PYTHONPATH=$git_root/deps
+export PYTHONPATH=$git_root/recipes
 
 conan_ref="jaysinco/stable"
 conan_profile="$git_root/config/conan.profile"
@@ -114,7 +114,7 @@ function do_recipe() {
 }
 
 for target in "${build_targets[@]}"; do
-    target_dir=$git_root/deps/$target
+    target_dir=$git_root/recipes/$target
     if [ ! -d "$target_dir" ]; then
         echo "skip non-existent target '$target'" && continue
     fi
