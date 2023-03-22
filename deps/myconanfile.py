@@ -4,7 +4,7 @@ from typing import List
 import os
 
 class MyConanFile(ConanFile):
-    url = "https://github.com/JaySinco/dev-setup"
+    url = "https://github.com/JaySinco/Prototyping"
 
     def export(self):
         copy(self, "myconanfile.py", dst=self.export_folder, src=self._dirname(__file__))

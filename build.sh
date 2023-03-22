@@ -31,32 +31,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-case "$(uname -m)" in
-    x86_64)   arch=x64 ;;
-esac
-
-case "$OSTYPE" in
-    linux*)   os=linux ;;
-    msys*)    os=windows ;;
-esac
-
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 git_root="$(git rev-parse --show-toplevel)"
 
-if [ $os = "linux" ]; then
-    source_repo=$git_root/../dev-setup/linux/src
-elif [ $os = "windows" ]; then
-    source_repo=$USERPROFILE/OneDrive/src
-fi
-
-export JAYSINCO_SOURCE_REPO=$source_repo
+export JAYSINCO_SOURCE_REPO=/mnt/c/Users/jaysinco/OneDrive/src
 
 build_type=Debug
 if [ $build_release -eq 1 ]; then
     build_type=Release
 fi
 
-conan_profile=$git_root/../dev-setup/$os/$arch/conan.profile
+conan_profile=$git_root/config/conan.profile
 build_folder=$git_root/out/$build_type
 
 if [ $do_clean -eq 1 ]; then

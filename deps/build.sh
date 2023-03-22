@@ -47,29 +47,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-case "$(uname -m)" in
-    x86_64)   arch=x64 ;;
-esac
-
-case "$OSTYPE" in
-    linux*)   os=linux ;;
-    msys*)    os=windows ;;
-esac
-
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 git_root="$(git rev-parse --show-toplevel)"
 
-if [ $os = "linux" ]; then
-    source_repo=$git_root/../dev-setup/linux/src
-elif [ $os = "windows" ]; then
-    source_repo=$USERPROFILE/OneDrive/src
-fi
-
-export JAYSINCO_SOURCE_REPO=$source_repo
-export PYTHONPATH=$git_root/../dev-setup/recipes
+export JAYSINCO_SOURCE_REPO=/mnt/c/Users/jaysinco/OneDrive/src
+export PYTHONPATH=$git_root/deps
 
 conan_ref="jaysinco/stable"
-conan_profile="$git_root/../dev-setup/$os/$arch/conan.profile"
+conan_profile="$git_root/config/conan.profile"
 build_type=Release
 
 if [ $build_debug -eq 1 ]; then
@@ -129,7 +114,7 @@ function do_recipe() {
 }
 
 for target in "${build_targets[@]}"; do
-    target_dir=$git_root/../dev-setup/recipes/$target
+    target_dir=$git_root/deps/$target
     if [ ! -d "$target_dir" ]; then
         echo "skip non-existent target '$target'" && continue
     fi
