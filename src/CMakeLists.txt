@@ -12,12 +12,6 @@ macro(single_file_executable)
 endmacro()
 
 add_subdirectory(utils)
-add_subdirectory(gym)
-add_subdirectory(gomoku)
 add_subdirectory(parser)
 add_subdirectory(shaders)
 add_subdirectory(test)
-
-if (WIN32)
-    add_subdirectory(net)
-endif()

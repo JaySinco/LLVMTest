@@ -49,22 +49,12 @@ function clone_repo() {
 clone_repo $git_root jaysinco/Prototyping.git master
 clone_repo $HOME/.config/nvim jaysinco/nvim.git master
 
-if [ ! -f "/usr/bin/gcc-11" ]; then
-    sudo apt-get install -y gcc-11 g++-11
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 60 \
-        --slave /usr/bin/g++ g++ /usr/bin/g++-11
-fi
-
-if [ ! -f "/usr/bin/clangd-15" ]; then
-    sudo apt-get install -y clangd-15 clang-format-15 clang-tidy-15 lldb-15
-    sudo update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-15 60 \
-        --slave /usr/bin/clang-format clang-format /usr/bin/clang-format-15 \
-        --slave /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-15 \
-        --slave /usr/bin/lldb lldb /usr/bin/lldb-15 \
-        --slave /usr/bin/lldb-vscode lldb-vscode /usr/bin/lldb-vscode-15 \
-        --slave /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-15
-fi
-
+if [ ! -f "/usr/bin/gcc" ]; then sudo apt-get install -y gcc; fi
+if [ ! -f "/usr/bin/g++" ]; then sudo apt-get install -y g++; fi
+if [ ! -f "/usr/bin/clangd" ]; then sudo apt-get install -y clangd; fi
+if [ ! -f "/usr/bin/clang-format" ]; then sudo apt-get install -y clang-format; fi
+if [ ! -f "/usr/bin/clang-tidy" ]; then sudo apt-get install -y clang-tidy; fi
+if [ ! -f "/usr/bin/lldb" ]; then sudo apt-get install -y lldb; fi
 if [ ! -f "/usr/bin/ninja" ]; then sudo apt-get install -y ninja-build; fi
 if [ ! -f "/usr/bin/unzip" ]; then sudo apt-get install -y unzip; fi
 if [ ! -f "/usr/bin/cmake" ]; then sudo apt-get install -y cmake; fi
