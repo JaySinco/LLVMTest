@@ -18,7 +18,6 @@ echo start! \
 && package 1 fmt \
 && package 1 spdlog \
 && package 0 boost \
-&& package 1 glfw \
 && package 1 catch2 \
 && package 0 expected-lite \
 && package 1 zlib \

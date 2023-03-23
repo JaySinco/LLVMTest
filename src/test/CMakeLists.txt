@@ -5,5 +5,5 @@ add_executable(${MAIN} main.cpp)
 target_link_libraries(${MAIN} utils)
 
 single_file_executable(https-server utils uWebSockets)
-single_file_executable(concurrent-queue utils concurrentqueue)
+single_file_executable(concurrent-queue utils concurrent-queue)
 single_file_executable(thread-pool utils threadpool)
