@@ -1,2 +1,4 @@
 * text=auto
 *.py linguist-detectable=false
+*.fs linguist-detectable=false
+*.vs linguist-detectable=false
