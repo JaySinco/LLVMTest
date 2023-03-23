@@ -39,7 +39,7 @@ class RaylibConan(MyConanFile):
         tc = CMakeToolchain(self)
         tc.variables["BUILD_EXAMPLES"] = True
         tc.variables["USE_EXTERNAL_GLFW"] = False
-        tc.variables["OPENGL_VERSION"] = "4.3"
+        tc.variables["OPENGL_VERSION"] = "3.3"
         tc.generate()
 
     def build(self):

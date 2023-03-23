@@ -62,6 +62,11 @@ if [ ! -f "/usr/bin/node" ]; then sudo apt-get install -y nodejs; fi
 if [ ! -f "/usr/bin/pip3" ]; then sudo apt-get install -y python3-pip; fi
 if [ ! -f "$HOME/.local/bin/conan" ]; then pip3 install conan==1.52 -i https://pypi.tuna.tsinghua.edu.cn/simple; fi
 if [ ! -f "/usr/bin/pyright" ]; then sudo npm install -g pyright; fi
+if [ ! -f "/usr/bin/rg" ]; then sudo apt-get install -y ripgrep; fi
+
+if [ ! -f "/usr/lib/x86_64-linux-gnu/libXi.so" ]; then
+    sudo apt-get install -y libxi-dev libxrandr-dev libxinerama-dev libxcursor-dev
+fi
 
 if [ ! -f "/usr/bin/nvim" ]; then
     echo "install nvim"

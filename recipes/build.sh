@@ -52,6 +52,7 @@ git_root="$(git rev-parse --show-toplevel)"
 
 export JAYSINCO_SOURCE_REPO=/mnt/c/Users/jaysinco/OneDrive/src
 export PYTHONPATH=$git_root/recipes
+export CONAN_CPU_COUNT=4
 
 conan_ref="jaysinco/stable"
 conan_profile="$git_root/config/conan.profile"

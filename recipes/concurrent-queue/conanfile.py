@@ -5,7 +5,7 @@ from conan.tools.files import copy
 
 
 class ConcurrentqueueConan(MyConanFile):
-    name = "concurrentqueue"
+    name = "concurrent-queue"
     version = "1.0.3"
     homepage = "https://github.com/cameron314/concurrentqueue"
     description = "A fast multi-producer, multi-consumer lock-free concurrent queue for C++11"
@@ -28,8 +28,8 @@ class ConcurrentqueueConan(MyConanFile):
                 dst=os.path.join(self.package_folder, "include", "moodycamel"))
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "concurrentqueue")
-        self.cpp_info.set_property("cmake_target_name", "concurrentqueue")
-        self.cpp_info.set_property("pkg_config_name", "concurrentqueue")
+        self.cpp_info.set_property("cmake_file_name", "concurrent-queue")
+        self.cpp_info.set_property("cmake_target_name", "concurrent-queue")
+        self.cpp_info.set_property("pkg_config_name", "concurrent-queue")
         if self.settings.os in ["Linux", "FreeBSD"]:
             self.cpp_info.system_libs = ["pthread"]
