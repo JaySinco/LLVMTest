@@ -79,7 +79,7 @@ struct Expression: qi::grammar<Iterator, ast::Employee()>
 void parsing(std::filesystem::path const& source_file)
 {
     using Iterator = boost::spirit::line_pos_iterator<std::wstring::const_iterator>;
-    auto raw = utils::readFile(source_file.wstring());
+    auto raw = utils::readFile(source_file);
     std::wstring input = utils::s2ws(*raw, utils::CodePage::kUTF8);
     Iterator beg(input.begin());
     Iterator end(input.end());
@@ -92,5 +92,5 @@ void parsing(std::filesystem::path const& source_file)
 int main(int argc, char** argv)
 {
     INIT_LOG(argc, argv);
-    parsing(CURR_RESDIR / "input.txt");
+    parsing(utils::projectRoot() / "src/parser/res/input.txt");
 }

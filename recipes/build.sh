@@ -50,7 +50,6 @@ done
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 git_root="$(git rev-parse --show-toplevel)"
 
-export JAYSINCO_SOURCE_REPO=/mnt/c/Users/jaysinco/OneDrive/src
 export PYTHONPATH=$git_root/recipes
 
 conan_ref="jaysinco/stable"

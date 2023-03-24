@@ -1,48 +1,44 @@
 #include "fs.h"
 #include "encoding.h"
-#ifdef __linux__
 #include <unistd.h>
 #include <limits.h>
 #include <libgen.h>
-#elif _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 #include <fstream>
 #include <sstream>
 
 namespace utils
 {
 
-std::filesystem::path sourceRepo() { return std::filesystem::path(_SOURCE_REPO); }
-
-std::wstring getExeDir()
+std::filesystem::path const& sourceRepo()
 {
-#ifdef __linux__
+    static std::filesystem::path repo(std::getenv("MY_SOURCE_REPO"));
+    return repo;
+}
+
+std::filesystem::path const& projectRoot()
+{
+    static auto root = currentExeDir().parent_path();
+    return root;
+}
+
+static std::filesystem::path currentExeDirImpl()
+{
     char cep[PATH_MAX] = {0};
     int n = readlink("/proc/self/exe", cep, PATH_MAX);
-    return s2ws(dirname(cep));
-#elif _WIN32
-    wchar_t buf[MAX_PATH + 1] = {0};
-    GetModuleFileNameW(nullptr, buf, MAX_PATH);
-    (wcsrchr(buf, L'\\'))[0] = 0;
-    return buf;
-#endif
+    return std::filesystem::path(cep).parent_path();
 }
 
-std::wstring defaultLoggingDir()
+std::filesystem::path const& currentExeDir()
 {
-    auto path = std::filesystem::path(getExeDir()) / "logs";
-    return path.generic_wstring();
+    static auto ced = currentExeDirImpl();
+    return ced;
 }
 
-Expected<std::string> readFile(std::wstring_view path)
+std::filesystem::path defaultLoggingDir() { return currentExeDir() / "logs"; }
+
+Expected<std::string> readFile(std::filesystem::path const& path)
 {
-#ifdef __linux__
-    std::ifstream in_file(ws2s(path));
-#elif _WIN32
     std::ifstream in_file(path);
-#endif
     if (!in_file) {
         return unexpected("failed to open file");
     }

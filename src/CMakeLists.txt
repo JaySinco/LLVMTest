@@ -13,5 +13,4 @@ endmacro()
 
 add_subdirectory(utils)
 add_subdirectory(parser)
-add_subdirectory(shaders)
 add_subdirectory(test)

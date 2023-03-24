@@ -18,7 +18,7 @@ class MyConanFile(ConanFile):
             self.folders.build, "generators")
 
     def _src_abspath(self, filename: str):
-        return os.path.join(tools.get_env("JAYSINCO_SOURCE_REPO"), filename)
+        return os.path.join(tools.get_env("MY_SOURCE_REPO"), filename)
 
     def _ref_pkg(self, pkgname: str):
         return f"{pkgname}@jaysinco/stable"

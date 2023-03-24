@@ -24,7 +24,6 @@ echo start! \
 && package 0 openssl \
 && package 0 range-v3 \
 && package 1 libiconv \
-&& package 1 raylib \
 && package 0 nlohmann-json \
 && package 1 libuv \
 && package 1 usockets \

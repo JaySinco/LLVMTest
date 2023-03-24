@@ -36,6 +36,7 @@ enum LogLevel : int
 };
 
 void initLogger(std::string const& program, bool logtostderr, bool logtofile, LogLevel minloglevel,
-                LogLevel logbuflevel, int logbufsecs, std::string const& logdir, int maxlogsize);
+                LogLevel logbuflevel, int logbufsecs, std::filesystem::path const& logdir,
+                int maxlogsize);
 
 }  // namespace utils

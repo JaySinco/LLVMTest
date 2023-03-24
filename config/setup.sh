@@ -11,7 +11,6 @@ set -e
 
 git_root="$(git rev-parse --show-toplevel)"
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-source_repo=/mnt/c/Users/jaysinco/OneDrive/src
 
 if ! lsb_release -r | grep -q "20.04"; then
     echo "ubuntu:20.04 required!"
@@ -70,12 +69,12 @@ fi
 
 if [ ! -f "/usr/bin/nvim" ]; then
     echo "install nvim"
-    sudo tar zxf $source_repo/nvim-v0.7.2-linux-x86_64.tar.gz --directory=/usr --strip-components=1
+    sudo tar zxf $MY_SOURCE_REPO/nvim-v0.7.2-linux-x86_64.tar.gz --directory=/usr --strip-components=1
 fi
 
 nvim_data_dir=$HOME/.local/share/nvim
 if [ ! -d "$nvim_data_dir/site" ]; then
     echo "copy nvim data"
     mkdir -p $nvim_data_dir
-    unzip -q $source_repo/nvim-data-site-v0.7.2-linux-x86_64.zip -d $nvim_data_dir
+    unzip -q $MY_SOURCE_REPO/nvim-data-site-v0.7.2-linux-x86_64.zip -d $nvim_data_dir
 fi

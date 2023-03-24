@@ -93,7 +93,7 @@ void Args::parse(po::command_line_parser& parser, bool init_logger)
         initLogger(program_, get<bool>("logtostderr"), get<bool>("logtofile"),
                    static_cast<LogLevel>(get<int>("minloglevel")),
                    static_cast<LogLevel>(get<int>("logbuflevel")), get<int>("logbufsecs"),
-                   ws2s(defaultLoggingDir()), get<int>("maxlogsize"));
+                   defaultLoggingDir(), get<int>("maxlogsize"));
     }
 }
 
