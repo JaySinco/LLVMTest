@@ -50,10 +50,10 @@ clone_repo $HOME/.config/nvim jaysinco/nvim.git master
 
 if [ ! -f "/usr/bin/gcc" ]; then sudo apt-get install -y gcc; fi
 if [ ! -f "/usr/bin/g++" ]; then sudo apt-get install -y g++; fi
+if [ ! -f "/usr/bin/gdb" ]; then sudo apt-get install -y gdb; fi
 if [ ! -f "/usr/bin/clangd" ]; then sudo apt-get install -y clangd; fi
 if [ ! -f "/usr/bin/clang-format" ]; then sudo apt-get install -y clang-format; fi
 if [ ! -f "/usr/bin/clang-tidy" ]; then sudo apt-get install -y clang-tidy; fi
-if [ ! -f "/usr/bin/lldb" ]; then sudo apt-get install -y lldb; fi
 if [ ! -f "/usr/bin/ninja" ]; then sudo apt-get install -y ninja-build; fi
 if [ ! -f "/usr/bin/unzip" ]; then sudo apt-get install -y unzip; fi
 if [ ! -f "/usr/bin/cmake" ]; then sudo apt-get install -y cmake; fi
