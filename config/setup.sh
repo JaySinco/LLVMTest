@@ -11,6 +11,7 @@ set -e
 
 git_root="$(git rev-parse --show-toplevel)"
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+os_arch=`arch`
 
 if ! lsb_release -r | grep -q "20.04"; then
     echo "ubuntu:20.04 required!"
@@ -51,10 +52,15 @@ clone_repo $HOME/.config/nvim jaysinco/nvim.git master
 if [ ! -f "/usr/bin/gcc" ]; then sudo apt-get install -y gcc; fi
 if [ ! -f "/usr/bin/g++" ]; then sudo apt-get install -y g++; fi
 if [ ! -f "/usr/bin/gdb" ]; then sudo apt-get install -y gdb; fi
-if [ ! -f "/usr/bin/clangd" ]; then sudo apt-get install -y clangd; fi
-if [ ! -f "/usr/bin/clang-format" ]; then sudo apt-get install -y clang-format; fi
-if [ ! -f "/usr/bin/clang-tidy" ]; then sudo apt-get install -y clang-tidy; fi
+if [ ! -f "/usr/bin/clangd-15" ]; then sudo apt-get install -y clangd-15; fi
+if [ ! -f "/usr/bin/clang-format-15" ]; then sudo apt-get install -y clang-format-15; fi
+if [ ! -f "/usr/bin/clang-tidy-15" ]; then sudo apt-get install -y clang-tidy-15; fi
+if [ ! -f "/usr/bin/clangd" ]; then sudo ln -s /usr/bin/clangd-15 /usr/bin/clangd; fi
+if [ ! -f "/usr/bin/clang-format" ]; then sudo ln -s /usr/bin/clang-format-15 /usr/bin/clang-format; fi
+if [ ! -f "/usr/bin/clang-tidy" ]; then sudo ln -s /usr/bin/clang-tidy-15 /usr/bin/clang-tidy; fi
 if [ ! -f "/usr/bin/ninja" ]; then sudo apt-get install -y ninja-build; fi
+if [ ! -f "/usr/bin/xclip" ]; then sudo apt-get install -y xclip; fi
+if [ ! -f "/usr/bin/zip" ]; then sudo apt-get install -y zip; fi
 if [ ! -f "/usr/bin/unzip" ]; then sudo apt-get install -y unzip; fi
 if [ ! -f "/usr/bin/cmake" ]; then sudo apt-get install -y cmake; fi
 if [ ! -f "/usr/bin/node" ]; then sudo apt-get install -y nodejs; fi
@@ -63,20 +69,21 @@ if [ ! -f "$HOME/.local/bin/conan" ]; then pip3 install conan==1.52 -i https://p
 if [ ! -f "/usr/bin/pyright" ]; then sudo npm install -g pyright; fi
 if [ ! -f "/usr/bin/rg" ]; then sudo apt-get install -y ripgrep; fi
 
+MY_SOURCE_REPO=/mnt/c/Users/jaysinco/OneDrive/src 
+if ! grep -q "MY_SOURCE_REPO=" ~/.bashrc; then
+    echo "set source repo"
+    printf "\nexport MY_SOURCE_REPO=$MY_SOURCE_REPO\n" >> ~/.bashrc
+fi
+
 if [ ! -f "/usr/bin/nvim" ]; then
     echo "install nvim"
-    sudo tar zxf $MY_SOURCE_REPO/nvim-v0.7.2-linux-x86_64.tar.gz --directory=/usr --strip-components=1
+    sudo tar zxf $MY_SOURCE_REPO/nvim-v0.7.2-linux-$os_arch.tar.gz --directory=/usr --strip-components=1
 fi
 
 nvim_data_dir=$HOME/.local/share/nvim
 if [ ! -d "$nvim_data_dir/site" ]; then
     echo "copy nvim data"
     mkdir -p $nvim_data_dir
-    unzip -q $MY_SOURCE_REPO/nvim-data-site-v0.7.2-linux-x86_64.zip -d $nvim_data_dir
+    unzip -q $MY_SOURCE_REPO/nvim-data-site-v0.7.2-linux-$os_arch.zip -d $nvim_data_dir
 fi
 
-if ! grep -q "MY_SOURCE_REPO=" ~/.bashrc; then
-    echo "set source repo"
-    echo "export MY_SOURCE_REPO=/mnt/c/Users/jaysinco/OneDrive/src" >> ~/.bashrc
-    source ~/.bashrc
-fi
