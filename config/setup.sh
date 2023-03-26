@@ -87,3 +87,5 @@ if [ ! -d "$nvim_data_dir/site" ]; then
     unzip -q $MY_SOURCE_REPO/nvim-data-site-v0.7.2-linux-$os_arch.zip -d $nvim_data_dir
 fi
 
+echo "done!"
+
